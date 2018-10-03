@@ -1,0 +1,42 @@
+aamain.f:      use parallel
+aamain.f:c module parallel is to specify idproc (needed to print from just proc 0)
+aamain.f:      call init_parallel
+aamain.f:      use parallel, only : idproc  !for diagnostic printouts from proc 0
+aamain.f:      use parallel
+aamain.f:      call end_parallel
+elem.f:c     describing a parallel-faced bending magnet
+elem.f:c  for half of a parallel face bending magnet.
+parallel_mod.f:module parallel
+parallel_mod.f:      subroutine init_parallel
+parallel_mod.f:      end subroutine init_parallel
+parallel_mod.f:      subroutine end_parallel
+parallel_mod.f:      end subroutine end_parallel
+parallel_mod.f:end module parallel
+pcmap.f:      use parallel
+pure.f:      use parallel, only : idproc
+pure.f:      use parallel, only : idproc
+pure.f:      use parallel, only : idproc
+sbend.f:      use parallel, only : idproc  !for diagnostic printouts from proc 0
+sbend.f:!      use parallel
+sbend.f:!      call end_parallel
+aamain.f90:      use parallel
+aamain.f90:c module parallel is to specify idproc (needed to print from just proc 0)
+aamain.f90:      call init_parallel
+aamain.f90:      use parallel, only : idproc  !for diagnostic printouts from proc 0
+aamain.f90:      use parallel
+aamain.f90:      call end_parallel
+elem.f90:c     describing a parallel-faced bending magnet
+elem.f90:c  for half of a parallel face bending magnet.
+parallel_mod.f90:module parallel
+parallel_mod.f90:      subroutine init_parallel
+parallel_mod.f90:      end subroutine init_parallel
+parallel_mod.f90:      subroutine end_parallel
+parallel_mod.f90:      end subroutine end_parallel
+parallel_mod.f90:end module parallel
+pcmap.f90:      use parallel
+pure.f90:      use parallel, only : idproc
+pure.f90:      use parallel, only : idproc
+pure.f90:      use parallel, only : idproc
+sbend.f90:      use parallel, only : idproc  !for diagnostic printouts from proc 0
+sbend.f90:!      use parallel
+sbend.f90:!      call end_parallel

@@ -1,0 +1,3 @@
+xlf -o bendmap.x beam_mod.f90 parallel_mod.f90 liea_mod.f90 \
+aamain.f book.f comm1.f liea.f elem.f sss.f pcmap.f set_pscale.f base.f \
+math.f hamdrift.f cex.f genm.f pure.f hmltn12345.f mpi.f

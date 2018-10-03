@@ -1,0 +1,2 @@
+ftn -c  -O3 beam_mod.f parallel_mod.f liea_mod.f
+ftn -c -O3 book.f comm1.f liea.f elem.f sss.f pcmap.f set_pscale.f  base.f math.f hamdrift.f cex.f genm.f pure.f hmltn12345.f sbend.f trac.f
