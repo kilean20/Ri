@@ -1,0 +1,71 @@
+        integer, private :: Nx,Ny,Nz,Nxlocal,Nylocal,Nzlocal,Flagbc,&
+        call in_Input(Dim,Np,Nx,Ny,Nz,Flagbc,Flagdist,Rstartflg,&
+               Nx,Ny,Nz,grid2d,nprow,npcol,Flagbc,xrad,yrad,Perdlen)
+          call sample_Dist(Bpts,distparam,21,Flagdist,Ageom,grid2d,Flagbc,&
+        integer :: nsubstep,integerSamplePeriod,Flagbctmp
+        if((Flagbc.eq.4) .or. (Flagbc.eq.6)) then !(odd,odd,odd)
+        else if((Flagbc.eq.3) .or. (Flagbc.eq.5)) then !(odd,odd,even)
+        else if(Flagbc.eq.2) then !(even,even,odd)
+        if(Flagbc.eq.3) then
+            else if(Flagbc.eq.7) then 
+                                   Flagbc,Perdlen,piperad,piperad2)
+                if((Flagbc.eq.3).or.(Flagbc.eq.4)) then
+            if(Flagbc.eq.4 .or. Flagbc.eq.6) then
+            !if(Flagbc.eq.4) then
+                call update_CompDom(Ageom,ptrange,grid2d,Flagbc)
+                call updateglb_CompDom(Ageom,ptrange,grid2d,Flagbc)
+              if((Flagbc.eq.3).or.(Flagbc.eq.4)) then
+                                  grid2d,chgdens,Flagbc,Perdlen)
+              if((Flagbc.eq.3).or.(Flagbc.eq.4)) then
+              if((Flagbc.eq.3).or.(Flagbc.eq.4)) then
+                                    Ageom,grid2d,chgdens,Flagbc,Perdlen)
+            if(Flagbc.eq.1) then
+            else if(Flagbc.eq.2) then
+            else if(Flagbc.eq.3) then
+            else if(Flagbc.eq.4) then
+            else if(Flagbc.eq.5) then
+            else if(Flagbc.eq.6) then
+            else if(Flagbc.eq.8) then
+                   Potential%FieldQ,Ageom,grid2d,Flagbc,Perdlen,exwake,eywake,&
+                if(Flagbc.eq.7) then
+                   Flagbc,flagcoll)
+                   Potential%FieldQ,Ageom,grid2d,Flagbc,Perdlen,flagcoll)
+                           Nzlocal,Potential%FieldQ,Ageom,grid2d,Flagbc,Flagerr,&
+                           Nz,glpot,Ageom,grid2d,Flagbc,Flagerr,&
+                           Nzlocal,Potential%FieldQ,Ageom,grid2d,Flagbc,Flagerr,flagcoll)
+                           Nz,glpot,Ageom,grid2d,Flagbc,Flagerr,flagcoll)
+               if(Flagbc.eq.7) then
+            Flagbctmp = 1
+              call update_CompDom(Ageom,ptrange,grid2d,Flagbctmp)
+                                  grid2d,chgdens,Flagbc,Perdlen)
+                      Nzlocal,Potential%FieldQ,Ageom,grid2d,Flagbc,Flagerr)
+        if(Flagbc.eq.3) then
+        if(Flagbc.eq.3) then
+            if(Flagbc.eq.7) goto 200
+                                   Flagbc,Perdlen,piperad,piperad2)
+              if((Flagbc.eq.3).or.(Flagbc.eq.4)) then
+            if(Flagbc.eq.4) then
+              call update_CompDom(Ageom,ptrange,grid2d,Flagbc)
+              if((Flagbc.eq.3).or.(Flagbc.eq.4)) then
+                                  grid2d,chgdens,Flagbc,Perdlen)
+              if(Flagbc.eq.3) then
+              if((Flagbc.eq.3).or.(Flagbc.eq.4)) then
+                                    Ageom,grid2d,chgdens,Flagbc,Perdlen)
+            if(Flagbc.eq.1) then
+            else if(Flagbc.eq.2) then
+            else if(Flagbc.eq.3) then
+            else if(Flagbc.eq.4) then
+            else if(Flagbc.eq.5) then
+            else if(Flagbc.eq.6) then
+            else if(Flagbc.eq.8) then
+              if((Flagbc.eq.3).or.(Flagbc.eq.4)) then
+              !     Potential%FieldQ,Ageom,grid2d,Flagbc,Perdlen,flagcoll)
+               if(Flagbc.eq.7) then
+                   Flagbc,flagcoll)
+                   Potential%FieldQ,Ageom,grid2d,Flagbc,Perdlen,flagcoll)
+              !     glpot,Ageom,grid2d,Flagbc,Perdlen,flagcoll)
+                   Nzlocal,Potential%FieldQ,Ageom,grid2d,Flagbc,Flagerr,&
+              !             Nz,glpot,Ageom,grid2d,Flagbc,Flagerr,flagcoll)
+!              print*,"At critical location, Flagbc = ",Flagbc
+!            if(Flagbc.eq.7) then    !Diagnostic output for symplectic SC solver:
+        if(Flagbc.eq.3) then
