@@ -2545,7 +2545,11 @@
 
         end subroutine phaseold_Output
 
+
         subroutine phase_Output(nfile,this,samplePeriod)
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        !   Modified to output binary format when nfile < 0 (Kilean)
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         implicit none
         include 'mpif.h'
         integer, intent(in) :: nfile
@@ -2555,11 +2559,20 @@
         integer status(MPI_STATUS_SIZE)
         integer :: i,j,sixnpt,mnpt
         integer, allocatable, dimension(:) :: nptlist
-        double precision, allocatable,dimension(:,:) :: recvbuf
-
+        double precision, allocatable,dimension(:,:) :: recvbuf  
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        logical :: flagBinary
+        if(nfile < 0 ) then
+          flagBinary = .True.
+        else
+          flagBinary = .False.
+        endif
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        
         if (samplePeriod .eq. 0) then
            samplePeriod = 1
         endif
+
 
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
@@ -2574,28 +2587,45 @@
                         MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
         nptlist = 9*nptlist
-
-        if(my_rank.eq.0) then
-          open(nfile,status='unknown')
-          do i = 1, this%Nptlocal,samplePeriod
-            write(nfile,100)this%Pts1(1,i),this%Pts1(2,i),this%Pts1(3,i),&
-                            this%Pts1(4,i),this%Pts1(5,i),this%Pts1(6,i),&
-                            this%Pts1(7,i),this%Pts1(8,i),this%Pts1(9,i)
-          enddo
-          do i = 1, np-1
-            call MPI_RECV(recvbuf(1,1),nptlist(i),MPI_DOUBLE_PRECISION,&
-                          i,1,MPI_COMM_WORLD,status,ierr) 
         
-            do j = 1, nptlist(i)/9,samplePeriod
-              write(nfile,100)recvbuf(1,j),recvbuf(2,j),recvbuf(3,j),&
-                              recvbuf(4,j),recvbuf(5,j),recvbuf(6,j),&
-                              recvbuf(7,j),recvbuf(8,j),recvbuf(9,j)
+        if(my_rank.eq.0) then
+          !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+          if(flagBinary) then
+            open(-nfile,status='unknown',form='unformatted',&
+                        action='write')
+            do i = 1, this%Nptlocal,samplePeriod
+              write(-nfile) this%Pts1(1:9,i)
             enddo
-          enddo
-          close(nfile)
+            do i = 1, np-1
+              call MPI_RECV(recvbuf(1,1),nptlist(i),MPI_DOUBLE_PRECISION,&
+                            i,1,MPI_COMM_WORLD,status,ierr) 
+          
+              do j = 1, nptlist(i)/9,samplePeriod
+                write(-nfile) recvbuf(1:9,j)
+              enddo
+            enddo
+            close(-nfile)
+          else
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            open(nfile,status='unknown')
+            do i = 1, this%Nptlocal,samplePeriod
+              write(nfile,100)this%Pts1(1:9,i)
+            enddo
+            do i = 1, np-1
+              call MPI_RECV(recvbuf(1,1),nptlist(i),MPI_DOUBLE_PRECISION,&
+                            i,1,MPI_COMM_WORLD,status,ierr) 
+          
+              do j = 1, nptlist(i)/9,samplePeriod
+                write(nfile,100)recvbuf(1:9,j)
+              enddo
+            enddo
+            close(nfile)
+          !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+          endif
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
         else
           call MPI_SEND(this%Pts1(1,1),sixnpt,MPI_DOUBLE_PRECISION,0,1,&
-                        MPI_COMM_WORLD,ierr)
+                          MPI_COMM_WORLD,ierr)
         endif
 
 !100     format(9(1x,e16.9))

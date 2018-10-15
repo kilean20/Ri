@@ -874,7 +874,7 @@
 
         enddo
 !<<<<<<< initial raw data (Kilean) <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-call phase_Output(111110,Bpts,1)
+call phase_Output(-111110,Bpts,1)
 !<<<<<<<< end of initial raw data (Kilean)<<<<<<<<<<<<<<<<<<<<<<<<<<
 !-------------------------------------------------------------------
 !start looping through 'Nturn'
@@ -2224,7 +2224,7 @@ call phase_Output(111110,Bpts,1)
       enddo !end loop of Nturn 
 !-------------------
 !<<<<<<< final raw data (Kilean) <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-call phase_Output(111111,Bpts,1)
+call phase_Output(-111111,Bpts,1)
 !<<<<<<<< end of final raw data (Kilean)<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
