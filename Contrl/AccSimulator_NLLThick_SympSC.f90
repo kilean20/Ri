@@ -1033,7 +1033,8 @@ call phase_Output(-111110,Bpts,1)
           endif
           if(bitype.eq.-88) then
             call getparam_BeamLineElem(Blnelem(i),dparam)
-            call turn_by_turn_integral(Bpts,iturn,bmpstp,dparam(1),dparam(2),dparam(3),dparam(4))
+            call turn_by_turn_integral(Bpts,iturn,bmpstp,Blnelem(i)%Param(1),&
+                                       Blnelem(i)%Param(2),Blnelem(i)%Param(3),Blnelem(i)%Param(4))
           endif
 !>>>>>>>>>>>>>>>>>>>>>>> end of TBToutput >>>>>>>>>>>>>>>>>>>>>>>>>>>
           if(bitype.eq.-2) then
