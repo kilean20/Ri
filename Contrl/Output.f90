@@ -14,6 +14,7 @@
         use Pgrid2dclass
         use Fldmgerclass
         use PhysConstclass
+        use Multipoleclass
         !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Kilean
         private :: get_free_unit,num2str_int,sort
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Kilean
@@ -4201,7 +4202,7 @@
         end subroutine sort
 
 
-        subroutine turn_by_turn_pOut_multi(BB,iturn,fileID)
+        subroutine turn_by_turn_phasespace(BB,iturn,fileID)
         ! write phase-space of test particles (q=0) turn-by-turn
         implicit none
         include 'mpif.h'
@@ -4259,38 +4260,72 @@
 !            write(iUnit,*) recvbuf(:,i)
 !          enddo
         endif
-        end subroutine turn_by_turn_pOut_multi
+        end subroutine turn_by_turn_phasespace
         
-        subroutine turn_by_turn_pOut_single(BB,iturn,fileID)
-        ! write phase-space turn-by-turn
-        ! only a single partcle and single mpi task is assumed to be present
+        subroutine turn_by_turn_integral(BB,iturn,fileID,beta,alfa,tn,cn)
+        ! write phase-space of test particles (q=0) turn-by-turn
         implicit none
+        include 'mpif.h'
         type (BeamBunch), intent(in) :: BB
         integer, intent(in) :: iturn, fileID
+        double precision, intent(in) :: beta,alfa,cn,tn
+        integer, save :: iUnit
         logical, save :: flagConstructed = .false.
-        integer :: iUnit
+        integer :: i,j,ifail,np,my_rank,ierr,tpt,mtpt,sixnpt
+        integer :: status(MPI_STATUS_SIZE)
+        integer :: isTest(BB%Nptlocal)
+        integer, allocatable, dimension(:) :: nptlist,nptdisp
+        double precision :: xn,pxn,yn,pyn,Hinv,Iinv,gambet0
+        double precision, allocatable,dimension(:,:) :: recvbuf, sendbuf
         
-        if(BB%Npt/= 1) then
-          print*, 'number of partices must be 1 for element code -88.'
-          print*, ' Program exit...'
-          call exit()
+        print*, 'beta,alfa,cn,tn=',beta,alfa,cn,tn
+        call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+        call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
+        gambet0 = sqrt(BB%refptcl(6)**2-1.0d0) 
+        isTest = BB%Pts1(8,1:BB%Nptlocal) == 0.0  ! inteded type cast. ignore compiler warining.
+        tpt = sum(isTest)
+        allocate(sendbuf(3,tpt))
+        tpt = 0
+        do i=1,BB%Nptlocal
+          if(isTest(i)==1) then
+            tpt = tpt+1
+            xn = BB%Pts1(1,i)*Scxl/cn
+            pxn = BB%Pts1(2,i)/gambet0*sqrt(beta)/cn + alfa*xn
+            yn = BB%Pts1(3,i)*Scxl/cn
+            pyn = BB%Pts1(4,i)/gambet0*sqrt(beta)/cn + alfa*yn
+            call InvariantPotentials(xn,yn,Hinv,Iinv)
+            sendbuf(1,tpt) = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv
+            sendbuf(2,tpt) = sqrt((xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv)
+            sendbuf(3,tpt) = BB%Pts1(9,i)
+          endif
+        enddo
+        
+        allocate(nptlist(0:np-1))
+        allocate(nptdisp(0:np-1))
+        nptlist = 0
+        nptdisp = 0
+        call MPI_GATHER(tpt,1,MPI_INTEGER,nptlist,1,&
+                           MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+        mtpt = sum(nptlist)
+        nptlist = nptlist*3
+        do i=0,np-2
+          nptdisp(i+1) = nptlist(i)+nptdisp(i)
+        enddo
+        allocate(recvbuf(3,mtpt))
+        call MPI_GATHERV(sendbuf,tpt*3,MPI_DOUBLE_PRECISION,&
+                         recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
+                         0,MPI_COMM_WORLD,ierr)
+        if(my_rank.eq.0) then
+          call sort(recvbuf, 3, 3, mtpt, 1, mtpt)
+          open(iUnit,file='TBT.integral.'//trim(num2str_int(fileID)),form='unformatted',&
+               action='write', iostat=ifail)
+          if(ifail /= 0)  STOP '--- Error in opening TBT file ---'
+          write(iUnit) mtpt
+          write(iUnit) int(recvbuf(3,:))
+          write(iUnit) recvbuf(1:2,:)
+          flush(iUnit)
         endif
-        
-        iUnit = get_free_unit()
-        if(.not.flagConstructed) then
-          ! open(iUnit,file='TBT'//trim(num2str_int(fileID)),&
-               ! access='SEQUENTIAL', status='OLD', position='APPEND',iostat=ifail)
-          ! if(ifail /= 0)  STOP '--- Error in opening TBT file in APPEND mode ---'
-        ! else
-          open(iUnit,file='TBT.'//trim(num2str_int(fileID)))
-          flagConstructed = .true.
-        endif
-        write(iUnit,*) BB%Pts1(:,1)
-        
-        end subroutine turn_by_turn_pOut_single
-        
+        end subroutine turn_by_turn_integral
 !>>>>>>>>>>>>>>>>>>>> end of TBToutput(Kilean) >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-        
-        
       end module Outputclass

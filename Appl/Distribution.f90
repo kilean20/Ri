@@ -17,6 +17,7 @@
         use NumConstclass
         use PhysConstclass
         !<<<<<<<<<<<<<<< begin distIOTA type(Kilean)  <<<<<<<<<<<<<<<<<<
+        use Multipoleclass
         type, private :: distIOTA_class
           double precision :: t,c,beta,betap,emittance
           contains
@@ -12814,7 +12815,8 @@ end subroutine
     integer, parameter :: x_=1,y_=3
     
     zeta = dcmplx(xHat(x_),xHat(y_))/self%c
-    distIOTA_getH = 0.5d0*sum(xHat*xHat) + self%c*self%c*self%t*real(zeta/croot(zeta)*carcsin(zeta))
+    distIOTA_getH = 0.5d0*sum(xHat*xHat) + self%c*self%c*self%t*&
+                    real(zeta/croot(zeta)*carcsin(zeta))
     return
   end function distIOTA_getH
   
