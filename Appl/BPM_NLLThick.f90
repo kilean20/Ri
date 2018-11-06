@@ -131,9 +131,10 @@
         implicit none
         type (BPM), intent(in) :: this
         double precision, dimension(:), intent(out) :: blparams
-
-        blparams = this%Param
-
+        !<<<<<<<< Kilean <<<<<<<<<<
+        !blparams = this%Param
+        blparams(1:Nparam) = this%Param   ! Nparam = 8 in ver. 11/6/2018
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>
         end subroutine getparam2_BPM
 
         subroutine getparam3_BPM(this,blength,bnseg,bmapstp,&
