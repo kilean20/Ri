@@ -4257,6 +4257,7 @@
             if(isOn(i)) then
               if(UnitfID(2,i)==fileID) then
                 iUnit = UnitfID(1,i)
+                print*, 'init TBT iunit', i, UnitfID(:,i)
                 exit
               endif
             else
@@ -4267,6 +4268,7 @@
               open(iUnit,file='TBT.'//trim(num2str_int(fileID)),form='unformatted',&
                    action='write', iostat=ifail)
               if(ifail /= 0)  STOP '--- Error in opening TBT file ---'
+              print*, 'on TBT iunit', i, UnitfID(:,i)
               exit
             endif
           enddo
@@ -4343,16 +4345,18 @@
             if(isOn(i)) then
               if(UnitfID(2,i)==fileID) then
                 iUnit = UnitfID(1,i)
+                print*, 'init TBT.integral iunit', i, UnitfID(:,i)
                 exit
               endif
             else
               isOn(i) = .true.
               UnitfID(2,i)=fileID
-              UnitfID(1,i)=get_free_unit(3582)
+              UnitfID(1,i)=get_free_unit(7251)
               iUnit = UnitfID(1,i)
               open(iUnit,file='TBT.integral.'//trim(num2str_int(fileID)),form='unformatted',&
                    action='write', iostat=ifail)
               if(ifail /= 0)  STOP '--- Error in opening TBT.integral file ---'
+              print*, 'on TBT.integral iunit', i, UnitfID(:,i)
               exit
             endif
           enddo
