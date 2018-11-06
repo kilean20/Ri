@@ -4141,12 +4141,17 @@
         end subroutine end_Output
 
 !<<<<<<<<<<<<<<<<<<<<<<<<< TBT output(Kilean) <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        integer function get_free_unit()
+        integer function get_free_unit(init)
         ! get a unit numer not occupied by others
         implicit none 
+        integer,optional,intent(in) :: init
         integer :: lun 
         logical :: file_open 
-        lun = 4692 
+        if(present(init)) then
+          lun = init
+        else
+          lun = 4692 
+        endif
         file_open = .true. 
         do while ( file_open ) 
           lun = lun + 1 
@@ -4208,14 +4213,14 @@
         include 'mpif.h'
         type (BeamBunch), intent(in) :: BB
         integer, intent(in) :: iturn, fileID
-        integer, save :: iUnit
-        logical, save :: flagConstructed = .false.
-        integer :: i,j,ifail,np,my_rank,ierr,tpt,mtpt,sixnpt
+        integer, save :: unitfID(2,1000)
+        logical, save :: isOn(1000)=.false.
+        integer :: i,j,ifail,np,my_rank,ierr,tpt,mtpt,iUnit
         integer :: status(MPI_STATUS_SIZE)
         integer :: isTest(BB%Nptlocal)
         integer, allocatable, dimension(:) :: nptlist,nptdisp
         double precision, allocatable,dimension(:,:) :: recvbuf, sendbuf
-        
+             
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
         
@@ -4248,9 +4253,27 @@
                          0,MPI_COMM_WORLD,ierr)
         if(my_rank.eq.0) then
           call sort(recvbuf, 7, 7, mtpt, 1, mtpt)
-          open(iUnit,file='TBT.'//trim(num2str_int(fileID)),form='unformatted',&
-               action='write', iostat=ifail)
-          if(ifail /= 0)  STOP '--- Error in opening TBT file ---'
+          do i=1,1000
+            if(isOn(i)) then
+              if(UnitfID(2,i)==fileID) then
+                iUnit = UnitfID(1,i)
+                exit
+              endif
+            else
+              isOn(i) = .true.
+              UnitfID(2,i)=fileID
+              UnitfID(1,i)=get_free_unit(3582)
+              iUnit = UnitfID(1,i)
+              open(iUnit,file='TBT.'//trim(num2str_int(fileID)),form='unformatted',&
+                   action='write', iostat=ifail)
+              if(ifail /= 0)  STOP '--- Error in opening TBT file ---'
+              exit
+            endif
+          enddo
+          if(i==1000) then
+            STOP 'Error : maximum number of TBT file reached'
+          endif
+          
           write(iUnit) mtpt
           write(iUnit) int(recvbuf(7,:))
           write(iUnit) recvbuf(1:6,:)
@@ -4269,9 +4292,9 @@
         type (BeamBunch), intent(in) :: BB
         integer, intent(in) :: iturn, fileID
         double precision, intent(in) :: beta,alfa,cn,tn
-        integer, save :: iUnit
-        logical, save :: flagConstructed = .false.
-        integer :: i,j,ifail,np,my_rank,ierr,tpt,mtpt,sixnpt
+        integer, save :: unitfID(2,1000)
+        logical, save :: isOn(1000)=.false.
+        integer :: i,j,ifail,np,my_rank,ierr,tpt,mtpt,iUnit
         integer :: status(MPI_STATUS_SIZE)
         integer :: isTest(BB%Nptlocal)
         integer, allocatable, dimension(:) :: nptlist,nptdisp
@@ -4316,10 +4339,29 @@
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
         if(my_rank.eq.0) then
+          do i=1,1000
+            if(isOn(i)) then
+              if(UnitfID(2,i)==fileID) then
+                iUnit = UnitfID(1,i)
+                exit
+              endif
+            else
+              isOn(i) = .true.
+              UnitfID(2,i)=fileID
+              UnitfID(1,i)=get_free_unit(3582)
+              iUnit = UnitfID(1,i)
+              open(iUnit,file='TBT.integral.'//trim(num2str_int(fileID)),form='unformatted',&
+                   action='write', iostat=ifail)
+              if(ifail /= 0)  STOP '--- Error in opening TBT.integral file ---'
+              exit
+            endif
+          enddo
+          if(i==1000) then
+            STOP 'Error : maximum number of TBT.integral file reached'
+          endif
+        
           call sort(recvbuf, 3, 3, mtpt, 1, mtpt)
-          open(iUnit,file='TBT.integral.'//trim(num2str_int(fileID)),form='unformatted',&
-               action='write', iostat=ifail)
-          if(ifail /= 0)  STOP '--- Error in opening TBT file ---'
+          
           write(iUnit) mtpt
           write(iUnit) int(recvbuf(3,:))
           write(iUnit) recvbuf(1:2,:)
