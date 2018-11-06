@@ -4301,7 +4301,6 @@
         double precision :: xn,pxn,yn,pyn,Hinv,Iinv,gambet0
         double precision, allocatable,dimension(:,:) :: recvbuf, sendbuf
         
-        print*, 'beta,alfa,cn,tn=',beta,alfa,cn,tn
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
         gambet0 = sqrt(BB%refptcl(6)**2-1.0d0) 
