@@ -4311,9 +4311,9 @@
         do i=1,BB%Nptlocal
           if(isTest(i)==1) then
             tpt = tpt+1
-            xn = BB%Pts1(1,i)*Scxl/cn
+            xn  = BB%Pts1(1,i)*Scxl/cn/sqrt(beta)
             pxn = BB%Pts1(2,i)/gambet0*sqrt(beta)/cn + alfa*xn
-            yn = BB%Pts1(3,i)*Scxl/cn
+            yn  = BB%Pts1(3,i)*Scxl/cn/sqrt(beta)
             pyn = BB%Pts1(4,i)/gambet0*sqrt(beta)/cn + alfa*yn
             call InvariantPotentials(xn,yn,Hinv,Iinv)
             sendbuf(1,tpt) = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv

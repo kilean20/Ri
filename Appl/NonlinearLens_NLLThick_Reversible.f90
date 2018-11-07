@@ -391,7 +391,7 @@
 
         real*8 :: snf,bnf,anf,cnllf,knllf
         integer  :: i,j,nsg,mpstp,nn
-
+        
         zedge = this%Param(1)    !Location of NLL element entry
         tn = this%Param(2)       !Dimensionless strength of NLL
         cn = this%Param(3)       !Dimensional parameter of NLL
