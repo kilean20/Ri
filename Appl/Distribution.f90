@@ -12849,7 +12849,7 @@ end subroutine
         call random_number(p_theta)
         if(p_theta>0) exit
       enddo
-      newH = emittanceCut*p_theta
+      newH = emittanceCut*sqrt(p_theta)
       xMax = self%secant_method(sqrt(newH), newH) 
       do
         call random_number(U)
