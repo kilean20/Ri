@@ -12820,19 +12820,17 @@ end subroutine
     return
   end function distIOTA_getH
   
-  subroutine distIOTA_genP_waterbag(self,BB,beta,betap,emittance)
+  subroutine distIOTA_genP_waterbag(self,BB,beta,betap,emittanceCut)
     !generate particle in synergia unit
     implicit none
     include 'mpif.h'
     class(distIOTA_class) :: self
     type(BeamBunch),intent(inout) :: BB
-    double precision, intent(in) :: beta,betap,emittance
+    double precision, intent(in) :: beta,betap,emittanceCut
     integer :: nproc,avgpts,nleft,myid,i
-    double precision  :: xMax(4),xHat(4),bg
+    double precision  :: xHat(4),xMax,U(2),newH,bg,trialH,newHxy,p,p_theta
     integer, parameter :: x_=1,px_=2,y_=3,py_=4
     
-    xMax(1:2) = 2d0*self%c
-    xMax(3:4) = 1.5d0*self%c
     call MPI_COMM_RANK(MPI_COMM_WORLD,myid,i)
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,i)
     avgpts = BB%Npt/nproc
@@ -12846,11 +12844,25 @@ end subroutine
     BB%Nptlocal = avgpts
     bg = sqrt(BB%refptcl(6)**2 - 1d0)
     do i=1,avgpts
+      xHat = 0d0
       do
-        call random_number(xHat)
-        xHat = 2d0*(0.5d0-xHat)*xMax
-        if(self%getH(xHat)<emittance) exit
+        call random_number(p_theta)
+        if(p_theta>0) exit
       enddo
+      newH = emittanceCut*p_theta
+      xMax = self%secant_method(sqrt(newH), newH) 
+      do
+        call random_number(U)
+        xHat(x_) = 2d0*(0.5d0-U(1))*xMax
+        xHat(y_) = 2d0*(0.5d0-U(2))*xMax
+        newHxy = self%getH(xHat)
+        if(newHxy < newH) exit
+      enddo
+      p = sqrt(2d0*(newH-newHxy))
+      call random_number(p_theta)
+      p_theta = 2.0*pi*p_theta
+      xHat(px_) = p*cos(p_theta)
+      xHat(py_) = p*sin(p_theta)
       BB%Pts1(x_,i) = xHat(x_)*sqrt(beta)/Scxl
       BB%Pts1(y_,i) = xHat(y_)*sqrt(beta)/Scxl
       BB%Pts1(px_,i) = (xHat(px_) + 0.5d0*betap*xHat(x_))/sqrt(beta)*bg
