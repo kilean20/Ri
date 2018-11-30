@@ -461,6 +461,11 @@
             call InvariantPotentials(xn,yn,Hinv,Iinv)
             Hinv = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv
             Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv
+            
+            !<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<
+            if(Iinv<0) Iinv=0
+            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            
 !   Old diagnostic algorithm should be commented here:
       !      Hinv = u*sqrt(u**2-1.0d0)*(d+acosh(u))
       !      Hinv = Hinv + v*sqrt(1.0d0-v**2)*(b+acos(v))
