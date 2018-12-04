@@ -463,6 +463,12 @@
             Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv
             
             !<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<
+            if(Hinv.ne.Hinv) print*,'Hinv NaN, xn,yn = ',xn,yn
+            if(Iinv.ne.Iinv) print*,'Iinv NaN, xn,yn = ',xn,yn
+            if(xn.ne.xn) print*,'xn NaN, cnllf=',cnllf
+            if(yn.ne.yn) print*,'yn NaN, cnllf=',cnllf
+            if(pxn.ne.pxn) print*,'pxn NaN, anf, bnf=',anf,bnf
+            if(pyn.ne.pyn) print*,'pyn NaN, anf, bnf=',anf,bnf
             if(Iinv<0) Iinv=0d0
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             
@@ -487,8 +493,6 @@
             invariants(6,i) = pyn
 !   Test for occurrence of NaN:
             test = Hinv*dsqrt(Iinv)*xn*pxn*yn*pyn
-            if(Hinv.ne.Hinv) print*,'Hinv NaN'
-            if(Iinv.ne.Iinv) print*,'Iinv NaN'
             if(test.ne.test) then
               write(*,*) 'NaN encountered (particle,s):'
               write(*,*) i,snf
