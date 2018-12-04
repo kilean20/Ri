@@ -487,6 +487,8 @@
             invariants(6,i) = pyn
 !   Test for occurrence of NaN:
             test = Hinv*dsqrt(Iinv)*xn*pxn*yn*pyn
+            if(Hinv.ne.Hinv) print*,'Hinv NaN'
+            if(Iinv.ne.Iinv) print*,'Iinv NaN'
             if(test.ne.test) then
               write(*,*) 'NaN encountered (particle,s):'
               write(*,*) i,snf
