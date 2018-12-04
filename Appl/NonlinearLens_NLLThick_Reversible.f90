@@ -463,7 +463,7 @@
             Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv
             
             !<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<
-            if(Iinv<0) Iinv=0
+            if(Iinv<0) Iinv=0d0
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             
 !   Old diagnostic algorithm should be commented here:
