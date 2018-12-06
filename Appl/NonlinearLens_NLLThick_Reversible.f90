@@ -463,7 +463,7 @@
             Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv
             
             !<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<
-            if(Hinv.ne.Hinv) print*,'Hinv NaN, xn,yn = ',xn,yn
+            if(Hinv.ne.Hinv) print*,'Hinv NaN, pts(:,i) = ',pts(:,i)
             if(Iinv.ne.Iinv) print*,'Iinv NaN, xn,yn = ',xn,yn
             if(xn.ne.xn) print*,'xn NaN, cnllf=',cnllf
             if(yn.ne.yn) print*,'yn NaN, cnllf=',cnllf
