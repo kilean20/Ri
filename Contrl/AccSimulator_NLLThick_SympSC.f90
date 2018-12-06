@@ -1488,9 +1488,12 @@ call phase_Output(-111110,Bpts,1)
             else if(flagcoll.eq.1) then !calculate space charge forces
             !start sc calculation-------------------
               if(bitype.ne.4 .or. (bitype.eq.4 .and. dparam(4).gt.300) ) then
-                   piperad = xrad
-                   piperad2 = yrad
-                   call conv0th_BeamBunch(Bpts,tau2,Nplocal,Np,ptrange,&
+                  piperad = xrad
+                  piperad2 = yrad
+                  !<<<<<<<<<<< kilean <<<<<<<<<<<<<<<
+                  print*, 'piperad,piperad2=',piperad,piperad2
+                  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                  call conv0th_BeamBunch(Bpts,tau2,Nplocal,Np,ptrange,&
                                    Flagbc,Perdlen,piperad,piperad2)
                 call chgupdate_BeamBunch(Bpts,nchrg,nptlist0,qmcclist0)
 !comment out for test purpose
