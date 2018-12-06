@@ -4254,6 +4254,7 @@
         if(my_rank.eq.0) then
           call sort(recvbuf, 7, 7, mtpt, 1, mtpt)
           do i=1,1000
+            !print*, 'i,isOn(i),unitfID(:,i)',i,isOn(i),unitfID(:,i)
             if(isOn(i)) then
               if(UnitfID(2,i)==fileID) then
                 iUnit = UnitfID(1,i)
@@ -4274,6 +4275,7 @@
             STOP 'Error : maximum number of TBT file reached'
           endif
           
+          print*, 'mtpt',mtpt
           write(iUnit) mtpt
           write(iUnit) int(recvbuf(7,:))
           write(iUnit) recvbuf(1:6,:)
