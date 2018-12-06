@@ -1476,8 +1476,8 @@ call phase_Output(-111110,Bpts,1)
             call starttime_Timer(t3)
             
 !!<<<<<<<<<<<<<<<<<<<< check particle loss (Kilean) <<<<<<<<<<<<<<<<<<<<<
-            call lostcount_BeamBunch(Bpts,Nplocal,Np,xrad,yrad)
-            call chgupdate_BeamBunch(Bpts,nchrg,nptlist0,qmcclist0)
+            !call lostcount_BeamBunch(Bpts,Nplocal,Np,xrad,yrad)
+            !call chgupdate_BeamBunch(Bpts,nchrg,nptlist0,qmcclist0)
 !!>>>>>>>>>>>>>>>>> end of check particle loss (Kilean) >>>>>>>>>>>>>>>>>
 
 !            if(myid.eq.0) print*,"flagcoll: ",i,j,flagcoll,tau2,flagtmp,flagwake
