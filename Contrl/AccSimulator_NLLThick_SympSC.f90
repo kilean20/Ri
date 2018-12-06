@@ -1474,15 +1474,16 @@ call phase_Output(-111110,Bpts,1)
             t_enlarge = t_enlarge + elapsedtime_Timer(t2)
 
             call starttime_Timer(t3)
+            
+!!<<<<<<<<<<<<<<<<<<<< check particle loss (Kilean) <<<<<<<<<<<<<<<<<<<<<
+            call lostcount_BeamBunch(Bpts,Nplocal,Np,xrad,yrad)
+            call chgupdate_BeamBunch(Bpts,nchrg,nptlist0,qmcclist0)
+!!>>>>>>>>>>>>>>>>> end of check particle loss (Kilean) >>>>>>>>>>>>>>>>>
 
 !            if(myid.eq.0) print*,"flagcoll: ",i,j,flagcoll,tau2,flagtmp,flagwake
 !-------------------------------------------------------------------
 ! escape the space charge calculation for 0 current case
             if(BcurrImp.lt.1.0e-30)  then !no space-charge
-!!<<<<<<<<<<<<<<<<<<<< check particle loss (Kilean) <<<<<<<<<<<<<<<<<<<<<
-!              call lostcount_BeamBunch(Bpts,Nplocal,Np,piperad,piperad2)
-!              call chgupdate_BeamBunch(Bpts,nchrg,nptlist0,qmcclist0)
-!!>>>>>>>>>>>>>>>>> end of check particle loss (Kilean) >>>>>>>>>>>>>>>>>
             else if(Flagbc.eq.7) then 
               goto 200
             else if(flagcoll.eq.1) then !calculate space charge forces
