@@ -146,6 +146,10 @@
               Flagmap,distparam,21,BcurrImp,Bkenergy,Bmass,Bcharge,&
         BfreqImp,xrad,yrad,Perdlen,Nblem,npcol,nprow,Flagerr,Flagdiag,&
         Flagsubstep,phsini,nchrg,nptlist,currlist,qmcclist)
+        
+        !<<<<<<<<<<< kilean <<<<<<<<<<<<<<<
+        print*, 'xrad,yrad=',xrad,yrad
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
  
         allocate(nptlist0(nchrg))
         allocate(currlist0(nchrg))
