@@ -147,9 +147,6 @@
         BfreqImp,xrad,yrad,Perdlen,Nblem,npcol,nprow,Flagerr,Flagdiag,&
         Flagsubstep,phsini,nchrg,nptlist,currlist,qmcclist)
         
-        !<<<<<<<<<<< kilean <<<<<<<<<<<<<<<
-        print*, 'xrad,yrad=',xrad,yrad
-        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
  
         allocate(nptlist0(nchrg))
         allocate(currlist0(nchrg))
@@ -897,7 +894,7 @@ call phase_Output(-111110,Bpts,1)
           call getradius_BeamLineElem(Blnelem(i),piperad,piperad2)
           nsubstep = bmpstp
 !          if(myid.eq.0) then
-            print*,"enter elment: ",i,bitype
+            !print*,"enter elment: ",i,bitype
 !          endif
 
           nfile = 0
@@ -1037,7 +1034,6 @@ call phase_Output(-111110,Bpts,1)
           endif
           if(bitype.eq.-88) then
             call getparam_BeamLineElem(Blnelem(i),dparam)
-            print*, 'dparam=',dparam
             call turn_by_turn_integral(Bpts,iturn,bmpstp,dparam(2),&
                                        dparam(3),dparam(4),dparam(5))
           endif
@@ -2398,9 +2394,9 @@ call phase_Output(-111111,Bpts,1)
 
 !-------------------------------------------------------------------
 ! start looping through 'Nblem' beam line elements.
-          if(myid.eq.0) then
-            print*,"enter elment: ",iend
-          endif
+          !if(myid.eq.0) then
+          !  print*,"enter elment: ",iend
+          !endif
 
           call getparam_BeamLineElem(Blnelem(iend),blength,bnseg,bmpstp,&
                                      bitype)
@@ -2437,7 +2433,7 @@ call phase_Output(-111111,Bpts,1)
 ! using 2 step symplectic integeration (ie. leap frog).
           zedge = z
           call setparam_BeamLineElem(Blnelem(iend),1,zedge)
-          if(myid.eq.0) print*,"zedge: ",zedge
+          !if(myid.eq.0) print*,"zedge: ",zedge
           do j = jend+1, bnseg
             if((Flagerr.eq.1).and.(Flagmap.eq.1)) then
               call geomerrL_BeamBunch(Bpts,Blnelem(iend)) 
@@ -2703,9 +2699,9 @@ call phase_Output(-111111,Bpts,1)
 !            endif
 
             nstep = nstep + 1
-            if(myid.eq.0) then 
-              print*,"j, nstep, z",j,nstep,z
-            endif
+            !if(myid.eq.0) then 
+            !  print*,"j, nstep, z",j,nstep,z
+            !endif
 
           end do
 
