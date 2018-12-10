@@ -4225,7 +4225,9 @@
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
         
         isTest = BB%Pts1(8,1:BB%Nptlocal) == 0.0  ! inteded type cast. ignore compiler warining.
+        print*, 'BB%Nptlocal',BB%nptlocal
         tpt = sum(isTest)
+        print*, 'tpt=sun(isTest)=',tpt
         allocate(sendbuf(7,tpt))
         tpt = 0
         do i=1,BB%Nptlocal
@@ -4252,6 +4254,7 @@
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
         if(my_rank.eq.0) then
+          print*, 'mtpt before sort',mtpt
           call sort(recvbuf, 7, 7, mtpt, 1, mtpt)
           do i=1,1000
             !print*, 'i,isOn(i),unitfID(:,i)',i,isOn(i),unitfID(:,i)
@@ -4275,7 +4278,7 @@
             STOP 'Error : maximum number of TBT file reached'
           endif
           
-          print*, 'mtpt',mtpt
+          print*, 'mtpt after sort',mtpt
           write(iUnit) mtpt
           write(iUnit) int(recvbuf(7,:))
           write(iUnit) recvbuf(1:6,:)
