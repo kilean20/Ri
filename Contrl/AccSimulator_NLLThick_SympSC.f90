@@ -1471,26 +1471,25 @@ call phase_Output(-111110,Bpts,1)
 
             call starttime_Timer(t3)
             
-!!<<<<<<<<<<<<<<<<<<<< check particle loss (Kilean) <<<<<<<<<<<<<<<<<<<<<
-            call lostcount_BeamBunch(Bpts,Nplocal,Np,xrad,yrad)
-            call chgupdate_BeamBunch(Bpts,nchrg,nptlist0,qmcclist0)
-!!>>>>>>>>>>>>>>>>> end of check particle loss (Kilean) >>>>>>>>>>>>>>>>>
-
 !            if(myid.eq.0) print*,"flagcoll: ",i,j,flagcoll,tau2,flagtmp,flagwake
 !-------------------------------------------------------------------
 ! escape the space charge calculation for 0 current case
             if(BcurrImp.lt.1.0e-30)  then !no space-charge
-            else if(Flagbc.eq.7) then 
+            !<<<<<<<<<<<<<<<<<<<< check particle loss (Kilean) <<<<<<<<<<<<<<<<<<<<<
+              call lostcount_BeamBunch(Bpts,Nplocal,Np,piperad,piperad2)
+			!>>>>>>>>>>>>>>>>> end of check particle loss (Kilean) >>>>>>>>>>>>>>>>>
+            else if(Flagbc.eq.7) then
+              !<<<<<<<<<<< kilean <<<<<<<<<<<<<<<
+              if(myid==0) print*, 'piperad,piperad2=',piperad,piperad2
+              call conv0th_BeamBunch(Bpts,tau2,Nplocal,Np,ptrange,&
+                                   Flagbc,Perdlen,piperad,piperad2)
+              call chgupdate_BeamBunch(Bpts,nchrg,nptlist0,qmcclist0)
+              !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
               goto 200
             else if(flagcoll.eq.1) then !calculate space charge forces
             !start sc calculation-------------------
               if(bitype.ne.4 .or. (bitype.eq.4 .and. dparam(4).gt.300) ) then
-                  piperad = xrad
-                  piperad2 = yrad
-                  !<<<<<<<<<<< kilean <<<<<<<<<<<<<<<
-                  print*, 'piperad,piperad2=',piperad,piperad2
-                  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                  call conv0th_BeamBunch(Bpts,tau2,Nplocal,Np,ptrange,&
+                call conv0th_BeamBunch(Bpts,tau2,Nplocal,Np,ptrange,&
                                    Flagbc,Perdlen,piperad,piperad2)
                 call chgupdate_BeamBunch(Bpts,nchrg,nptlist0,qmcclist0)
 !comment out for test purpose
@@ -2078,9 +2077,14 @@ call phase_Output(-111110,Bpts,1)
                endif
           !Standard diagnostics:
           if(Flagdiag.eq.1) then
-            call diagnostic1_Output(z,Bpts,nchrg,nptlist0)
+          ! <<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<
+          !  call diagnostic1_Output(z,Bpts,nchrg,nptlist0)
+          !else
+          !  call diagnostic2_Output(Bpts,z,nchrg,nptlist0)
+            call diagnostic1_Output(z,Bpts,nchrg,[Bpts%Npt])
           else
-            call diagnostic2_Output(Bpts,z,nchrg,nptlist0)
+            call diagnostic2_Output(Bpts,z,nchrg,[Bpts%Npt])
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           endif
 
 !--------------------------------------------------------------------------
