@@ -1025,8 +1025,8 @@
             this%Pts1(8,i) = this%Pts1(8,i0)
             this%Pts1(9,i) = this%Pts1(9,i0)
           enddo
-        else if(Flagbc.eq.7) then
-          print*, "using symplectic 2d spectral solver!!!"
+        !else if(Flagbc.eq.7) then
+        !  print*, "using symplectic 2d spectral solver!!!"
         else
           print*,"no such boundary condition!!!"
           stop
@@ -1442,8 +1442,8 @@
             this%Pts1(8,i) = this%Pts1(8,i0)
             this%Pts1(9,i) = this%Pts1(9,i0)
           enddo
-        else if(Flagbc.eq.7) then
-          print*, "inside symplectic 2d spectral solver!!!"
+        !else if(Flagbc.eq.7) then
+        !  print*, "inside symplectic 2d spectral solver!!!"
         else
           print*,"no such boundary condition!!!"
           stop
@@ -1584,8 +1584,8 @@
           call guardexch3_Fldmger(temppotent,innx,inny,innz,grid)
         else if(Flagbc.eq.4) then
           call guardexch4_Fldmger(temppotent,innx,inny,innz,grid)
-        else if(Flagbc.eq.7) then
-          print*, "inside symplectic 2d spectral solver!!!"
+        !else if(Flagbc.eq.7) then
+        !  print*, "inside symplectic 2d spectral solver!!!"
         else
           print*,"no such boundary conditions!!!"
           stop
@@ -1772,8 +1772,8 @@
                 enddo
               enddo
             enddo
-          else if(Flagbc.eq.7) then
-            print*, "inside symplectic 2d spectral solver!!!"
+          !else if(Flagbc.eq.7) then
+          !  print*, "inside symplectic 2d spectral solver!!!"
           else
             print*,"no such boundary condition!!!"
             stop
@@ -2528,8 +2528,8 @@
           call guardexch3_Fldmger(temppotent,innx,inny,innz,grid)
         else if(Flagbc.eq.4) then
           call guardexch4_Fldmger(temppotent,innx,inny,innz,grid)
-        elseif(Flagbc.eq.7) then
-          print*,"inside symplectic 2d spectral solver!!!"
+        !elseif(Flagbc.eq.7) then
+        !  print*,"inside symplectic 2d spectral solver!!!"
         else
           print*,"no such boundary condition!!!!"
           stop
@@ -2711,8 +2711,8 @@
                 enddo
               enddo
             enddo
-          else if(Flagbc.eq.7) then
-            print*,"inside symplectic 2d spectral solver!!!"
+          !else if(Flagbc.eq.7) then
+          !  print*,"inside symplectic 2d spectral solver!!!"
           else
             print*,"no such boundary condition!!!"
             stop
@@ -5838,8 +5838,8 @@
           call guardexch3_Fldmger(temppotent,innx,inny,innz,grid)
         else if(Flagbc.eq.4) then
           call guardexch4_Fldmger(temppotent,innx,inny,innz,grid)
-        else if(Flagbc.eq.7) then
-          print*,"inside symplectic 2d spectral solver!!!"
+        !else if(Flagbc.eq.7) then
+        !  print*,"inside symplectic 2d spectral solver!!!"
         else
           print*,"no such boundary condition!!!!"
           stop
@@ -6013,8 +6013,8 @@
                 enddo
               enddo
             enddo
-          else if(Flagbc.eq.7) then
-            print*,"inside symplectic 2d spectral solver!!!"
+          !else if(Flagbc.eq.7) then
+          !  print*,"inside symplectic 2d spectral solver!!!"
           else
             print*,"no such boundary condition!!!"
             stop
@@ -6499,8 +6499,8 @@
           call guardexch3_Fldmger(temppotent,innx,inny,innz,grid)
         else if(Flagbc.eq.4) then
           call guardexch4_Fldmger(temppotent,innx,inny,innz,grid)
-        else if(Flagbc.eq.7) then
-          print*,"inside symplectic 2d spectral solver!!!"
+        !else if(Flagbc.eq.7) then
+        !  print*,"inside symplectic 2d spectral solver!!!"
         else
           print*,"no such boundary conditions!!!"
           stop
@@ -6687,8 +6687,8 @@
                 enddo
               enddo
             enddo
-          else if(Flagbc.eq.7) then
-            print*,"inside symplectic 2d spectral solver!!!"
+          !else if(Flagbc.eq.7) then
+          !  print*,"inside symplectic 2d spectral solver!!!"
           else
             print*,"no such boundary condition!!!"
             stop
@@ -6936,8 +6936,8 @@
           call guardexch3_Fldmger(temppotent,innx,inny,innz,grid)
         else if(Flagbc.eq.4) then
           call guardexch4_Fldmger(temppotent,innx,inny,innz,grid)
-        else if(Flagbc.eq.7) then
-          print*,"inside 2d symplectic spectral solver"
+        !else if(Flagbc.eq.7) then
+        !  print*,"inside 2d symplectic spectral solver"
         else
           print*,"no such boundary condition!!!!"
           stop
@@ -7119,8 +7119,8 @@
                 enddo
               enddo
             enddo
-          else if(Flagbc.eq.7) then
-            print*,"inside symplectic 2d spectral solver!!!"
+          !else if(Flagbc.eq.7) then
+          !  print*,"inside symplectic 2d spectral solver!!!"
           else
             print*,"no such boundary condition!!!"
             stop
