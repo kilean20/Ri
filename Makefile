@@ -8,6 +8,7 @@
 
 CC = mpifort
 LINK = mpifort
+#FFLAGS = -g -fbacktrace -ffpe-trap=zero,overflow,underflow
 FFLAGS = -O3 
 BLAS_UBUNTU = -L/usr/lib/x86_64-linux-gnu -lblas
 #**************************************************************************
@@ -63,7 +64,8 @@ EXENAME = xmain
 
 $(EXENAME):  $(OBJS) 
 	$(LINK) -o $(EXENAME) $(OBJS1) $(OBJS2) $(BLAS_UBUNTU)
-
+	
+all: $(EXENAME)
 #************************************************************************
 # if you wish to compile a certain object with different flags
 # or in some special way, then specify the target & dependency explicitly

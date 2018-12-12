@@ -1,0 +1,7 @@
+#!/bin/bash
+#mpifort -c -O3 beam_mod.f90 parallel_mod.f90 liea_mod.f90
+#mpifort -c -O3 book.f comm1.f liea.f elem.f sss.f pcmap.f set_pscale.f  base.f math.f hamdrift.f cex.f genm.f pure.f hmltn12345.f sbend.f trac.f
+mpifort -c -g -fbacktrace -ffpe-trap=zero,overflow,underflow beam_mod.f90 parallel_mod.f90 liea_mod.f90
+mpifort -c -g -fbacktrace -ffpe-trap=zero,overflow,underflow  book.f comm1.f liea.f elem.f sss.f pcmap.f set_pscale.f  base.f math.f hamdrift.f cex.f genm.f pure.f hmltn12345.f sbend.f trac.f
+mv *.o ../
+mv *.mod ../

@@ -893,9 +893,7 @@ call phase_Output(-111110,Bpts,1)
                                      bitype)
           call getradius_BeamLineElem(Blnelem(i),piperad,piperad2)
           nsubstep = bmpstp
-!          if(myid.eq.0) then
-            !print*,"enter elment: ",i,bitype
-!          endif
+          if(myid.eq.0) print*,"enter elment: ",i,bitype
 
           nfile = 0
           tau1 = 0.0
@@ -1480,10 +1478,12 @@ call phase_Output(-111110,Bpts,1)
 			!>>>>>>>>>>>>>>>>> end of check particle loss (Kilean) >>>>>>>>>>>>>>>>>
             else if(Flagbc.eq.7) then
               !<<<<<<<<<<< kilean <<<<<<<<<<<<<<<
-              if(myid==0) print*, 'piperad,piperad2=',piperad,piperad2
-              call conv0th_BeamBunch(Bpts,tau2,Nplocal,Np,ptrange,&
-                                   Flagbc,Perdlen,piperad,piperad2)
-              call chgupdate_BeamBunch(Bpts,nchrg,nptlist0,qmcclist0)
+              call lostcount_BeamBunch(Bpts,Nplocal,Np,piperad,piperad2)
+              ! call conv0th_BeamBunch(Bpts,tau2,Nplocal,Np,ptrange,&
+                                   ! Flagbc,Perdlen,piperad,piperad2)
+              ! if(myid==0) print*, 'conv0th_BeamBunch passed'
+              ! call chgupdate_BeamBunch(Bpts,nchrg,nptlist0,qmcclist0)
+              ! if(myid==0) print*, 'chgupdate_BeamBunch passed'
               !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
               goto 200
             else if(flagcoll.eq.1) then !calculate space charge forces
