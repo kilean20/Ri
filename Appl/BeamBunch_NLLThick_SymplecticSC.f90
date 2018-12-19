@@ -501,8 +501,8 @@
 
         enddo
 
-        if(ilost.gt.0) then
-
+!        if(ilost.gt.0) then
+!		print*,'ilost=',ilost
         this%Nptlocal = this%Nptlocal - ilost
         nplc = this%Nptlocal
 !        call MPI_ALLREDUCE(nplc,nptot,1,MPI_INTEGER,&
@@ -513,8 +513,8 @@
         nptot = fnptot + 0.1 
         this%Npt = nptot
 
-        endif
-
+!		print*,'lostcount_BeamBunch exit, this%Npt = ',this%Npt
+!        endif
         end subroutine lostcount_BeamBunch
 
         !//update the total current fraction of each charge state

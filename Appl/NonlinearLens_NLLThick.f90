@@ -34,12 +34,13 @@
         end type NonlinearLens
         interface getparam_NonlinearLens
           module procedure getparam1_NonlinearLens,  &
-                          getparam2_NonlinearLens,   &
-                          getparam3_NonlinearLens
+                           getparam2_NonlinearLens,  &
+                           getparam3_NonlinearLens
         end interface
         interface setparam_NonlinearLens
           module procedure setparam1_NonlinearLens,  &
-                          setparam2_NonlinearLens, setparam3_NonlinearLens
+                           setparam2_NonlinearLens,  &
+                           setparam3_NonlinearLens
         end interface
       contains
         subroutine construct_NonlinearLens(this,numseg,nmpstp,type,blength)

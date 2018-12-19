@@ -695,9 +695,14 @@
           call restart_AccSimulator()
         else
           if(Flagdiag.eq.1) then
-            call diagnostic1_Output(z,Bpts,nchrg,nptlist0)
+          ! <<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<
+          !  call diagnostic1_Output(z,Bpts,nchrg,nptlist0)
+          !else
+          !  call diagnostic2_Output(Bpts,z,nchrg,nptlist0)
+            call diagnostic1_Output(z,Bpts,nchrg,[Bpts%Npt])
           else
-            call diagnostic2_Output(Bpts,z,nchrg,nptlist0)
+            call diagnostic2_Output(Bpts,z,nchrg,[Bpts%Npt])
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           endif
         endif
 
@@ -1474,11 +1479,19 @@ call phase_Output(-111110,Bpts,1)
 ! escape the space charge calculation for 0 current case
             if(BcurrImp.lt.1.0e-30)  then !no space-charge
             !<<<<<<<<<<<<<<<<<<<< check particle loss (Kilean) <<<<<<<<<<<<<<<<<<<<<
+			  if(myid==0) print*, '(rank0) before lostcount: Nplocal, Bpts%Nptlocal, Np, Bpts%Npt',&
+								   Nplocal, Bpts%Nptlocal, Np, Bpts%Npt
               call lostcount_BeamBunch(Bpts,Nplocal,Np,piperad,piperad2)
+              if(myid==0) print*, '(rank0) after lostcount: Nplocal, Bpts%Nptlocal, Np, Bpts%Npt',&
+								   Nplocal, Bpts%Nptlocal, Np, Bpts%Npt
 			!>>>>>>>>>>>>>>>>> end of check particle loss (Kilean) >>>>>>>>>>>>>>>>>
             else if(Flagbc.eq.7) then
               !<<<<<<<<<<< kilean <<<<<<<<<<<<<<<
+              if(myid==0) print*, '(rank0) before lostcount: Nplocal, Bpts%Nptlocal, Np, Bpts%Npt',&
+								   Nplocal, Bpts%Nptlocal, Np, Bpts%Npt
               call lostcount_BeamBunch(Bpts,Nplocal,Np,piperad,piperad2)
+              if(myid==0) print*, '(rank0) after lostcount: Nplocal, Bpts%Nptlocal, Np, Bpts%Npt',&
+								   Nplocal, Bpts%Nptlocal, Np, Bpts%Npt
               ! call conv0th_BeamBunch(Bpts,tau2,Nplocal,Np,ptrange,&
                                    ! Flagbc,Perdlen,piperad,piperad2)
               ! if(myid==0) print*, 'conv0th_BeamBunch passed'
@@ -2120,9 +2133,14 @@ call phase_Output(-111110,Bpts,1)
               enddo
               print*, "TEST2"
               if(Flagdiag.eq.1) then
-                call diagnostic1_Output(z,Bpts,nchrg,nptlist0)
+              ! <<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<
+              !  call diagnostic1_Output(z,Bpts,nchrg,nptlist0)
+              !else
+              !  call diagnostic2_Output(Bpts,z,nchrg,nptlist0)
+                call diagnostic1_Output(z,Bpts,nchrg,[Bpts%Npt])
               else
-                call diagnostic2_Output(Bpts,z,nchrg,nptlist0)
+                call diagnostic2_Output(Bpts,z,nchrg,[Bpts%Npt])
+              !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
               endif
             endif
 !------------------------------------------------------------------------------
@@ -2223,15 +2241,20 @@ call phase_Output(-111110,Bpts,1)
           blengthold = blength
           zbleng = zbleng + blength
 !output after each element
-          call diagnostic1_Output(z,Bpts,nchrg,nptlist0)
+          call diagnostic1_Output(z,Bpts,nchrg,[Bpts%Npt])
         !-------------------------------------------------
         enddo !end loop of N beam line elements
 
         if(myid.eq.0) print*,"iturn: ",iturn
         if(Flagdiag.eq.1) then
-            call diagnostic1_Output(z,Bpts,nchrg,nptlist0)
-        else
-            call diagnostic2_Output(Bpts,z,nchrg,nptlist0)
+          ! <<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<
+          !  call diagnostic1_Output(z,Bpts,nchrg,nptlist0)
+          !else
+          !  call diagnostic2_Output(Bpts,z,nchrg,nptlist0)
+            call diagnostic1_Output(z,Bpts,nchrg,[Bpts%Npt])
+          else
+            call diagnostic2_Output(Bpts,z,nchrg,[Bpts%Npt])
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         endif
       enddo !end loop of Nturn 
 !-------------------
@@ -2337,9 +2360,14 @@ call phase_Output(-111111,Bpts,1)
         z = zend
 
         if(Flagdiag.eq.1) then
-          call diagnostic1_Output(z,Bpts,nchrg,nptlist0)
-        else
-          call diagnostic2_Output(Bpts,z,nchrg,nptlist0)
+          ! <<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<
+          !  call diagnostic1_Output(z,Bpts,nchrg,nptlist0)
+          !else
+          !  call diagnostic2_Output(Bpts,z,nchrg,nptlist0)
+            call diagnostic1_Output(z,Bpts,nchrg,[Bpts%Npt])
+          else
+            call diagnostic2_Output(Bpts,z,nchrg,[Bpts%Npt])
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         endif
 
         allocate(chgdens(1,1,1))
@@ -2689,9 +2717,14 @@ call phase_Output(-111111,Bpts,1)
             end if
 
             if(Flagdiag.eq.1) then
-              call diagnostic1_Output(z,Bpts,nchrg,nptlist0)
-            else
-              call diagnostic2_Output(Bpts,z,nchrg,nptlist0)
+          ! <<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<
+          !  call diagnostic1_Output(z,Bpts,nchrg,nptlist0)
+          !else
+          !  call diagnostic2_Output(Bpts,z,nchrg,nptlist0)
+            call diagnostic1_Output(z,Bpts,nchrg,[Bpts%Npt])
+          else
+            call diagnostic2_Output(Bpts,z,nchrg,[Bpts%Npt])
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             endif
 
 !            if(myid.eq.0) then
