@@ -464,11 +464,6 @@
             
             !<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<
             if(Hinv.ne.Hinv) print*,'Hinv NaN, pts(:,i) = ',pts(:,i)
-            if(Iinv.ne.Iinv) print*,'Iinv NaN, xn,yn = ',xn,yn
-            if(xn.ne.xn) print*,'xn NaN, cnllf=',cnllf
-            if(yn.ne.yn) print*,'yn NaN, cnllf=',cnllf
-            if(pxn.ne.pxn) print*,'pxn NaN, anf, bnf=',anf,bnf
-            if(pyn.ne.pyn) print*,'pyn NaN, anf, bnf=',anf,bnf
             if(Iinv<0) Iinv=0d0
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             
@@ -493,11 +488,13 @@
             invariants(6,i) = pyn
 !   Test for occurrence of NaN:
             test = Hinv*dsqrt(Iinv)*xn*pxn*yn*pyn
-            if(test.ne.test) then
-              write(*,*) 'NaN encountered (particle,s):'
-              write(*,*) i,snf
-              stop
-            endif
+            !<<<<< remove stop calling in case of underflow (kilean) <<<<<<
+            !if(test.ne.test) then
+            !  write(*,*) 'NaN encountered (particle,s):'
+            !  write(*,*) i,snf
+            !  stop
+            !endif
+            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>s
          endif
 !   End computation of diagnostic quantities
 
@@ -611,11 +608,21 @@
         sigpy = dsqrt(py2-py1**2)
         covxpx = xpx - x1*px1
         covypy = ypy - y1*py1
-        write(81,20) t,Hinv1,Iinv1,sigH,sigI,covHI
-        write(82,20) t,x1,px1,y1,py1,sigx,sigpx,sigy,sigpy,covxpx,covypy
+        !<<<<<<<<<<<<<<<<<< format change (Kilean) <<<<<<<<<<<<<<<<<<<<<<
+        !write(81,20) t,Hinv1,Iinv1,sigH,sigI,covHI
+        !write(82,20) t,x1,px1,y1,py1,sigx,sigpx,sigy,sigpy,covxpx,covypy
+        write(81,*) t,Hinv1,Iinv1,sigH,sigI,covHI
+        write(82,*) t,x1,px1,y1,py1,sigx,sigpx,sigy,sigpy,covxpx,covypy
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        !<<<<<<<<< flush moved into if my_rank==0 block(Kilean) <<<<<<<<<
         flush(81)
         flush(82)
+        !>>>>>>>>>>>>>>>>>>>> end of move >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       endif
+      !<<<<<<<< commented following(Kilean) <<<<<<<<
+      !flush(81)
+      !flush(82)
+      !>>>>>>>>>>>>>> end of comment >>>>>>>>>>>>>>>
 
 20      format(11(1x,g20.12))
 

@@ -456,7 +456,7 @@
         integer, intent(inout) :: nplc
         integer*8, intent(inout) :: nptot
         integer :: i
-        double precision :: tmpx,tmpy,pi,xl,rad
+        double precision :: tmpx,tmpy,pi,xl,rad,Qloc,Qtot,QlocNew,QtotNew
         integer :: ilost,i0,ierr
         real*8 :: fnplc,fnptot
 
@@ -465,6 +465,11 @@
         rad = (xrad+yrad)/2 
       
         ilost = 0
+        !<<<<<<<<<<<<<<<<<< kilean <<<<<<<<<<<<<<<<<<<<<<
+        Qloc = sum(this%Pts1(8,1:this%Nptlocal))
+        call MPI_ALLREDUCE(Qloc,Qtot,1,MPI_DOUBLE_PRECISION,MPI_SUM,&
+                           MPI_COMM_WORLD,ierr)
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         do i0 = 1, this%Nptlocal
           i = i0 - ilost
 
@@ -498,13 +503,18 @@
 !            ilost = ilost + 1
           else
           endif
-
         enddo
 
 !        if(ilost.gt.0) then
 !		print*,'ilost=',ilost
         this%Nptlocal = this%Nptlocal - ilost
         nplc = this%Nptlocal
+        !<<<<<<<<<<<<<<<<<< kilean <<<<<<<<<<<<<<<<<<<<<<
+        QlocNew = sum(this%Pts1(8,1:this%Nptlocal))
+        call MPI_ALLREDUCE(QlocNew,QtotNew,1,MPI_DOUBLE_PRECISION,MPI_SUM,&
+                           MPI_COMM_WORLD,ierr)
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        
 !        call MPI_ALLREDUCE(nplc,nptot,1,MPI_INTEGER,&
 !                           MPI_SUM,MPI_COMM_WORLD,ierr)
         fnplc = nplc*1.0d0 
@@ -512,6 +522,7 @@
                            MPI_SUM,MPI_COMM_WORLD,ierr)
         nptot = fnptot + 0.1 
         this%Npt = nptot
+        this%current = this%current*QtotNew/Qtot
 
 !		print*,'lostcount_BeamBunch exit, this%Npt = ',this%Npt
 !        endif

@@ -13,7 +13,7 @@
         real*8, intent(in) :: xaper,yaper,tau
         real*8, dimension(innx,innp) :: tmpcl
         real*8, dimension(inny,innp) :: tmpcm
-        real*8 :: perv
+        real*8 :: perv, Qloc, Qtot
         integer :: i, j, ip,Nl,Nm,ierr
         real*8 :: aa,bb,xmin,xmax,ymin,ymax,alphal,betam,pi,egx,egy,xx,yy
         real*8 :: gamlm2,ForceX,ForceY
@@ -60,13 +60,22 @@
             tmpcm(j,ip) = cos(betam*yy)
           enddo
         enddo
-
+        
+        !<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        Qloc = sum(rays(8,1:innp)) 
+        call MPI_ALLREDUCE(Qloc,Qtot,1,MPI_DOUBLE_PRECISION,MPI_SUM,&
+                            MPI_COMM_WORLD,ierr)
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        
         do j =1, Nm
           do i = 1, Nl
-            philm(i,j) = 0.0d0
-            do ip = 1, innp
-              philm(i,j) = philm(i,j) + tmpm(j,ip)*tmpl(i,ip)
-            enddo
+            !<<<<<<<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<<<
+            !philm(i,j) = 0.0d0
+            !do ip = 1, innp
+            !  philm(i,j) = philm(i,j) + tmpm(j,ip)*tmpl(i,ip)!*rays(8,ip)/Qtot*innp
+            !enddo
+            philm(i,j) = sum(tmpm(j,:)*tmpl(i,:)*rays(8,:))/Qtot*innp
+            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           enddo
         enddo
 
@@ -127,7 +136,7 @@
         real*8, dimension(innx,innp) :: tmpcl
         real*8, dimension(inny,innp) :: tmpcm
         real*8, dimension(innp) :: Hdiag
-        real*8 :: perv
+        real*8 :: perv,Qloc,Qtot
         integer :: i, j, ip,Nl,Nm,ierr,my_rank
         real*8 :: aa,bb,xmin,xmax,ymin,ymax,alphal,betam,pi,egx,egy,xx,yy
         real*8 :: gamlm2,ForceX,ForceY,H,Hlcl
@@ -159,13 +168,21 @@
             tmpm(j,ip) = sin(betam*yy)
           enddo
         enddo
-
+        
+        !<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        Qloc = sum(rays(8,1:innp)) 
+        call MPI_ALLREDUCE(Qloc,Qtot,1,MPI_DOUBLE_PRECISION,MPI_SUM,&
+                            MPI_COMM_WORLD,ierr)
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         do j =1, Nm
           do i = 1, Nl
-            philm(i,j) = 0.0d0
-            do ip = 1, innp
-              philm(i,j) = philm(i,j) + tmpm(j,ip)*tmpl(i,ip)
-            enddo
+            !<<<<<<<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<<<
+            !philm(i,j) = 0.0d0
+            !do ip = 1, innp
+            !  philm(i,j) = philm(i,j) + tmpm(j,ip)*tmpl(i,ip)!*rays(8,ip)/Qtot*innp
+            !enddo
+            philm(i,j) = sum(tmpm(j,:)*tmpl(i,:)*rays(8,:))/Qtot*innp
+            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           enddo
         enddo
 

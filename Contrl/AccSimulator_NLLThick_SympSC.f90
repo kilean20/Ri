@@ -1479,19 +1479,11 @@ call phase_Output(-111110,Bpts,1)
 ! escape the space charge calculation for 0 current case
             if(BcurrImp.lt.1.0e-30)  then !no space-charge
             !<<<<<<<<<<<<<<<<<<<< check particle loss (Kilean) <<<<<<<<<<<<<<<<<<<<<
-			  if(myid==0) print*, '(rank0) before lostcount: Nplocal, Bpts%Nptlocal, Np, Bpts%Npt',&
-								   Nplocal, Bpts%Nptlocal, Np, Bpts%Npt
               call lostcount_BeamBunch(Bpts,Nplocal,Np,piperad,piperad2)
-              if(myid==0) print*, '(rank0) after lostcount: Nplocal, Bpts%Nptlocal, Np, Bpts%Npt',&
-								   Nplocal, Bpts%Nptlocal, Np, Bpts%Npt
 			!>>>>>>>>>>>>>>>>> end of check particle loss (Kilean) >>>>>>>>>>>>>>>>>
             else if(Flagbc.eq.7) then
               !<<<<<<<<<<< kilean <<<<<<<<<<<<<<<
-              if(myid==0) print*, '(rank0) before lostcount: Nplocal, Bpts%Nptlocal, Np, Bpts%Npt',&
-								   Nplocal, Bpts%Nptlocal, Np, Bpts%Npt
               call lostcount_BeamBunch(Bpts,Nplocal,Np,piperad,piperad2)
-              if(myid==0) print*, '(rank0) after lostcount: Nplocal, Bpts%Nptlocal, Np, Bpts%Npt',&
-								   Nplocal, Bpts%Nptlocal, Np, Bpts%Npt
               ! call conv0th_BeamBunch(Bpts,tau2,Nplocal,Np,ptrange,&
                                    ! Flagbc,Perdlen,piperad,piperad2)
               ! if(myid==0) print*, 'conv0th_BeamBunch passed'
