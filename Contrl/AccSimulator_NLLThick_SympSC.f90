@@ -900,6 +900,7 @@ call phase_Output(-111110,Bpts,1)
           nsubstep = bmpstp
           if(myid.eq.0) print*,"enter elment: ",i,bitype
 
+
           nfile = 0
           tau1 = 0.0
           if(bitype.ge.0) tau1 = 0.5*blength/bnseg
@@ -1415,7 +1416,7 @@ call phase_Output(-111110,Bpts,1)
             if((Flagerr.eq.1).and.(Flagmap.eq.1)) then
               call geomerrL_BeamBunch(Bpts,Blnelem(i)) 
             end if
-
+            
 !-------------------------------------------------------------------
 ! use linear map or nonlinear Lorentz integrator to advance particles.
             if(bitype.ne.4) then

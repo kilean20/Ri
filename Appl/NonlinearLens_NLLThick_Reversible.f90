@@ -392,6 +392,8 @@
         real*8 :: snf,bnf,anf,cnllf,knllf
         integer  :: i,j,nsg,mpstp,nn
         
+       
+        
         zedge = this%Param(1)    !Location of NLL element entry
         tn = this%Param(2)       !Dimensionless strength of NLL
         cn = this%Param(3)       !Dimensional parameter of NLL
@@ -435,7 +437,7 @@
             coord(6) = pts(6,i)/gambet0
             call  DriftPropagator(ds2,beta0,gambet0,coord)    !Half step for drift
 !   Old tracking algorithm should be commented here:
-      !      call NonlinearLensPropagator(knll,cnll,b,d,coord,u,v)   !Full step in (px,py)
+            ! call NonlinearLensPropagator(knll,cnll,b,d,coord,u,v)   !Full step in (px,py)
 !   Complex potential tracking algorithm:
             call NonlinearLensPropagatorCmplx(knll,cnll,coord(1:4))  !Complex version of step in (px,py)
             call DriftPropagator(ds2,beta0,gambet0,coord)    !Half step for drift
@@ -445,6 +447,12 @@
             pts(4,i) = coord(4)*gambet0
             pts(5,i) = coord(5)/Scxl
             pts(6,i) = coord(6)*gambet0
+            !<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<
+            !if(pts(1,i).ne.pts(1,i)) print*,'x N aN pts(1,i) = ',pts(1,i)
+            !if(pts(2,i).ne.pts(2,i)) print*,'px NaN pts(2,i) = ',pts(2,i)
+            !if(pts(3,i).ne.pts(3,i)) print*,'y  NaN pts(3,i) = ',pts(3,i)
+            !if(pts(4,i).ne.pts(4,i)) print*,'py NaN pts(4,i) = ',pts(4,i)
+            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 !  Move diagnostic computation to coincide with particle output location
             snf = sedge + ds*j  !Location of jth step output
             bnf=l0*(1-snf*(l0-snf)/l0/f0)/sqrt(1.0-(1.0-l0/2.0/f0)**2)
@@ -463,7 +471,7 @@
             Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv
             
             !<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<
-            if(Hinv.ne.Hinv) print*,'Hinv NaN, pts(:,i) = ',pts(:,i)
+            if(Hinv.ne.Hinv) print*,'Hinv NaN : pts(:,i) = ',pts(:,i)
             if(Iinv<0) Iinv=0d0
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             
@@ -489,12 +497,12 @@
 !   Test for occurrence of NaN:
             test = Hinv*dsqrt(Iinv)*xn*pxn*yn*pyn
             !<<<<< remove stop calling in case of underflow (kilean) <<<<<<
-            !if(test.ne.test) then
-            !  write(*,*) 'NaN encountered (particle,s):'
-            !  write(*,*) i,snf
-            !  stop
-            !endif
-            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>s
+            if(test.ne.test) then
+              write(*,*) 'NaN encountered (particle,s):'
+              write(*,*) i,snf
+              stop
+            endif
+            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
          endif
 !   End computation of diagnostic quantities
 

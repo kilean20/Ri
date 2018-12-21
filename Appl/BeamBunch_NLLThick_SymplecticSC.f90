@@ -261,6 +261,8 @@
         else if(bitype.eq.6) then
 !special treatment of nonlinear element insert
           qmass = this%Charge/this%Mass
+          !print*, '==calling propagator_NonlinearLens =='
+          !print*, 'z,tau=',z,tau
           call propagator_NonlinearLens(z,tau,beamln%pnll, &
                this%refptcl,this%Nptlocal,this%Pts1,qmass)
         else if((bitype.eq.105).or.(bitype.eq.106)) then
@@ -522,7 +524,7 @@
                            MPI_SUM,MPI_COMM_WORLD,ierr)
         nptot = fnptot + 0.1 
         this%Npt = nptot
-        this%current = this%current*QtotNew/Qtot
+        if(Qtot .ne. 0d0) this%current = this%current*QtotNew/Qtot
 
 !		print*,'lostcount_BeamBunch exit, this%Npt = ',this%Npt
 !        endif
