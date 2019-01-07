@@ -515,8 +515,7 @@
         QlocNew = sum(this%Pts1(8,1:this%Nptlocal))
         call MPI_ALLREDUCE(QlocNew,QtotNew,1,MPI_DOUBLE_PRECISION,MPI_SUM,&
                            MPI_COMM_WORLD,ierr)
-        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        
+       
 !        call MPI_ALLREDUCE(nplc,nptot,1,MPI_INTEGER,&
 !                           MPI_SUM,MPI_COMM_WORLD,ierr)
         fnplc = nplc*1.0d0 
@@ -525,6 +524,7 @@
         nptot = fnptot + 0.1 
         this%Npt = nptot
         if(Qtot .ne. 0d0) this%current = this%current*QtotNew/Qtot
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 !		print*,'lostcount_BeamBunch exit, this%Npt = ',this%Npt
 !        endif

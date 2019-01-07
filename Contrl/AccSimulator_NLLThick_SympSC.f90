@@ -695,14 +695,9 @@
           call restart_AccSimulator()
         else
           if(Flagdiag.eq.1) then
-          ! <<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<
-          !  call diagnostic1_Output(z,Bpts,nchrg,nptlist0)
-          !else
-          !  call diagnostic2_Output(Bpts,z,nchrg,nptlist0)
-            call diagnostic1_Output(z,Bpts,nchrg,[Bpts%Npt])
+            call diagnostic1_Output(z,Bpts,nchrg,nptlist0)
           else
-            call diagnostic2_Output(Bpts,z,nchrg,[Bpts%Npt])
-          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            call diagnostic2_Output(Bpts,z,nchrg,nptlist0)
           endif
         endif
 
@@ -1994,17 +1989,17 @@ call phase_Output(-111110,Bpts,1)
                            Nzlocal,Potential%FieldQ,Ageom,grid2d,Flagbc,Flagerr,&
                            exwake,eywake,ezwake,Nz,npx,npy,flagcoll)
                 else
-                  call kick2wakeglb_BeamBunch(Bpts,Blnelem(i),z,tau2,Nx,Ny,&
-                           Nz,glpot,Ageom,grid2d,Flagbc,Flagerr,&
-                           exwake,eywake,ezwake,Nz,npx,npy,flagcoll)
+                  !call kick2wakeglb_BeamBunch(Bpts,Blnelem(i),z,tau2,Nx,Ny,&
+                  !         Nz,glpot,Ageom,grid2d,Flagbc,Flagerr,&
+                  !         exwake,eywake,ezwake,Nz,npx,npy,flagcoll)
                 endif
               else
                 if(flagdecomp.eq.1) then
                   call map2_BeamBunch(Bpts,Blnelem(i),z,tau2,Nxlocal,Nylocal,&
                            Nzlocal,Potential%FieldQ,Ageom,grid2d,Flagbc,Flagerr,flagcoll)
                 else
-                  call kick2glb_BeamBunch(Bpts,Blnelem(i),z,tau2,Nx,Ny,&
-                           Nz,glpot,Ageom,grid2d,Flagbc,Flagerr,flagcoll)
+                  !call kick2glb_BeamBunch(Bpts,Blnelem(i),z,tau2,Nx,Ny,&
+                  !         Nz,glpot,Ageom,grid2d,Flagbc,Flagerr,flagcoll)
                 endif
               endif
               if(bitype.ne.4) then
