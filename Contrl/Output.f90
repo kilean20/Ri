@@ -293,17 +293,30 @@
           if(xrms.ne.0.0 .and. pxrms.ne.0.0)xpxfac=1.0/(xrms*pxrms)
           if(yrms.ne.0.0 .and. pyrms.ne.0.0)ypyfac=1.0/(yrms*pyrms)
           if(zrms.ne.0.0 .and. pzrms.ne.0.0)zpzfac=1.0/(zrms*pzrms)
-          write(18,99)z,this%refptcl(5),gam,energy,bet,sqrt(glrmax)*xl
-          write(24,100)z,x0*xl,xrms*xl,px0/gambet,pxrms/gambet,-xpx/epx,epx*xl
-          write(25,100)z,y0*xl,yrms*xl,py0/gambet,pyrms/gambet,-ypy/epy,epy*xl
-          write(26,100)z,z0*xt,zrms*xt,pz0*qmc,pzrms*qmc,-zpz/epz,epz*qmc*xt
-          write(27,100)z,glmax(1)*xl,glmax(2)/gambet,glmax(3)*xl,&
+          !<<<<<<<<<<<<<<<<<<<< free format (kilean) <<<<<<<<<<<<<<<<<<<<<<<<
+          ! write(18,99)z,this%refptcl(5),gam,energy,bet,sqrt(glrmax)*xl
+          ! write(24,100)z,x0*xl,xrms*xl,px0/gambet,pxrms/gambet,-xpx/epx,epx*xl
+          ! write(25,100)z,y0*xl,yrms*xl,py0/gambet,pyrms/gambet,-ypy/epy,epy*xl
+          ! write(26,100)z,z0*xt,zrms*xt,pz0*qmc,pzrms*qmc,-zpz/epz,epz*qmc*xt
+          ! write(27,100)z,glmax(1)*xl,glmax(2)/gambet,glmax(3)*xl,&
+                       ! glmax(4)/gambet,glmax(5)*xt,glmax(6)*qmc
+          ! write(28,101)z,npctmin,npctmax,nptot
+          ! write(29,100)z,x03*xl,px03/gambet,y03*xl,py03/gambet,z03*xt,&
+                       ! pz03*qmc
+          ! write(30,100)z,x04*xl,px04/gambet,y04*xl,py04/gambet,z04*xt,&
+                       ! pz04*qmc
+          write(18,*)z,this%refptcl(5),gam,energy,bet,sqrt(glrmax)*xl
+          write(24,*)z,x0*xl,xrms*xl,px0/gambet,pxrms/gambet,-xpx/epx,epx*xl
+          write(25,*)z,y0*xl,yrms*xl,py0/gambet,pyrms/gambet,-ypy/epy,epy*xl
+          write(26,*)z,z0*xt,zrms*xt,pz0*qmc,pzrms*qmc,-zpz/epz,epz*qmc*xt
+          write(27,*)z,glmax(1)*xl,glmax(2)/gambet,glmax(3)*xl,&
                        glmax(4)/gambet,glmax(5)*xt,glmax(6)*qmc
-          write(28,101)z,npctmin,npctmax,nptot
-          write(29,100)z,x03*xl,px03/gambet,y03*xl,py03/gambet,z03*xt,&
+          write(28,*)z,npctmin,npctmax,nptot
+          write(29,*)z,x03*xl,px03/gambet,y03*xl,py03/gambet,z03*xt,&
                        pz03*qmc
-          write(30,100)z,x04*xl,px04/gambet,y04*xl,py04/gambet,z04*xt,&
+          write(30,*)z,x04*xl,px04/gambet,y04*xl,py04/gambet,z04*xt,&
                        pz04*qmc
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! output bunched beam current.
 !          write(31,100)z,aa(1)*den1,aa(2)*den1,aa(3)*den1,bb(1)*den1,&
 !                        bb(2)*den1,bb(3)*den1
@@ -791,21 +804,38 @@
         endif
 
         if(my_rank.eq.0) then
-          write(18,99)z,this%refptcl(5),gam,energy,bet,sqrt(glrmax)*xl
-          write(24,100)z,x0*xl,xrms*xl,px0,pxrms,-xpx/epx,epx*xl,ex90*xl,&
+          !<<<<<<<<<<<<<<<< free format (kilean) <<<<<<<<<<<<<<<<<<<<<<<<<<<
+          ! write(18,99)z,this%refptcl(5),gam,energy,bet,sqrt(glrmax)*xl
+          ! write(24,100)z,x0*xl,xrms*xl,px0,pxrms,-xpx/epx,epx*xl,ex90*xl,&
+                       ! ex95*xl,ex99*xl
+          ! write(25,100)z,y0*xl,yrms*xl,py0,pyrms,-ypy/epy,epy*xl,ey90*xl,&
+                       ! ey95*xl,ey99*xl
+          ! write(26,100)z,z0*xt,zrms*xt,pz0,pzrms,-zpz/epz,epz*qmc*xt,&
+                       ! ez90*qmc*xt,ez95*qmc*xt,ez99*qmc*xt
+          ! !write(26,100)z,z0*bet*xl,zrms*bet*xl,pz0,pzrms,-zpz/epz,epz*qmc*xt,&
+          ! !             ez90*qmc*xt,ez95*qmc*xt,ez99*qmc*xt
+          ! write(27,102)z,glmax(1)*xl,glmax(2),glmax(3)*xl,glmax(4), &
+                     ! glmax(5)*xt,glmax(6)
+          ! write(28,101)z,npctmin,npctmax,nptot
+          ! ravg = ravg/nptot
+          ! rrms = sqrt(ravg2/nptot - ravg*ravg)
+          ! write(29,102)z,ravg*xl,rrms*xl,r90*xl,r95*xl,r99*xl,sqrt(rrmax)*xl
+          write(18,*)z,this%refptcl(5),gam,energy,bet,sqrt(glrmax)*xl
+          write(24,*)z,x0*xl,xrms*xl,px0,pxrms,-xpx/epx,epx*xl,ex90*xl,&
                        ex95*xl,ex99*xl
-          write(25,100)z,y0*xl,yrms*xl,py0,pyrms,-ypy/epy,epy*xl,ey90*xl,&
+          write(25,*)z,y0*xl,yrms*xl,py0,pyrms,-ypy/epy,epy*xl,ey90*xl,&
                        ey95*xl,ey99*xl
-          write(26,100)z,z0*xt,zrms*xt,pz0,pzrms,-zpz/epz,epz*qmc*xt,&
+          write(26,*)z,z0*xt,zrms*xt,pz0,pzrms,-zpz/epz,epz*qmc*xt,&
                        ez90*qmc*xt,ez95*qmc*xt,ez99*qmc*xt
           !write(26,100)z,z0*bet*xl,zrms*bet*xl,pz0,pzrms,-zpz/epz,epz*qmc*xt,&
           !             ez90*qmc*xt,ez95*qmc*xt,ez99*qmc*xt
-          write(27,102)z,glmax(1)*xl,glmax(2),glmax(3)*xl,glmax(4), &
+          write(27,*)z,glmax(1)*xl,glmax(2),glmax(3)*xl,glmax(4), &
                      glmax(5)*xt,glmax(6)
-          write(28,101)z,npctmin,npctmax,nptot
+          write(28,*)z,npctmin,npctmax,nptot
           ravg = ravg/nptot
           rrms = sqrt(ravg2/nptot - ravg*ravg)
-          write(29,102)z,ravg*xl,rrms*xl,r90*xl,r95*xl,r99*xl,sqrt(rrmax)*xl
+          write(29,*)z,ravg*xl,rrms*xl,r90*xl,r95*xl,r99*xl,sqrt(rrmax)*xl
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           write(32,*)z,nptlist(1:nchrg)
 
           call flush(18)

@@ -1408,7 +1408,6 @@ call phase_Output(-111110,Bpts,1)
             t_transp = t_transp + elapsedtime_Timer(t11)
 
           do j = 1, bnseg
-
             call starttime_Timer(t2)
 
             if((Flagerr.eq.1).and.(Flagmap.eq.1)) then

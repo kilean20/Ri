@@ -328,7 +328,6 @@
           i=0
 123       continue
             read(13,*,end=789)comst
-            print*, 'comst',comst
             if(comst.ne."!") then
               backspace(13,err=789)
               i = i + 1

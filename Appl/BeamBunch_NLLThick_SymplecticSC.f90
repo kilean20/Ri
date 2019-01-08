@@ -508,7 +508,7 @@
         enddo
 
 !        if(ilost.gt.0) then
-!		print*,'ilost=',ilost
+!    		print*,'ilost=',ilost
         this%Nptlocal = this%Nptlocal - ilost
         nplc = this%Nptlocal
         !<<<<<<<<<<<<<<<<<< kilean <<<<<<<<<<<<<<<<<<<<<<
