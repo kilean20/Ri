@@ -299,7 +299,7 @@
       end subroutine BessPrep_Bessel
      
       FUNCTION zbrent(nord,x1,x2,tol)
-      INTEGER ITMAX
+      INTEGER ITMAX, nord
       REAL*8 zbrent,tol,x1,x2,EPS
       PARAMETER (ITMAX=100,EPS=3.e-8)
       INTEGER iter

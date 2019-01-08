@@ -9,6 +9,8 @@
 CC = mpifort
 LINK = mpifort
 FFLAGS = -O3
+#for debugging
+#FFLAGS = -g -fimplicit-none  -Wall  -Wline-truncation  -Wcharacter-truncation  -Wsurprising  -Waliasing  -Wimplicit-interface  -Wunused-parameter  -fwhole-file  -fcheck=all  -pedantic  -fbacktrace
 BLAS_UBUNTU = -L/usr/lib/x86_64-linux-gnu -lblas
 #**************************************************************************
 # List of .o files that EXENAME depends on.  Edit as appropriate for MP.
@@ -76,7 +78,9 @@ $(EXENAME):  $(OBJS)
 	    Multipole_NLL.o sym2dsolver.o Distribution.o SolRF.o Sol.o Dipole.o TWS.o \
 	    NonlinearLens_NLLThick_Reversible.o EMfld.o Appl
 	cp  Timer.o Transpose.o Fldmger.o Ptclmger.o FFT.o Bessel.o Func	
-	cp  NumConst.o PhysConst.o Data.o Pgrid.o DataStruct 
+	cp  NumConst.o PhysConst.o Data.o Pgrid.o DataStruct
+#***********************************************************************
+all: $(EXENAME)
 #***********************************************************************
 clean:
 	-rm *.o $(EXENAME) *.mod Appl/*.o Func/*.o Contrl/*.o DataStruct/*.o

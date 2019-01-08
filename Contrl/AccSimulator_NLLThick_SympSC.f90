@@ -595,6 +595,9 @@
         dimension xmh(6,6),h(monoms)
         real*8, dimension(6) :: tmp6
         integer :: ntrace,ntaysym,norder
+        !<<<<<<<<<<< kilean <<<<<<<<<<<
+        integer :: ihalf, jslice, nslices, jadd, jend1, kend1
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         !integer :: ihalf,jslice,nslices
         !real*8 :: slfrac,pp,reftraj,tmh,th,angle,slen,arclen
         double precision, allocatable, dimension(:,:):: tmpPts

@@ -725,6 +725,7 @@
         double precision, intent(in) :: z
         double precision, dimension(6,NrIntvRf+1), intent(out) :: extfld6
         double precision :: zz,hz,ef
+        integer :: j,iz,iz1
 
         hz = (ZmaxRf-ZminRf)/NzIntvRf
         zz = z-this%Param(1)
@@ -758,6 +759,7 @@
                             tt,er,ez,bt,tmpcos,tmpsin
         double precision, dimension(3) :: tmp,temp
         integer :: iz,iz1,ir,ir1
+        double precision :: rr        
 
         len = this%Length
         zedge = this%Param(1)
@@ -852,11 +854,12 @@
 ! get the discrete Ex,Ey,Ez, Bx, By, Bz as a function of x and y at 
 ! given "z".
         subroutine getfld6xyz_EMfld(this,z,extfld6xyz)
+        integer :: i,iz,iz1,j
         type (EMfld), intent(in) :: this
         double precision, intent(in) :: z
         double precision, dimension(6,NxIntvRfg+1,NyIntvRfg+1),&
                           intent(out) :: extfld6xyz
-        double precision :: zz,hz,ef
+        double precision :: zz,hz,ef,rr
 
         hz = (ZmaxRfg-ZminRfg)/NzIntvRfg
         zz = z-this%Param(1)
