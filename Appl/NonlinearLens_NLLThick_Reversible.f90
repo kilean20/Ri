@@ -496,13 +496,11 @@
             invariants(6,i) = pyn
 !   Test for occurrence of NaN:
             test = Hinv*dsqrt(Iinv)*xn*pxn*yn*pyn
-            !<<<<< remove stop calling in case of underflow (kilean) <<<<<<
             if(test.ne.test) then
               write(*,*) 'NaN encountered (particle,s):'
               write(*,*) i,snf
               stop
             endif
-            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
          endif
 !   End computation of diagnostic quantities
 
