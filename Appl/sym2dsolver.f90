@@ -74,7 +74,7 @@
             !do ip = 1, innp
             !  philm(i,j) = philm(i,j) + tmpm(j,ip)*tmpl(i,ip)!*rays(8,ip)/Qtot*Npt
             !enddo
-            philm(i,j) = sum(tmpm(j,:)*tmpl(i,:)*rays(8,:))/Qtot*Npt
+            philm(i,j) = sum(tmpm(j,:)*tmpl(i,:))!*rays(8,:))/Qtot*Npt
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           enddo
         enddo
@@ -181,7 +181,7 @@
             !do ip = 1, innp
             !  philm(i,j) = philm(i,j) + tmpm(j,ip)*tmpl(i,ip)!*rays(8,ip)/Qtot*innp
             !enddo
-            philm(i,j) = sum(tmpm(j,:)*tmpl(i,:)*rays(8,:))/Qtot*innp
+            philm(i,j) = sum(tmpm(j,:)*tmpl(i,:))!*rays(8,:))/Qtot*innp
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           enddo
         enddo
