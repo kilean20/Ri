@@ -75,6 +75,8 @@
             !  philm(i,j) = philm(i,j) + tmpm(j,ip)*tmpl(i,ip)!*rays(8,ip)/Qtot*Npt
             !enddo
             philm(i,j) = sum(tmpm(j,1:innp)*tmpl(i,1:innp)*rays(8,1:innp))/Qtot*Npt
+            !print*, i,j,'sum(....noWeight)=',sum(tmpm(j,1:innp)*tmpl(i,1:innp))
+            !print*, i,j,'sum(... weighted)=',sum(tmpm(j,1:innp)*tmpl(i,1:innp)*rays(8,1:innp))/Qtot*Npt
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           enddo
         enddo
@@ -182,10 +184,12 @@
             !  philm(i,j) = philm(i,j) + tmpm(j,ip)*tmpl(i,ip)!*rays(8,ip)/Qtot*Npt
             !enddo
             philm(i,j) = sum(tmpm(j,1:innp)*tmpl(i,1:innp)*rays(8,1:innp))/Qtot*Npt
+            !print*, i,j,'sum(....noWeight)=',sum(tmpm(j,1:innp)*tmpl(i,1:innp))
+            !print*, i,j,'sum(... weighted)=',sum(tmpm(j,1:innp)*tmpl(i,1:innp)*rays(8,1:innp))/Qtot*Npt
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           enddo
-        enddo
-
+        enddo        
+        
         xden = 0.0d0
         call MPI_ALLREDUCE(philm,xden,Nl*Nm,MPI_DOUBLE_PRECISION,MPI_SUM,&
                                   MPI_COMM_WORLD,ierr)

@@ -7224,7 +7224,9 @@
               this%Pts1(1:9,i) = tmptcl(1:9)
             endif
           enddo
-          print*,"sumx1,sumy1: ",sum1/nptot,sum2/nptot
+          !<<<<<<<< commenting out unnecessary printing(kilean) <<<<<
+          !print*,"sumx1,sumy1: ",sum1/nptot,sum2/nptot
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
  
           close(12)
  

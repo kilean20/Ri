@@ -1968,7 +1968,10 @@
         rays(5,i) = this%Pts1(5,i)*Scxl
         rays(6,i) = this%Pts1(6,i)/gambet
      enddo
-
+     !<<<<<<<<< include charge weight(Kilean) <<<<<<<<<<
+     rays(8,1:innp) = this%Pts1(8,1:innp)
+     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+     
      if(Flagdiag.eq.1) then  !ONLY WRITE H DIAGNOSTIC
         call sym2dDiag_BeamBunch(rays,perv,tau,innp,Npt,innx,inny,xaper,yaper,Haml)
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
