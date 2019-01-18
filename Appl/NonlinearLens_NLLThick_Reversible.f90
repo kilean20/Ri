@@ -391,9 +391,7 @@
 
         real*8 :: snf,bnf,anf,cnllf,knllf
         integer  :: i,j,nsg,mpstp,nn
-        
-       
-        
+               
         zedge = this%Param(1)    !Location of NLL element entry
         tn = this%Param(2)       !Dimensionless strength of NLL
         cn = this%Param(3)       !Dimensional parameter of NLL
@@ -436,10 +434,8 @@
             coord(5) = pts(5,i)*Scxl
             coord(6) = pts(6,i)/gambet0
             call  DriftPropagator(ds2,beta0,gambet0,coord)    !Half step for drift
-!   Old tracking algorithm should be commented here:
-            ! call NonlinearLensPropagator(knll,cnll,b,d,coord,u,v)   !Full step in (px,py)
 !   Complex potential tracking algorithm:
-            call NonlinearLensPropagatorCmplx(knll,cnll,coord(1:4))  !Complex version of step in (px,py)
+            call NonlinearLensPropagatorCmplx(knll,cnll,coord(1:4))  !Complex version of full step in (px,py)
             call DriftPropagator(ds2,beta0,gambet0,coord)    !Half step for drift
             pts(1,i) = coord(1)/Scxl                   !Convert back to internal units
             pts(2,i) = coord(2)*gambet0
@@ -447,12 +443,6 @@
             pts(4,i) = coord(4)*gambet0
             pts(5,i) = coord(5)/Scxl
             pts(6,i) = coord(6)*gambet0
-            !<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<
-            !if(pts(1,i).ne.pts(1,i)) print*,'x N aN pts(1,i) = ',pts(1,i)
-            !if(pts(2,i).ne.pts(2,i)) print*,'px NaN pts(2,i) = ',pts(2,i)
-            !if(pts(3,i).ne.pts(3,i)) print*,'y  NaN pts(3,i) = ',pts(3,i)
-            !if(pts(4,i).ne.pts(4,i)) print*,'py NaN pts(4,i) = ',pts(4,i)
-            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 !  Move diagnostic computation to coincide with particle output location
             snf = sedge + ds*j  !Location of jth step output
             bnf=l0*(1-snf*(l0-snf)/l0/f0)/sqrt(1.0-(1.0-l0/2.0/f0)**2)
@@ -471,22 +461,9 @@
             Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv
             
             !<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<
-            if(Hinv.ne.Hinv) print*,'Hinv NaN : pts(:,i) = ',pts(:,i)
             if(Iinv<0) Iinv=0d0
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             
-!   Old diagnostic algorithm should be commented here:
-      !      Hinv = u*sqrt(u**2-1.0d0)*(d+acosh(u))
-      !      Hinv = Hinv + v*sqrt(1.0d0-v**2)*(b+acos(v))
-      !      Hinv = Hinv/(u**2-v**2)
-      !      Hinv = (xn**2+yn**2+pxn**2+pyn**2)/2.d0-tn*Hinv
-      !      f = u**2*(u**2-1.0d0)/2.0d0 - tn*u*sqrt(u**2-1.0d0)*(d+acosh(u))
-      !      g = v**2*(1.0d0-v**2)/2.0d0 - tn*v*sqrt(1.0d0-v**2)*(b+acos(v))
-      !      Iinv = 2.0d0*(f*v**2+g*u**2)/(u**2-v**2)
-      !      Iinv = (xn*pyn-yn*pxn)**2+pxn**2+Iinv
-!            write(71,20) snf+zedge,xn,pxn,yn,pyn,Hinv,Iinv
-!            write(71,20) snf+zedge,an,bn,Hinv,Iinv
-!   End old diagnostic algorithm
             invariants(1,i) = Hinv
 !            invariants(2,i) = Iinv
             invariants(2,i) = dsqrt(Iinv)  !Use this for benchmark with CH.
@@ -506,7 +483,6 @@
 
           enddo
 
-!        t = t + tau
 20      format(7(1x,g20.12))
         enddo
 
@@ -521,6 +497,122 @@
         refpt(5) = refpt(5) + tau/beta0/Scxl
 
         end subroutine propagator_NonlinearLens
+
+
+        subroutine propagator_SmoothFocusingNLL(t,tau,this,refpt,Nplc,pts,qmass)
+        implicit none
+        include 'mpif.h'
+        integer, intent(in) :: Nplc
+        double precision, intent(inout) :: t
+        double precision, intent(in) :: tau,qmass
+        double precision, dimension(6), intent(inout) :: refpt
+        double precision, dimension(6) :: coord
+        double precision, dimension(6,Nplc) :: invariants
+        type (NonlinearLens), intent(in) :: this
+        double precision, pointer, dimension(:,:) :: pts
+        real*8 :: gambet0,zedge,tn,cn,bn,dn,mu0,f0,l0,sn, &
+                  knll,cnll,b,d,beta0,ds,sedge,ds2,smid, &
+                  kf,xn,yn,pxn,pyn,u,v,Hinv,Iinv,f,g,mismatch,test
+
+        real*8 :: snf,bnf,anf,cnllf,knllf
+        integer  :: i,j,nsg,mpstp,nn
+               
+        zedge = this%Param(1)    !Location of smooth focusing NLL element entry
+        tn = this%Param(2)       !Dimensionless strength of NLL
+        cn = this%Param(3)       !Dimensional parameter of NLL
+        bn = this%Param(4)       !Beta function (=1/focusing strength)
+        l0 = this%Length         !Length of NLL element
+        nsg = this%Nseg          !Number of SC kicks
+        mpstp = this%Mapstp      !Number of map steps/slice
+        nn = (nsg+1)*mpstp       !Total number of NLL segments
+        kf = 1.0d0/bn            !External smooth focusing strength
+
+        l0 = dabs(l0) !To allow reversible tracking
+
+        gambet0 = sqrt(refpt(6)**2-1.0d0)     !Relativistic beta*gamma
+        beta0 = sqrt(1.0d0-1.0d0/(refpt(6)**2)) !Relativistic beta
+
+        sedge = t-zedge          !Location of SC slice entry
+        if(tau<0.0d0) sedge = l0+sedge  !Begin at end of slice (reverse tracking)
+        ds = tau/dble(mpstp)     !Size of each map step
+        ds2 = ds/2.0d0
+
+        knll=ds*tn*cn**2/bn      !Parameters for NLL kick
+        cnll=cn*sqrt(bn)
+
+        do j = 1, mpstp
+          sn = sedge + ds*(j-0.5d0)  !Location of jth map kick
+
+          do i = 1, Nplc
+            coord(1) = pts(1,i)*Scxl          !Convert to normalized units for update
+            coord(2) = pts(2,i)/gambet0
+            coord(3) = pts(3,i)*Scxl
+            coord(4) = pts(4,i)/gambet0
+            coord(5) = pts(5,i)*Scxl
+            coord(6) = pts(6,i)/gambet0
+!   Initial drift half step
+            call  DriftPropagator(ds2,beta0,gambet0,coord)    !Half step for drift
+!   Complex potential step
+            call NonlinearLensPropagatorCmplx(knll,cnll,coord(1:4))  !Complex version of full step in (px,py)
+!   External focusing step
+            coord(2) = coord(2) -kf**2*coord(1)*ds    !Step in (px,py) due to external focusing
+            coord(4) = coord(4) -kf**2*coord(3)*ds
+!   Final drift half step
+            call DriftPropagator(ds2,beta0,gambet0,coord)    !Half step for drift
+            pts(1,i) = coord(1)/Scxl                   !Convert back to internal units
+            pts(2,i) = coord(2)*gambet0
+            pts(3,i) = coord(3)/Scxl 
+            pts(4,i) = coord(4)*gambet0
+            pts(5,i) = coord(5)/Scxl
+            pts(6,i) = coord(6)*gambet0
+!   Compute diagnostic quantities (temporarily added the "if" statement for speed)
+          smid = l0/2.0d0
+        if(abs(snf-smid)<1.0d-4) then
+            xn = coord(1)/cnll
+            yn = coord(3)/cnll
+            pxn = coord(2)*sqrt(bn)/cn
+            pyn = coord(4)*sqrt(bn)/cn
+            call InvariantPotentials(xn,yn,Hinv,Iinv)
+            Hinv = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv
+            Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv
+            
+            !<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<
+            if(Iinv<0) Iinv=0d0
+            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            
+            invariants(1,i) = Hinv
+!            invariants(2,i) = Iinv
+            invariants(2,i) = dsqrt(Iinv)  !Use this for benchmark with CH.
+            invariants(3,i) = xn
+            invariants(4,i) = pxn
+            invariants(5,i) = yn
+            invariants(6,i) = pyn
+!   Test for occurrence of NaN:
+            test = Hinv*dsqrt(Iinv)*xn*pxn*yn*pyn
+            if(test.ne.test) then
+              write(*,*) 'NaN encountered (particle,s):'
+              write(*,*) i,snf
+              stop
+            endif
+         endif
+!   End computation of diagnostic quantities
+
+          enddo
+
+20      format(7(1x,g20.12))
+        enddo
+
+!  Use the following "if" statement if we want to write out diagnostics
+!  only near the midpoint of the insert.
+        smid = l0/2.0d0
+         if(abs(sedge-smid+tau)<1.0d-4) then
+          call diagnostics_NonlinearLens(t+tau,invariants,Nplc)
+!          call mismatch_NonlinearLens(t+tau,invariants,Nplc)  !Commented for speed
+         endif
+
+        refpt(5) = refpt(5) + tau/beta0/Scxl
+
+        end subroutine propagator_SmoothFocusingNLL
 
         subroutine diagnostics_NonlinearLens(t,invariants,Nplc)
         implicit none
