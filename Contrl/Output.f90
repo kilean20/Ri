@@ -4256,6 +4256,7 @@
         
         isTest = BB%Pts1(8,1:BB%Nptlocal) == 0.0  ! inteded type cast. ignore compiler warining.
         tpt = sum(isTest)
+        if(tpt>0) print*, 'my_rank,tpt=','my_rank,tpt
         allocate(sendbuf(7,tpt))
         tpt = 0
         do i=1,BB%Nptlocal
@@ -4282,7 +4283,6 @@
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
         if(my_rank.eq.0) then
-          print*, 'tpt,mtpt=',tpt,mtpt
           call sort(recvbuf, 7, 7, mtpt, 1, mtpt)
           do i=1,1000
             !print*, 'i,isOn(i),unitfID(:,i)',i,isOn(i),unitfID(:,i)
