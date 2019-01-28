@@ -4254,9 +4254,8 @@
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
         
-        isTest = BB%Pts1(8,1:BB%Nptlocal) == 0.0  ! inteded type cast. ignore compiler warining.
-        tpt = sum(isTest)
-        if(tpt>0) print*, 'my_rank,tpt=','my_rank,tpt
+        isTest = abs(BB%Pts1(8,1:BB%Nptlocal)) <= 2*TINY(0.0)  ! inteded type cast. ignore compiler warining.
+        if(tpt>0) print*, 'my_rank,tpt=',my_rank,tpt
         allocate(sendbuf(7,tpt))
         tpt = 0
         do i=1,BB%Nptlocal
