@@ -4264,6 +4264,7 @@
             sendbuf(7,tpt) = BB%Pts1(9,i)
           endif
         enddo
+        if(my_rank==0) print*, 'tpt=',tpt
         
         allocate(nptlist(0:np-1))
         allocate(nptdisp(0:np-1))
@@ -4272,6 +4273,7 @@
         call MPI_GATHER(tpt,1,MPI_INTEGER,nptlist,1,&
                            MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
         mtpt = sum(nptlist)
+        if(my_rank==0) print*, 'mtpt=',mtpt
         nptlist = nptlist*7
         do i=0,np-2
           nptdisp(i+1) = nptlist(i)+nptdisp(i)
@@ -4281,7 +4283,6 @@
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
         if(my_rank.eq.0) then
-          print*, 'mtpt=',mtpt
           call sort(recvbuf, 7, 7, mtpt, 1, mtpt)
           do i=1,1000
             !print*, 'i,isOn(i),unitfID(:,i)',i,isOn(i),unitfID(:,i)
