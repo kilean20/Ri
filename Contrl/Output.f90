@@ -4247,24 +4247,24 @@
         logical, save :: isOn(1000)=.false.
         integer :: i,j,ifail,np,my_rank,ierr,tpt,mtpt,iUnit
         integer :: status(MPI_STATUS_SIZE)
-        integer :: isTest(BB%Nptlocal)
+        logical :: isTest(BB%Nptlocal)
         integer, allocatable, dimension(:) :: nptlist,nptdisp
         double precision, allocatable,dimension(:,:) :: recvbuf, sendbuf
              
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
         
-        isTest = abs(BB%Pts1(8,1:BB%Nptlocal)) <= 2*TINY(0.0)  ! inteded type cast. ignore compiler warining.
+        isTest = BB%Pts1(8,1:BB%Nptlocal) < tiny(0.0)  ! inteded type cast. ignore compiler warining.
+        tpt = count(isTest)
         allocate(sendbuf(7,tpt))
-        if(my_rank==0) print*, 'tpt,isTest=',tpt,isTest
+        tpt = 0
         do i=1,BB%Nptlocal
-          if(isTest(i)==1) then
+          if(isTest(i)) then
             tpt = tpt+1
             sendbuf(1:6,tpt) = BB%Pts1(1:6,i)
             sendbuf(7,tpt) = BB%Pts1(9,i)
           endif
         enddo
-        if(my_rank==0) print*, 'tpt=',tpt
         
         allocate(nptlist(0:np-1))
         allocate(nptdisp(0:np-1))
@@ -4273,7 +4273,6 @@
         call MPI_GATHER(tpt,1,MPI_INTEGER,nptlist,1,&
                            MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
         mtpt = sum(nptlist)
-        if(my_rank==0) print*, 'mtpt=',mtpt
         nptlist = nptlist*7
         do i=0,np-2
           nptdisp(i+1) = nptlist(i)+nptdisp(i)
@@ -4284,6 +4283,7 @@
                          0,MPI_COMM_WORLD,ierr)
         if(my_rank.eq.0) then
           call sort(recvbuf, 7, 7, mtpt, 1, mtpt)
+          print*, 'mtpt=',mtpt
           do i=1,1000
             !print*, 'i,isOn(i),unitfID(:,i)',i,isOn(i),unitfID(:,i)
             if(isOn(i)) then
