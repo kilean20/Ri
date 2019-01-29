@@ -4256,7 +4256,7 @@
         
         isTest = abs(BB%Pts1(8,1:BB%Nptlocal)) <= 2*TINY(0.0)  ! inteded type cast. ignore compiler warining.
         allocate(sendbuf(7,tpt))
-        tpt = 0
+        if(my_rank==0) print*, 'tpt,isTest=',tpt,isTest
         do i=1,BB%Nptlocal
           if(isTest(i)==1) then
             tpt = tpt+1
