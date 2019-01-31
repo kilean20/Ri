@@ -4270,6 +4270,10 @@
         allocate(nptdisp(0:np-1))
         nptlist = 0
         nptdisp = 0
+        !<<<<
+        call MPI_BARRIER(ierr)
+        if(my_rank==np-1) print*, 'before MPI_GATHER'
+        !>>>>
         call MPI_GATHER(tpt,1,MPI_INTEGER,nptlist,1,&
                            MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
         mtpt = sum(nptlist)
@@ -4278,6 +4282,10 @@
           nptdisp(i+1) = nptlist(i)+nptdisp(i)
         enddo
         allocate(recvbuf(7,mtpt))
+        !<<<<
+        call MPI_BARRIER(ierr)
+        if(my_rank==np-1) print*, 'before MPI_GATHERv'
+        !>>>>
         call MPI_GATHERV(sendbuf,tpt*7,MPI_DOUBLE_PRECISION,&
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
