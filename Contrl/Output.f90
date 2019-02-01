@@ -4271,7 +4271,7 @@
         nptlist = 0
         nptdisp = 0
         !<<<<
-        call MPI_BARRIER(ierr)
+        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
         if(my_rank==0) print*, 'before MPI_GATHER'
         !>>>>
         call MPI_GATHER(tpt,1,MPI_INTEGER,nptlist,1,&
@@ -4283,7 +4283,7 @@
         enddo
         allocate(recvbuf(7,mtpt))
         !<<<<
-        call MPI_BARRIER(ierr)
+        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
         if(my_rank==0) print*, 'before MPI_GATHERv'
         !>>>>
         call MPI_GATHERV(sendbuf,tpt*7,MPI_DOUBLE_PRECISION,&
