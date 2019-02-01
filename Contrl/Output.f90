@@ -4272,7 +4272,7 @@
         nptdisp = 0
         !<<<<
         call MPI_BARRIER(ierr)
-        if(my_rank==np-1) print*, 'before MPI_GATHER'
+        if(my_rank==0) print*, 'before MPI_GATHER'
         !>>>>
         call MPI_GATHER(tpt,1,MPI_INTEGER,nptlist,1,&
                            MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -4284,16 +4284,16 @@
         allocate(recvbuf(7,mtpt))
         !<<<<
         call MPI_BARRIER(ierr)
-        if(my_rank==np-1) print*, 'before MPI_GATHERv'
+        if(my_rank==0) print*, 'before MPI_GATHERv'
         !>>>>
         call MPI_GATHERV(sendbuf,tpt*7,MPI_DOUBLE_PRECISION,&
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
         if(my_rank.eq.0) then
+          print*, 'before sort, mtpt=',mtpt
           call sort(recvbuf, 7, 7, mtpt, 1, mtpt)
-          print*, 'mtpt=',mtpt
+          print*, 'after sort, mtpt=',mtpt
           do i=1,1000
-            !print*, 'i,isOn(i),unitfID(:,i)',i,isOn(i),unitfID(:,i)
             if(isOn(i)) then
               if(UnitfID(2,i)==fileID) then
                 iUnit = UnitfID(1,i)
