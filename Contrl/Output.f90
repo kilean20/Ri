@@ -4270,10 +4270,6 @@
         allocate(nptdisp(0:np-1))
         nptlist = 0
         nptdisp = 0
-        !<<<<
-        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-        if(my_rank==0) print*, 'before MPI_GATHER'
-        !>>>>
         call MPI_GATHER(tpt,1,MPI_INTEGER,nptlist,1,&
                            MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
         mtpt = sum(nptlist)
@@ -4282,17 +4278,11 @@
           nptdisp(i+1) = nptlist(i)+nptdisp(i)
         enddo
         allocate(recvbuf(7,mtpt))
-        !<<<<
-        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-        if(my_rank==0) print*, 'before MPI_GATHERv'
-        !>>>>
         call MPI_GATHERV(sendbuf,tpt*7,MPI_DOUBLE_PRECISION,&
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
         if(my_rank.eq.0) then
-          print*, 'before sort, mtpt=',mtpt
           call sort(recvbuf, 7, 7, mtpt, 1, mtpt)
-          print*, 'after sort, mtpt=',mtpt
           do i=1,1000
             if(isOn(i)) then
               if(UnitfID(2,i)==fileID) then
