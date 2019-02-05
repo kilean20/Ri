@@ -4303,10 +4303,10 @@
               if(ifail /= 0)  STOP '--- Error in opening TBT file ---'
               exit
             endif
-            !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-            print*, '[TBTphase]i,UnitfID(:,i)=',i,UnitfID(:,i)
-            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           enddo
+          !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+          print*, '[TBTphase]i,UnitfID(:,i)=',i,UnitfID(:,i)
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           if(i==1000) then
             STOP 'Error : maximum number of TBT file reached'
           endif
@@ -4349,7 +4349,7 @@
         allocate(sendbuf(3,tpt))
         tpt = 0
         do i=1,BB%Nptlocal
-          if(isTest(i)==1) then
+          if(isTest(i)) then
             tpt = tpt+1
             xn  = BB%Pts1(1,i)*Scxl/cn/sqrt(beta)
             pxn = BB%Pts1(2,i)/gambet0*sqrt(beta)/cn + alfa*xn
@@ -4403,10 +4403,10 @@
               if(ifail /= 0)  STOP '--- Error in opening TBT.integral file ---'
               exit
             endif
-            !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-            print*, '[TBTintegral]i,UnitfID(:,i)=',i,UnitfID(:,i)
-            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           enddo
+          !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+          print*, '[TBTintegral]i,UnitfID(:,i)=',i,UnitfID(:,i)
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           if(i==1000) then
             STOP 'Error : maximum number of TBT.integral file reached'
           endif
