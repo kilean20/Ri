@@ -1032,11 +1032,11 @@ call phase_Output(-111110,Bpts,1)
           endif
 !<<<<<<<<<<<<<<<<<<<<<< TBToutput(Kilean) <<<<<<<<<<<<<<<<<<<<<<<<<<<
           if(bitype.eq.-89) then
-            call turn_by_turn_phasespace(Bpts,iturn,bmpstp)
+            call turn_by_turn_phasespace(Bpts,bmpstp)
           endif
           if(bitype.eq.-88) then
             call getparam_BeamLineElem(Blnelem(i),dparam)
-            call turn_by_turn_integral(Bpts,iturn,bmpstp,dparam(2),&
+            call turn_by_turn_integral(Bpts,bmpstp,dparam(2),&
                                        dparam(3),dparam(4),dparam(5))
           endif
 !>>>>>>>>>>>>>>>>>>>>>>> end of TBToutput >>>>>>>>>>>>>>>>>>>>>>>>>>>

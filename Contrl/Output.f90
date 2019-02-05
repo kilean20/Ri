@@ -4237,12 +4237,12 @@
         end subroutine sort
 
 
-        subroutine turn_by_turn_phasespace(BB,iturn,fileID)
+        subroutine turn_by_turn_phasespace(BB,fileID)
         ! write phase-space of test particles (q=0) turn-by-turn
         implicit none
         include 'mpif.h'
         type (BeamBunch), intent(in) :: BB
-        integer, intent(in) :: iturn, fileID
+        integer, intent(in) :: fileID
         integer, save :: unitfID(2,1000)
         logical, save :: isOn(1000)=.false.
         integer :: i,j,ifail,np,my_rank,ierr,tpt,mtpt,iUnit
@@ -4278,6 +4278,10 @@
           nptdisp(i+1) = nptlist(i)+nptdisp(i)
         enddo
         allocate(recvbuf(7,mtpt))
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+        if(my_rank==0) print*, '[TBTphase]MPI_GATHERV, mtpt=',mtpt
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         call MPI_GATHERV(sendbuf,tpt*7,MPI_DOUBLE_PRECISION,&
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
@@ -4318,12 +4322,12 @@
         endif
         end subroutine turn_by_turn_phasespace
         
-        subroutine turn_by_turn_integral(BB,iturn,fileID,beta,alfa,tn,cn)
+        subroutine turn_by_turn_integral(BB,fileID,beta,alfa,tn,cn)
         ! write phase-space of test particles (q=0) turn-by-turn
         implicit none
         include 'mpif.h'
         type (BeamBunch), intent(in) :: BB
-        integer, intent(in) :: iturn, fileID
+        integer, intent(in) :: fileID
         double precision, intent(in) :: beta,alfa,cn,tn
         integer, save :: unitfID(2,1000)
         logical, save :: isOn(1000)=.false.
@@ -4368,6 +4372,7 @@
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         call MPI_GATHER(tpt,1,MPI_INTEGER,nptlist,1,&
                            MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+        if(my_rank==0) print*, '[TBTintegral]fileID,alfa,tn,cn',fileID,alfa,tn,cn
         mtpt = sum(nptlist)
         nptlist = nptlist*3
         do i=0,np-2
