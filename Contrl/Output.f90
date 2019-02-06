@@ -4341,9 +4341,6 @@
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
         gambet0 = sqrt(BB%refptcl(6)**2-1.0d0) 
-        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        if(my_rank==0) print*, '[TBTintegral]gambet0, twissbeta=',gambet0,beta
-        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         isTest = BB%Pts1(8,1:BB%Nptlocal) < tiny(0.0)  ! inteded type cast. ignore compiler warining.
         tpt = count(isTest)
         allocate(sendbuf(3,tpt))
@@ -4366,23 +4363,14 @@
         allocate(nptdisp(0:np-1))
         nptlist = 0
         nptdisp = 0
-        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-        if(my_rank==0) print*, '[TBTintegral]MPI_GATHER'
-        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         call MPI_GATHER(tpt,1,MPI_INTEGER,nptlist,1,&
                            MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-        if(my_rank==0) print*, '[TBTintegral]fileID,alfa,tn,cn',fileID,alfa,tn,cn
         mtpt = sum(nptlist)
         nptlist = nptlist*3
         do i=0,np-2
           nptdisp(i+1) = nptlist(i)+nptdisp(i)
         enddo
         allocate(recvbuf(3,mtpt))
-        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-        if(my_rank==0) print*, '[TBTintegral]MPI_GATHERV, mtpt=',mtpt
-        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         call MPI_GATHERV(sendbuf,tpt*3,MPI_DOUBLE_PRECISION,&
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
@@ -4404,9 +4392,6 @@
               exit
             endif
           enddo
-          !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-          print*, '[TBTintegral]i,UnitfID(:,i)=',i,UnitfID(:,i)
-          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           if(i==1000) then
             STOP 'Error : maximum number of TBT.integral file reached'
           endif
