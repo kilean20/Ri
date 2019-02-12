@@ -4191,11 +4191,11 @@
         return 
         end function get_free_unit
         
-        character(len=4) function num2str_int(num)
+        character(len=6) function num2str_int(num)
         ! type cast : from integer to string
         implicit none
         integer, intent(in) :: num
-        character(len=6), parameter  :: fmt_ = "(I0)"
+        character(len=8), parameter  :: fmt_ = "(I0)"
         write(num2str_int,fmt_) num
         return
         end function
