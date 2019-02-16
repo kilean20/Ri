@@ -121,6 +121,8 @@
           !call readElegantDB_Dist(this,nparam,distparam,geom,grid,Flagbc)
         else if(flagdist.eq.23) then
           call read_Dist(this)
+        else if(flagdist.eq.-23) then
+          call read_Dist_binary(this,nparam,distparam)
         else if(flagdist.eq.24) then
           call readElegant2_Dist(this,nparam,distparam,geom,grid,Flagbc)
         else if(flagdist.eq.25) then
@@ -7233,7 +7235,59 @@
           this%Nptlocal = avgpts
  
         end subroutine read_Dist
+        
+        
+        !<<<<<<<<<< Binary pData read in ( Kilean ) <<<<<<<<<<
+        !read in binary distribution of ImpactT format
+        subroutine read_Dist_binary(this,nparam,distparam)
+        implicit none
+        include 'mpif.h'
+        type (BeamBunch), intent(inout) :: this
+        integer, intent(in) :: nparam
+        double precision, dimension(nparam) :: distparam
+        integer :: i,j,jlow,jhigh,avgpts,myid,nproc,ierr,nleft,fID
+        integer*8 :: nptot
+        double precision, dimension(9) :: tmptcl
+        double precision :: sum1,sum2
  
+        call MPI_COMM_RANK(MPI_COMM_WORLD,myid,ierr)
+        call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
+        fID = int(distparam(1))
+ 
+        open(unit=fID,form='unformatted',action='read')
+ 
+        sum1 = 0.0
+        sum2 = 0.0
+        nptot = this%Npt
+        avgpts = nptot/nproc
+        nleft = nptot - avgpts*nproc
+        if(myid.lt.nleft) then
+          avgpts = avgpts+1
+          jlow = myid*avgpts + 1
+          jhigh = (myid+1)*avgpts
+        else
+          jlow = myid*avgpts + 1 + nleft
+          jhigh = (myid+1)*avgpts + nleft
+        endif
+        allocate(this%Pts1(9,avgpts))
+        this%Pts1 = 0.0
+        do j = 1, nptot
+          read(fID)tmptcl(1:9)
+          sum1 = sum1 + tmptcl(1)
+          sum2 = sum2 + tmptcl(3)
+          if( (j.ge.jlow).and.(j.le.jhigh) ) then
+            i = j - jlow + 1
+            this%Pts1(1:9,i) = tmptcl(1:9)
+          endif
+        enddo
+        close(fID)
+ 
+        this%Nptlocal = avgpts
+        
+        end subroutine read_Dist_binary
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        
+        
         !read particle distribution from Elegant output
         subroutine readElegant2_Dist(this,nparam,distparam,geom,grid,Flagbc)
         implicit none

@@ -560,8 +560,8 @@
         !double precision :: sumtest, sumtest2, sumtest3
         double precision, dimension(8) :: drange
         double precision, dimension(3) :: al0,ga0,epson0
-        double precision :: realSamplePeriod,tg,tv,gam,piperad2
-        integer :: nsubstep,integerSamplePeriod,Flagbctmp
+        double precision :: tg,tv,gam,piperad2
+        integer :: nsubstep,Flagbctmp
         double precision :: zz,vref
         !parameters for stripper modeling
         double precision :: beta0,gamma0,gambetz
@@ -1043,10 +1043,9 @@ call phase_Output(-111110,Bpts,1)
           if(bitype.eq.-2) then
             !call phase_Output(bmpstp,Bpts)
             !call phaseleda_Output(bmpstp,Bpts)
-            call getparam_BeamLineElem(Blnelem(i),drange)
-            realSamplePeriod = drange(2)
-            integerSamplePeriod = realSamplePeriod
-            call phase_Output(bmpstp,Bpts,integerSamplePeriod)
+            call getparam_BeamLineElem(Blnelem(i),dparam)
+            print*, 'phase_Output : iturn, dparam(1:3)',iturn, dparam(1:3)
+            if(int(dparam(2))==iturn) call phase_Output(bmpstp,Bpts,int(dparam(3)))
           else if(bitype.eq.-3) then
             call getparam_BeamLineElem(Blnelem(i),drange)
             call accdens1d_Output(nstep,8,Bpts,Np,drange(2),-drange(3),&
