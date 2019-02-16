@@ -213,6 +213,9 @@
         else
           call sample_Dist(Bpts,distparam,21,Flagdist,Ageom,grid2d,Flagbc,&
                            nchrg,nptlist0,qmcclist0,currlist0)
+          !<<<<<<<<<<<<<<<<<<<<
+          nptlist0(1) = Bpts%Npt
+          !>>>>>>>>>>>>>>>>>>>>
         endif
         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
         if(myid.eq.0) print*,"pass generating initial distribution..."

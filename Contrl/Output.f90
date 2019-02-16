@@ -2588,7 +2588,7 @@
         integer :: samplePeriod
         integer :: np,my_rank,ierr
         integer status(MPI_STATUS_SIZE)
-        integer :: i,j,sixnpt,mnpt
+        integer :: i,j,sixnpt,mnpt,npt
         integer, allocatable, dimension(:) :: nptlist
         double precision, allocatable,dimension(:,:) :: recvbuf  
         !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -2624,6 +2624,8 @@
           if(flagBinary) then
             open(-nfile,status='unknown',form='unformatted',&
                         action='write')
+            npt = ceiling(real(this%Npt)/real(samplePeriod))
+            write(-nfile) npt
             do i = 1, this%Nptlocal,samplePeriod
               write(-nfile) this%Pts1(1:9,i)
             enddo

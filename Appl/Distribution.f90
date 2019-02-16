@@ -1174,7 +1174,7 @@
           this%Pts1(6,numpts) = xmu6 + sig6*(-muzpz*x1(1)/sq56+x1(2))
           if(numpts.ge.avgpts) exit
         enddo
-        print*,"numpts: ",numpts
+        !print*,"numpts: ",numpts
           
         this%Nptlocal = avgpts
        
@@ -3646,11 +3646,11 @@
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -4416,11 +4416,11 @@
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -5433,11 +5433,11 @@
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -6666,11 +6666,11 @@
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -6998,9 +6998,9 @@
         call MPI_ALLREDUCE(y2lc,y2,nslice,MPI_DOUBLE_PRECISION,&
                            MPI_SUM,MPI_COMM_WORLD,ierr)
         !print*,"a22: ",sum(a22)
-        do iz = 1, nslice
-          if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
-        enddo
+        !do iz = 1, nslice
+        !  if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
+        !enddo
         do iz = 1, nslice
           if(a22(iz).gt.0.0) then
             detaabb = a22(iz)*a11(iz)-a12(iz)**2
@@ -7010,18 +7010,18 @@
             aa(iz) = 0.0
             bb(iz) = 0.0
           endif
-          if(myid.eq.0) print*,"isilce: ",iz,detaabb,aa(iz),bb(iz),a22(iz)
+          !if(myid.eq.0) print*,"isilce: ",iz,detaabb,aa(iz),bb(iz),a22(iz)
         enddo
 
         numpts0 = avgpts 
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -7153,8 +7153,8 @@
                !r = 0.0*(2.0*r-1.0)*0.029354*sqrt(3.0d0)/2 !7.5keV is rms
                !r = 2*(2.0*r-1.0)*0.029354*sqrt(3.0d0)/15 !15keV is rms
               endif
-              if(i.eq.1 .and. j.eq.1) print*,"r, ",r,ij,aaseed
-              if(i.eq.100 .and. j.eq.1) print*,"r, ",r,ij
+              !if(i.eq.1 .and. j.eq.1) print*,"r, ",r,ij,aaseed
+              !if(i.eq.100 .and. j.eq.1) print*,"r, ",r,ij
               ii = j+nset*(i-1)
               iz = (this%Pts1(5,ii)-zmin)/hz + 1
               if(iz.le.0) iz = 1
@@ -7216,7 +7216,7 @@
           this%Pts1 = 0.0
           !jlow = myid*avgpts + 1
           !jhigh = (myid+1)*avgpts
-          print*,"avgpts, jlow, and jhigh: ",avgpts,jlow,jhigh
+          !print*,"avgpts, jlow, and jhigh: ",avgpts,jlow,jhigh
           do j = 1, nptot
             read(12,*)tmptcl(1:9)
             sum1 = sum1 + tmptcl(1)
@@ -7255,10 +7255,12 @@
         fID = int(distparam(1))
  
         open(unit=fID,form='unformatted',action='read')
- 
+        read(fID) ierr
+        nptot = ierr
+        
         sum1 = 0.0
         sum2 = 0.0
-        nptot = this%Npt
+        this%Npt = nptot
         avgpts = nptot/nproc
         nleft = nptot - avgpts*nproc
         if(myid.lt.nleft) then
@@ -7359,7 +7361,7 @@
             jlow = myid*avgpts + 1 + nleft
             jhigh = (myid+1)*avgpts + nleft
           endif
-          print*,"avgpts: ",avgpts,myid,inipts,totnp
+          !print*,"avgpts: ",avgpts,myid,inipts,totnp
           allocate(Ptcl(8,avgpts))
 
         xmax = 0.0
@@ -7400,7 +7402,7 @@
         enddo
         sumx2 = sqrt(sumx2/inipts-(sumx/inipts)**2)
         sumy2 = sqrt(sumy2/inipts-(sumy/inipts)**2)
-        print*,"sumx2: ",sumx2,sumx/inipts,sumy2,sumy/inipts
+        !print*,"sumx2: ",sumx2,sumx/inipts,sumy2,sumy/inipts
         close(12)
         call MPI_BARRIER(comm2d,ierr)
 
@@ -7410,7 +7412,7 @@
         pxmax = pxmax*pxscale
         pymax = pymax*pyscale
         pzmax = pzmax*pzscale
-        print*,"xmax: ",xmax,ymax,zmax,pxmax,pymax,pzmax
+        !print*,"xmax: ",xmax,ymax,zmax,pxmax,pymax,pzmax
         do j = 1, avgpts
           Ptcl(1,j) = (Ptcl(1,j)/xl)*xscale + xmu1
           Ptcl(3,j) = (Ptcl(3,j)/xl)*yscale + xmu3
@@ -7432,11 +7434,11 @@
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -7504,11 +7506,11 @@
           sumx = sumx + this%Pts1(1,i)
         enddo
 
-        print*,"sumxnew: ",sumx/this%Nptlocal
+        !print*,"sumxnew: ",sumx/this%Nptlocal
 
         deallocate(Ptcl)
 
-        print*,"Nplocal: ",this%Nptlocal
+        !print*,"Nplocal: ",this%Nptlocal
 
         jlow = (jlow-1)*nset
         do j = 1, this%Nptlocal
@@ -7591,7 +7593,7 @@
             jlow = myid*avgpts + 1 + nleft
             jhigh = (myid+1)*avgpts + nleft
           endif
-          print*,"avgpts: ",avgpts,myid,inipts,totnp
+          !print*,"avgpts: ",avgpts,myid,inipts,totnp
           allocate(Ptcl(7,avgpts))
 
         xmax = 0.0
@@ -7628,7 +7630,7 @@
         enddo
         sumx2 = sqrt(sumx2/inipts-(sumx/inipts)**2)
         sumy2 = sqrt(sumy2/inipts-(sumy/inipts)**2)
-        print*,"sumx2: ",sumx2,sumy2
+        !print*,"sumx2: ",sumx2,sumy2
         close(12)
         !call MPI_BARRIER(comm2d,ierr)
 
@@ -7640,7 +7642,7 @@
         pxmax = pxmax*pxscale
         pymax = pymax*pyscale
         pzmax = pzmax*pzscale
-        print*,"xmax: ",xmax,ymax,zmax,pxmax,pymax,pzmax
+        !print*,"xmax: ",xmax,ymax,zmax,pxmax,pymax,pzmax
         do j = 1, avgpts
           Ptcl(2,j) = (Ptcl(2,j)/xl)*xscale + xmu1
           Ptcl(4,j) = (Ptcl(4,j)/xl)*yscale + xmu3
@@ -7661,11 +7663,11 @@
 
         nset = nptot/(inipts*Nrot)
         nremain = nptot - nset*inipts*Nrot
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0*Nrot
 
@@ -7771,11 +7773,11 @@
           sumx = sumx + this%Pts1(1,i)
         enddo
 
-        print*,"sumxnew: ",sumx/this%Nptlocal, this%Pts1(6,1)  
+        !print*,"sumxnew: ",sumx/this%Nptlocal, this%Pts1(6,1)  
 
         deallocate(Ptcl)
 
-        print*,"Nplocal: ",this%Nptlocal,nset,Nrot
+        !print*,"Nplocal: ",this%Nptlocal,nset,Nrot
 
         if(Nrot.gt.1) then
           ntmp = numpts0*nset
@@ -7822,7 +7824,7 @@
             enddo
           enddo
         endif
-        print*,"ipt: ",ipt,dtheta1,dtheta2
+        !print*,"ipt: ",ipt,dtheta1,dtheta2
 
         jlow = (jlow-1)*nset*Nrot
         do j = 1, this%Nptlocal
@@ -7930,7 +7932,7 @@
             jlow = myid*avgpts + 1 + nleft
             jhigh = (myid+1)*avgpts + nleft
           endif
-          print*,"avgpts: ",avgpts,myid,inipts,totnp
+          !print*,"avgpts: ",avgpts,myid,inipts,totnp
           allocate(Ptcl(7,avgpts))
 
         xmax = 0.0
@@ -7967,7 +7969,7 @@
         enddo
         sumx2 = sqrt(sumx2/inipts-(sumx/inipts)**2)
         sumy2 = sqrt(sumy2/inipts-(sumy/inipts)**2)
-        print*,"sumx2: ",sumx2,sumy2
+        !print*,"sumx2: ",sumx2,sumy2
         close(12)
         !call MPI_BARRIER(comm2d,ierr)
 
@@ -7977,7 +7979,7 @@
         pxmax = pxmax*pxscale
         pymax = pymax*pyscale
         pzmax = pzmax*pzscale
-        print*,"xmax: ",xmax,ymax,zmax,pxmax,pymax,pzmax
+        !print*,"xmax: ",xmax,ymax,zmax,pxmax,pymax,pzmax
         do j = 1, avgpts
           Ptcl(2,j) = (Ptcl(2,j)/xl)*xscale + xmu1
           Ptcl(4,j) = (Ptcl(4,j)/xl)*yscale + xmu3
@@ -7998,11 +8000,11 @@
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -8126,11 +8128,11 @@
           sumx = sumx + this%Pts1(1,i)
         enddo
 
-        print*,"sumxnew: ",sumx/this%Nptlocal, this%Pts1(6,1)  
+        !print*,"sumxnew: ",sumx/this%Nptlocal, this%Pts1(6,1)  
 
         deallocate(Ptcl)
 
-        print*,"Nplocal: ",this%Nptlocal
+        !print*,"Nplocal: ",this%Nptlocal
 
         jlow = (jlow-1)*nset
         do j = 1, this%Nptlocal
@@ -8344,9 +8346,9 @@
         call MPI_ALLREDUCE(y2lc,y2,nslice,MPI_DOUBLE_PRECISION,&
                            MPI_SUM,MPI_COMM_WORLD,ierr)
         !print*,"a22: ",sum(a22)
-        do iz = 1, nslice
-          if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
-        enddo
+        !do iz = 1, nslice
+        !  if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
+        !enddo
         do iz = 1, nslice
           if(a22(iz).gt.0.0) then
             detaabb = a22(iz)*a11(iz)-a12(iz)**2
@@ -8356,18 +8358,18 @@
             aa(iz) = 0.0
             bb(iz) = 0.0
           endif
-          if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
+          !if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
         enddo
 
         numpts0 = avgpts 
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -8698,9 +8700,9 @@
         call MPI_ALLREDUCE(y2lc,y2,nslice,MPI_DOUBLE_PRECISION,&
                            MPI_SUM,MPI_COMM_WORLD,ierr)
         !print*,"a22: ",sum(a22)
-        do iz = 1, nslice
-          if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
-        enddo
+        !do iz = 1, nslice
+        !  if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
+        !enddo
         do iz = 1, nslice
           if(a22(iz).gt.0.0) then
             detaabb = a22(iz)*a11(iz)-a12(iz)**2
@@ -8710,18 +8712,18 @@
             aa(iz) = 0.0
             bb(iz) = 0.0
           endif
-          if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
+          !if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
         enddo
 
         numpts0 = avgpts 
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -9050,9 +9052,9 @@
         call MPI_ALLREDUCE(y2lc,y2,nslice,MPI_DOUBLE_PRECISION,&
                            MPI_SUM,MPI_COMM_WORLD,ierr)
         !print*,"a22: ",sum(a22)
-        do iz = 1, nslice
-          if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
-        enddo
+        !do iz = 1, nslice
+        !  if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
+        !enddo
         do iz = 1, nslice
           if(a22(iz).gt.0.0) then
             detaabb = a22(iz)*a11(iz)-a12(iz)**2
@@ -9062,18 +9064,18 @@
             aa(iz) = 0.0
             bb(iz) = 0.0
           endif
-          if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
+          !if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
         enddo
 
         numpts0 = avgpts 
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -9441,9 +9443,9 @@
         call MPI_ALLREDUCE(y2lc,y2,nslice,MPI_DOUBLE_PRECISION,&
                            MPI_SUM,MPI_COMM_WORLD,ierr)
         !print*,"a22: ",sum(a22)
-        do iz = 1, nslice
-          if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
-        enddo
+        !do iz = 1, nslice
+        !  if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
+        !enddo
         do iz = 1, nslice
           if(a22(iz).gt.0.0) then
             detaabb = a22(iz)*a11(iz)-a12(iz)**2
@@ -9453,18 +9455,18 @@
             aa(iz) = 0.0
             bb(iz) = 0.0
           endif
-          if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
+          !if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
         enddo
 
         numpts0 = avgpts 
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -9818,9 +9820,9 @@
         call MPI_ALLREDUCE(y2lc,y2,nslice,MPI_DOUBLE_PRECISION,&
                            MPI_SUM,MPI_COMM_WORLD,ierr)
         !print*,"a22: ",sum(a22)
-        do iz = 1, nslice
-          if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
-        enddo
+        !do iz = 1, nslice
+        !  if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
+        !enddo
         do iz = 1, nslice
           if(a22(iz).gt.0.0) then
             detaabb = a22(iz)*a11(iz)-a12(iz)**2
@@ -9830,18 +9832,18 @@
             aa(iz) = 0.0
             bb(iz) = 0.0
           endif
-          if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
+          !if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
         enddo
 
         numpts0 = avgpts 
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -9996,9 +9998,9 @@
         ampz = 0.0d0
         ampz = 0.2d0
 
-        if(myid.eq.0) then
-          print*,"zmin: ",zmin,zmax,zbunch,sig1,sig3,sq12,sq34
-        endif
+        !if(myid.eq.0) then
+        !  print*,"zmin: ",zmin,zmax,zbunch,sig1,sig3,sq12,sq34
+        !endif
         jlow = (jlow-1)*nset
         do j = 1, this%Nptlocal
          
@@ -10219,9 +10221,9 @@
         call MPI_ALLREDUCE(y2lc,y2,nslice,MPI_DOUBLE_PRECISION,&
                            MPI_SUM,MPI_COMM_WORLD,ierr)
         !print*,"a22: ",sum(a22)
-        do iz = 1, nslice
-          if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
-        enddo
+        !do iz = 1, nslice
+        !  if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
+        !enddo
         do iz = 1, nslice
           if(a22(iz).gt.0.0) then
             detaabb = a22(iz)*a11(iz)-a12(iz)**2
@@ -10231,18 +10233,18 @@
             aa(iz) = 0.0
             bb(iz) = 0.0
           endif
-          if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
+          !if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
         enddo
 
         numpts0 = avgpts 
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -10399,9 +10401,9 @@
         ampz = 0.2d0
         ampz = 0.0d0
 
-        if(myid.eq.0) then
-          print*,"zmin: ",zmin,zmax,zbunch,sig1,sig3,sq12,sq34
-        endif
+        !if(myid.eq.0) then
+        !  print*,"zmin: ",zmin,zmax,zbunch,sig1,sig3,sq12,sq34
+        !endif
         jlow = (jlow-1)*nset
         do j = 1, this%Nptlocal
          
@@ -10623,9 +10625,9 @@
         call MPI_ALLREDUCE(y2lc,y2,nslice,MPI_DOUBLE_PRECISION,&
                            MPI_SUM,MPI_COMM_WORLD,ierr)
         !print*,"a22: ",sum(a22)
-        do iz = 1, nslice
-          if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
-        enddo
+        !do iz = 1, nslice
+        !  if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
+        !enddo
         do iz = 1, nslice
           if(a22(iz).gt.0.0) then
             detaabb = a22(iz)*a11(iz)-a12(iz)**2
@@ -10635,18 +10637,18 @@
             aa(iz) = 0.0
             bb(iz) = 0.0
           endif
-          if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
+          !if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
         enddo
 
         numpts0 = avgpts 
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -10806,9 +10808,9 @@
         ampz = 0.0d0
         ampz = 0.2d0
 
-        if(myid.eq.0) then
-          print*,"zmin: ",zmin,zmax,zbunch,sig1,sig3,sq12,sq34
-        endif
+        !if(myid.eq.0) then
+        !  print*,"zmin: ",zmin,zmax,zbunch,sig1,sig3,sq12,sq34
+        !endif
         jlow = (jlow-1)*nset
         do j = 1, this%Nptlocal
          
@@ -11031,9 +11033,9 @@
         call MPI_ALLREDUCE(y2lc,y2,nslice,MPI_DOUBLE_PRECISION,&
                            MPI_SUM,MPI_COMM_WORLD,ierr)
         !print*,"a22: ",sum(a22)
-        do iz = 1, nslice
-          if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
-        enddo
+        !do iz = 1, nslice
+        !  if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
+        !enddo
         do iz = 1, nslice
           if(a22(iz).gt.0.0) then
             detaabb = a22(iz)*a11(iz)-a12(iz)**2
@@ -11043,7 +11045,7 @@
             aa(iz) = 0.0
             bb(iz) = 0.0
           endif
-          if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
+          !if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
         enddo
 
       iizz = nslice/2
@@ -11080,11 +11082,11 @@
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -11248,9 +11250,9 @@
         ampz = 0.2d0
         ampz = 0.0d0
 
-        if(myid.eq.0) then
-          print*,"zmin: ",zmin,zmax,zbunch,sig1,sig3,sq12,sq34
-        endif
+        !if(myid.eq.0) then
+        !  print*,"zmin: ",zmin,zmax,zbunch,sig1,sig3,sq12,sq34
+        !endif
         jlow = (jlow-1)*nset
         do j = 1, this%Nptlocal
          
@@ -11596,7 +11598,7 @@ end subroutine
 !        write(6,*)'seedarray=',seedarray
 !        call random_seed(PUT=seedarray(1:1))
         call random_number(x11)
-        print*,myid,x11,this%Npt
+        !print*,myid,x11,this%Npt
 
         avgpts = this%Npt/(npx*npy)
 
@@ -11694,7 +11696,7 @@ end subroutine
 
         this%Nptlocal = avgpts
 
-        print*,"avgpts: ",this%Nptlocal
+        !print*,"avgpts: ",this%Nptlocal
         do j = 1, avgpts
           this%Pts1(7,j) = this%Charge/this%mass
           this%Pts1(8,j) = this%Current/Scfreq/this%Npt*this%Charge/abs(this%Charge)
@@ -11892,9 +11894,9 @@ end subroutine
         call MPI_ALLREDUCE(y2lc,y2,nslice,MPI_DOUBLE_PRECISION,&
                            MPI_SUM,MPI_COMM_WORLD,ierr)
         !print*,"a22: ",sum(a22)
-        do iz = 1, nslice
-          if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
-        enddo
+        !do iz = 1, nslice
+        !  if(a22(iz).lt.1.0e-8) print*,"a22: ",iz,a22(iz)
+        !enddo
         do iz = 1, nslice
           if(a22(iz).gt.0.0) then
             detaabb = a22(iz)*a11(iz)-a12(iz)**2
@@ -11904,7 +11906,7 @@ end subroutine
             aa(iz) = 0.0
             bb(iz) = 0.0
           endif
-          if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
+          !if(myid.eq.0) print*,"isilce: ",i,detaabb,aa(iz),bb(iz),a22(iz)
         enddo
 
 !-----------------------------------------------
@@ -11943,11 +11945,11 @@ end subroutine
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -12197,7 +12199,7 @@ end subroutine
             jlow = myid*avgpts + 1 + nleft
             jhigh = (myid+1)*avgpts + nleft
           endif
-          print*,"avgpts: ",avgpts,myid,inipts,totnp
+          !print*,"avgpts: ",avgpts,myid,inipts,totnp
           allocate(Ptcl(6,avgpts))
 
         xmax = 0.0
@@ -12221,7 +12223,7 @@ end subroutine
         enddo
         sum1 = sum1/inipts
         sum2 = sum2/inipts
-        print*,"mean z location and energy: ",sum1, sum2
+        !print*,"mean z location and energy: ",sum1, sum2
         close(12)
         call MPI_BARRIER(comm2d,ierr)
         this%refptcl(6) = -sum2 
@@ -12240,11 +12242,11 @@ end subroutine
 
         nset = nptot/inipts
         nremain = nptot - nset*inipts
-        if(nremain.ne.0) then
-          if(myid.eq.0) then
-            print*,"The total number of particle is not ",nptot
-          endif
-        endif
+        !if(nremain.ne.0) then
+        !  if(myid.eq.0) then
+        !    print*,"The total number of particle is not ",nptot
+        !  endif
+        !endif
 
         this%Nptlocal = nset*numpts0
 
@@ -12312,11 +12314,11 @@ end subroutine
           sumx = sumx + this%Pts1(1,i)
         enddo
 
-        print*,"sumxnew: ",sumx/this%Nptlocal
+        !print*,"sumxnew: ",sumx/this%Nptlocal
 
         deallocate(Ptcl)
 
-        print*,"Nplocal: ",this%Nptlocal
+        !print*,"Nplocal: ",this%Nptlocal
 
         jlow = (jlow-1)*nset
         do j = 1, this%Nptlocal
@@ -12383,7 +12385,7 @@ end subroutine
 !        write(6,*)'seedarray=',seedarray
 !        call random_seed(PUT=seedarray(1:1))
         call random_number(x11)
-        print*,myid,x11
+        !print*,myid,x11
 
         avgpts = this%Npt/(npx*npy)
 
@@ -12740,7 +12742,7 @@ end subroutine
           this%Pts1 = 0.0
           !jlow = myid*avgpts + 1
           !jhigh = (myid+1)*avgpts
-          print*,"avgpts, jlow, and jhigh: ",avgpts,jlow,jhigh
+          !print*,"avgpts, jlow, and jhigh: ",avgpts,jlow,jhigh
           do j = 1, nptot
             read(12,*)tmptcl(1:6)
             sum1 = sum1 + tmptcl(1)
@@ -12750,7 +12752,7 @@ end subroutine
               this%Pts1(1:6,i) = tmptcl(1:6)
             endif
           enddo
-          print*,"sumx1,sumy1: ",sum1/nptot,sum2/nptot
+          !print*,"sumx1,sumy1: ",sum1/nptot,sum2/nptot
  
           close(12)
  
