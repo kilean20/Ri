@@ -4310,12 +4310,11 @@
         integer :: status(MPI_STATUS_SIZE)
         logical :: isTest(BB%Nptlocal)
         integer, allocatable, dimension(:) :: nptlist,nptdisp
-        double precision :: xn,pxn,yn,pyn,Hinv,Iinv,gambet0
+        double precision :: xn,pxn,yn,pyn,Hinv,Iinv
         double precision, allocatable,dimension(:,:) :: recvbuf, sendbuf
         
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
-        gambet0 = sqrt(BB%refptcl(6)**2-1.0d0) 
         isTest = BB%Pts1(8,1:BB%Nptlocal) < tiny(0.0)  ! inteded type cast. ignore compiler warining.
         tpt = count(isTest)
         allocate(sendbuf(3,tpt))
@@ -4324,9 +4323,9 @@
           if(isTest(i)) then
             tpt = tpt+1
             xn  = BB%Pts1(1,i)*Scxl/cn/sqrt(beta)
-            pxn = BB%Pts1(2,i)/gambet0*sqrt(beta)/cn + alfa*xn
+            pxn = BB%Pts1(2,i)/sqrt((BB%Pts1(6,i)**2-1.0d0)*beta)/cn + alfa*xn
             yn  = BB%Pts1(3,i)*Scxl/cn/sqrt(beta)
-            pyn = BB%Pts1(4,i)/gambet0*sqrt(beta)/cn + alfa*yn
+            pyn = BB%Pts1(4,i)/sqrt((BB%Pts1(6,i)**2-1.0d0)*beta)/cn + alfa*yn
             call InvariantPotentials(xn,yn,Hinv,Iinv)
             sendbuf(1,tpt) = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv
             sendbuf(2,tpt) = sqrt((xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv)
@@ -4379,6 +4378,89 @@
           flush(iUnit)
         endif
         end subroutine turn_by_turn_integral
+        
+subroutine turn_by_turn_integral_on_momentum(BB,fileID,beta,alfa,tn,cn)
+        ! write phase-space of test particles (q=0) turn-by-turn
+        implicit none
+        include 'mpif.h'
+        type (BeamBunch), intent(in) :: BB
+        integer, intent(in) :: fileID
+        double precision, intent(in) :: beta,alfa,cn,tn
+        integer, save :: unitfID(2,1000)
+        logical, save :: isOn(1000)=.false.
+        integer :: i,j,ifail,np,my_rank,ierr,tpt,mtpt,iUnit
+        integer :: status(MPI_STATUS_SIZE)
+        logical :: isTest(BB%Nptlocal)
+        integer, allocatable, dimension(:) :: nptlist,nptdisp
+        double precision :: xn,pxn,yn,pyn,Hinv,Iinv,gambet0
+        double precision, allocatable,dimension(:,:) :: recvbuf, sendbuf
+        
+        call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+        call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
+        gambet0 = sqrt(BB%refptcl(6)**2-1.0d0) 
+        isTest = BB%Pts1(8,1:BB%Nptlocal) < tiny(0.0)  ! inteded type cast. ignore compiler warining.
+        tpt = count(isTest)
+        allocate(sendbuf(3,tpt))
+        tpt = 0
+        do i=1,BB%Nptlocal
+          if(isTest(i)) then
+            tpt = tpt+1
+            xn  = BB%Pts1(1,i)*Scxl/cn/sqrt(beta)
+            pxn = BB%Pts1(2,i)/gambet0*sqrt(beta)/cn + alfa*xn
+            yn  = BB%Pts1(3,i)*Scxl/cn/sqrt(beta)
+            pyn = BB%Pts1(4,i)/gambet0*sqrt(beta)/cn + alfa*yn
+            call InvariantPotentials(xn,yn,Hinv,Iinv)
+            sendbuf(1,tpt) = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv
+            sendbuf(2,tpt) = sqrt((xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv)
+            sendbuf(3,tpt) = BB%Pts1(9,i)
+          endif
+        enddo
+        
+        allocate(nptlist(0:np-1))
+        allocate(nptdisp(0:np-1))
+        nptlist = 0
+        nptdisp = 0
+        call MPI_GATHER(tpt,1,MPI_INTEGER,nptlist,1,&
+                           MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+        mtpt = sum(nptlist)
+        nptlist = nptlist*3
+        do i=0,np-2
+          nptdisp(i+1) = nptlist(i)+nptdisp(i)
+        enddo
+        allocate(recvbuf(3,mtpt))
+        call MPI_GATHERV(sendbuf,tpt*3,MPI_DOUBLE_PRECISION,&
+                         recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
+                         0,MPI_COMM_WORLD,ierr)
+        if(my_rank.eq.0) then
+          do i=1,1000
+            if(isOn(i)) then
+              if(UnitfID(2,i)==fileID) then
+                iUnit = UnitfID(1,i)
+                exit
+              endif
+            else
+              isOn(i) = .true.
+              UnitfID(2,i)=fileID
+              UnitfID(1,i)=get_free_unit(7251)
+              iUnit = UnitfID(1,i)
+              open(iUnit,file='TBT.integral.onMomentum.'//trim(num2str_int(fileID)),form='unformatted',&
+                   action='write', iostat=ifail)
+              if(ifail /= 0)  STOP '--- Error in opening TBT.integral file ---'
+              exit
+            endif
+          enddo
+          if(i==1000) then
+            STOP 'Error : maximum number of TBT.integral file reached'
+          endif
+        
+          call sort(recvbuf, 3, 3, mtpt, 1, mtpt)
+          
+          write(iUnit) mtpt
+          write(iUnit) int(recvbuf(3,:))
+          write(iUnit) recvbuf(1:2,:)
+          flush(iUnit)
+        endif
+        end subroutine turn_by_turn_integral_on_momentum
 !>>>>>>>>>>>>>>>>>>>> end of TBToutput(Kilean) >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
       end module Outputclass

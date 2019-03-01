@@ -570,8 +570,8 @@
         if(abs(snf-smid)<1.0d-4) then
             xn = coord(1)/cnll
             yn = coord(3)/cnll
-            pxn = coord(2)*sqrt(bn)/cn
-            pyn = coord(4)*sqrt(bn)/cn
+            pxn = coord(2)*sqrt(bn)/cn/sqrt(coord(6)**2-1.0)
+            pyn = coord(4)*sqrt(bn)/cn/sqrt(coord(6)**2-1.0)
             call InvariantPotentials(xn,yn,Hinv,Iinv)
             Hinv = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv
             Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv
