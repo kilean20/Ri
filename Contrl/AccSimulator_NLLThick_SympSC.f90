@@ -880,9 +880,7 @@
           endif
 
         enddo
-!<<<<<<< initial raw data (Kilean) <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-call phase_Output(-111110,Bpts,1)
-!<<<<<<<< end of initial raw data (Kilean)<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 !-------------------------------------------------------------------
 !start looping through 'Nturn'
       do iturn = 1, Nturn  
@@ -1052,7 +1050,6 @@ call phase_Output(-111110,Bpts,1)
             !call phase_Output(bmpstp,Bpts)
             !call phaseleda_Output(bmpstp,Bpts)
             call getparam_BeamLineElem(Blnelem(i),dparam)
-            print*, 'phase_Output : iturn, dparam(1:3)',iturn, dparam(1:3)
             if(int(dparam(2))==iturn) call phase_Output(bmpstp,Bpts,int(dparam(3)))
           else if(bitype.eq.-3) then
             call getparam_BeamLineElem(Blnelem(i),drange)
@@ -2255,9 +2252,6 @@ call phase_Output(-111110,Bpts,1)
         endif
       enddo !end loop of Nturn 
 !-------------------
-!<<<<<<< final raw data (Kilean) <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-!call phase_Output(-111111,Bpts,1)
-!<<<<<<<< end of final raw data (Kilean)<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 ! final output.

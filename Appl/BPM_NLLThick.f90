@@ -378,7 +378,7 @@
         double precision, intent(in) :: gam,mass
         integer :: i
         double precision :: gambet0,m11,m12,m21,m22,psi,u
-        double precision:: x0,px0,y0,py0
+        double precision:: x0,px0,y0,py0,p_p0
 
         gambet0 = sqrt(gam**2-1.0d0)
         psi = 2.0d0*pi*muNLI
@@ -416,10 +416,13 @@
             px0 = Pts1(2,i)
             y0 = Pts1(3,i)
             py0 = Pts1(4,i)
-            Pts1(1,i) = m11*x0 + m12*px0/(gambet0*Scxl)
-            Pts1(2,i) = m21*x0*gambet0*Scxl + m22*px0
-            Pts1(3,i) = m11*y0 + m12*py0/(gambet0*Scxl)
-            Pts1(4,i) = m21*y0*gambet0*Scxl + m22*py0
+            !<<<<<<<<<<<<<<< p_p0 factor (Kilean) <<<<<<<<<<<<<<<<
+            p_p0 = sqrt((gam-Pts1(6,i))**2-1.0d0)/gambet0
+            Pts1(1,i) = m11*x0 + m12/p_p0*px0/(gambet0*Scxl)
+            Pts1(2,i) = m21*x0*p_p0*gambet0*Scxl + m22*px0
+            Pts1(3,i) = m11*y0 + m12/p_p0*py0/(gambet0*Scxl)
+            Pts1(4,i) = m21*y0*p_p0*gambet0*Scxl + m22*py0
+            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         enddo
 
         end subroutine kick_phaseadvance

@@ -454,13 +454,20 @@
         if(abs(snf-smid)<1.0d-4) then
             xn = coord(1)/cnllf
             yn = coord(3)/cnllf
-            pxn = coord(2)*sqrt(bnf)/cn + anf*xn
-            pyn = coord(4)*sqrt(bnf)/cn + anf*yn
-            call InvariantPotentials(xn,yn,Hinv,Iinv)
-            Hinv = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv
-            Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv
-            
             !<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<
+            !pxn = coord(2)*sqrt(bnf)/cn + anf*xn
+            !pyn = coord(4)*sqrt(bnf)/cn + anf*xn
+            pxn = coord(2)*sqrt(bnf)/cn/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2) + anf*xn
+            pyn = coord(4)*sqrt(bnf)/cn/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2) + anf*xn
+            
+            call InvariantPotentials(xn,yn,Hinv,Iinv)
+            !Hinv = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv
+            !Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv
+            
+            Hinv = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2)
+            Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2)
+            
+
             if(Iinv<0) Iinv=0d0
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             
@@ -570,13 +577,17 @@
         if(abs(snf-smid)<1.0d-4) then
             xn = coord(1)/cnll
             yn = coord(3)/cnll
-            pxn = coord(2)*sqrt(bn)/cn/sqrt(coord(6)**2-1.0)
-            pyn = coord(4)*sqrt(bn)/cn/sqrt(coord(6)**2-1.0)
-            call InvariantPotentials(xn,yn,Hinv,Iinv)
-            Hinv = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv
-            Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv
-            
             !<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<
+            !pxn = coord(2)*sqrt(bn)/cn
+            !pyn = coord(4)*sqrt(bn)/cn
+            pxn = coord(2)*sqrt(bn)/cn/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2)
+            pyn = coord(4)*sqrt(bn)/cn/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2)
+            
+            call InvariantPotentials(xn,yn,Hinv,Iinv)
+            !Hinv = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv
+            !Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv
+            Hinv = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2)
+            Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2)
             if(Iinv<0) Iinv=0d0
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             

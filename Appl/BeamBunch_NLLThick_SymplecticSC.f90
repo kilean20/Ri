@@ -261,8 +261,6 @@
         else if(bitype.eq.6) then
 !special treatment of nonlinear element insert
           qmass = this%Charge/this%Mass
-          !print*, '==calling propagator_NonlinearLens =='
-          !print*, 'z,tau=',z,tau
           call propagator_NonlinearLens(z,tau,beamln%pnll, &
                this%refptcl,this%Nptlocal,this%Pts1,qmass)
         else if((bitype.eq.105).or.(bitype.eq.106)) then

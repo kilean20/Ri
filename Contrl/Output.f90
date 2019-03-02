@@ -4310,11 +4310,12 @@
         integer :: status(MPI_STATUS_SIZE)
         logical :: isTest(BB%Nptlocal)
         integer, allocatable, dimension(:) :: nptlist,nptdisp
-        double precision :: xn,pxn,yn,pyn,Hinv,Iinv
+        double precision :: xn,pxn,yn,pyn,Hinv,Iinv,gambet0,p_p0
         double precision, allocatable,dimension(:,:) :: recvbuf, sendbuf
         
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
+        gambet0 = sqrt(BB%refptcl(6)**2-1.0d0) 
         isTest = BB%Pts1(8,1:BB%Nptlocal) < tiny(0.0)  ! inteded type cast. ignore compiler warining.
         tpt = count(isTest)
         allocate(sendbuf(3,tpt))
@@ -4323,12 +4324,13 @@
           if(isTest(i)) then
             tpt = tpt+1
             xn  = BB%Pts1(1,i)*Scxl/cn/sqrt(beta)
-            pxn = BB%Pts1(2,i)/sqrt((BB%Pts1(6,i)**2-1.0d0)*beta)/cn + alfa*xn
             yn  = BB%Pts1(3,i)*Scxl/cn/sqrt(beta)
-            pyn = BB%Pts1(4,i)/sqrt((BB%Pts1(6,i)**2-1.0d0)*beta)/cn + alfa*yn
+            p_p0 = sqrt((-BB%Pts1(6,i)-BB%refptcl(6))**2-1.0d0)/gambet0
+            pxn = BB%Pts1(2,i)/(p_p0*gambet0)*sqrt(beta)/cn + alfa*xn
+            pyn = BB%Pts1(4,i)/(p_p0*gambet0)*sqrt(beta)/cn + alfa*yn
             call InvariantPotentials(xn,yn,Hinv,Iinv)
-            sendbuf(1,tpt) = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv
-            sendbuf(2,tpt) = sqrt((xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv)
+            sendbuf(1,tpt) = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv/p_p0
+            sendbuf(2,tpt) = sqrt((xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv/p_p0)
             sendbuf(3,tpt) = BB%Pts1(9,i)
           endif
         enddo
@@ -4406,8 +4408,8 @@ subroutine turn_by_turn_integral_on_momentum(BB,fileID,beta,alfa,tn,cn)
           if(isTest(i)) then
             tpt = tpt+1
             xn  = BB%Pts1(1,i)*Scxl/cn/sqrt(beta)
-            pxn = BB%Pts1(2,i)/gambet0*sqrt(beta)/cn + alfa*xn
             yn  = BB%Pts1(3,i)*Scxl/cn/sqrt(beta)
+            pxn = BB%Pts1(2,i)/gambet0*sqrt(beta)/cn + alfa*xn
             pyn = BB%Pts1(4,i)/gambet0*sqrt(beta)/cn + alfa*yn
             call InvariantPotentials(xn,yn,Hinv,Iinv)
             sendbuf(1,tpt) = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv
