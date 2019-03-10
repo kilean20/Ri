@@ -723,11 +723,8 @@
         covxpx = xpx - x1*px1
         covypy = ypy - y1*py1
         !<<<<<<<<<<<<<<<<<< format change (Kilean) <<<<<<<<<<<<<<<<<<<<<<
-        !write(81,20) t,Hinv1,Iinv1,sigH,sigI,covHI
-        !write(82,20) t,x1,px1,y1,py1,sigx,sigpx,sigy,sigpy,covxpx,covypy
-        write(81,*) t,Hinv1,Iinv1,sigH,sigI,covHI
-        write(82,*) t,x1,px1,y1,py1,sigx,sigpx,sigy,sigpy,covxpx,covypy
-        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        write(81,20) t,Hinv1,Iinv1,sigH,sigI,covHI
+        write(82,20) t,x1,px1,y1,py1,sigx,sigpx,sigy,sigpy,covxpx,covypy
         !<<<<<<<<< flush moved into if my_rank==0 block(Kilean) <<<<<<<<<
         flush(81)
         flush(82)
