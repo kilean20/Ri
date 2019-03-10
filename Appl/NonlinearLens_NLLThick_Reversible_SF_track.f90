@@ -621,10 +621,10 @@
 !  Use the following "if" statement if we want to write out diagnostics
 !  only near the midpoint of the insert.
         smid = l0/2.0d0
-!         if(abs(sedge-smid+tau)<1.0d-4) then
+        if(abs(sedge-smid+tau)<1.0d-4) then
           call diagnostics_NonlinearLens(t+tau,invariants,Nplc)
 !          call mismatch_NonlinearLens(t+tau,invariants,Nplc)  !Commented for speed
-!         endif
+        endif
 
         refpt(5) = refpt(5) + tau/beta0/Scxl
 
@@ -722,7 +722,6 @@
         sigpy = dsqrt(py2-py1**2)
         covxpx = xpx - x1*px1
         covypy = ypy - y1*py1
-        !<<<<<<<<<<<<<<<<<< format change (Kilean) <<<<<<<<<<<<<<<<<<<<<<
         write(81,20) t,Hinv1,Iinv1,sigH,sigI,covHI
         write(82,20) t,x1,px1,y1,py1,sigx,sigpx,sigy,sigpy,covxpx,covypy
         !<<<<<<<<< flush moved into if my_rank==0 block(Kilean) <<<<<<<<<
