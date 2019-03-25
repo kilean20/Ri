@@ -841,13 +841,12 @@
         double precision, dimension(6), intent(inout) :: coord
         double precision :: root,dX,dY,dT,delta
         integer:: exactflag
-        exactflag = 2    !Default to 0 for linearized drift step
+        exactflag = 3    !Default to 0 for linearized drift step
         if(exactflag==1) then
 !   Exact drift (6D) - H is exact
 !    (This case has NOT yet been carefully benchmarked)
           root = 1.0d0+coord(6)**2-2.0d0*coord(6)/beta0
           root = dsqrt(root-coord(2)**2-coord(4)**2)
-          print*, 'root=?',root
           dX = ds*coord(2)/root
           dY = ds*coord(4)/root
           dT = (1.0d0-coord(6)*beta0)/root - 1.0d0

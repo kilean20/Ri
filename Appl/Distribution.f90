@@ -12878,16 +12878,24 @@ end subroutine
     return
   end function distIOTA_getH
   
-  subroutine distIOTA_genP_waterbag(self,BB,beta,betap,emittanceCut)
+  subroutine distIOTA_genP_waterbag(self,BB,nparam,distparam)
     !generate particle in synergia unit
     implicit none
     include 'mpif.h'
     class(distIOTA_class) :: self
     type(BeamBunch),intent(inout) :: BB
-    double precision, intent(in) :: beta,betap,emittanceCut
+    integer, intent(in) :: nparam
+    double precision, dimension(nparam) :: distparam
     integer :: nproc,avgpts,nleft,myid,i
+    double precision  :: beta,betap,emittanceCut
     double precision  :: xHat(4),xMax,U(2),newH,bg,trialH,newHxy,p,p_theta
+    double precision  :: offset1,offset2,offset3,offset4,offset5,offset6
+    double precision  :: sigz,sigpz,muzpz,rootz,scale5,scale6
     integer, parameter :: x_=1,px_=2,y_=3,py_=4
+    
+    beta = distparam(3)
+    betap = distparam(4)
+    emittanceCut = distparam(5)
     
     call MPI_COMM_RANK(MPI_COMM_WORLD,myid,i)
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,i)
@@ -12901,6 +12909,7 @@ end subroutine
     BB%Pts1 = 0d0
     BB%Nptlocal = avgpts
     bg = sqrt(BB%refptcl(6)**2 - 1d0)
+    ! transverse
     do i=1,avgpts
       xHat = 0d0
       do
@@ -12934,18 +12943,52 @@ end subroutine
     else
       BB%Pts1(9,i) = BB%Pts1(9,i) + myid*avgpts + nleft
     endif
+    
+    ! longitudinal
+    sigz = distparam(15)
+    sigpz = distparam(16)
+    muzpz = distparam(17)
+    rootz=sqrt(1.-muzpz*muzpz)
+    do i=1,avgpts
+      do 
+        ! rejection sample.
+        call random_number(U)
+          U = 2d0*U - 1d0
+          if(sum(U**2) < 1.0) exit
+      enddo
+      U  = U*sqrt(8.0)
+      BB%Pts1(5,i) = sigz*U(1)/rootz
+      BB%Pts1(6,i) = sigpz*(-muzpz*U(1)/rootz+U(2))
+    enddo
+        
+    offset1 = distparam(8)
+    offset2 = distparam(9)
+    offset3 = distparam(10)
+    offset4 = distparam(11)
+    offset5 = distparam(20)
+    offset6 = distparam(21)
+
+    scale5 = distparam(18)
+    scale6 = distparam(19)
+    
+    BB%Pts1(1,:) = offset1 + BB%Pts1(1,:) 
+    BB%Pts1(2,:) = offset2 + BB%Pts1(2,:)
+    BB%Pts1(3,:) = offset3 + BB%Pts1(3,:) 
+    BB%Pts1(4,:) = offset4 + BB%Pts1(4,:) 
+    BB%Pts1(5,:) = offset5 + scale5*BB%Pts1(5,:) 
+    BB%Pts1(6,:) = offset6 + scale6*BB%Pts1(6,:) 
+        
   end subroutine distIOTA_genP_waterbag
   
-  subroutine distIOTA_waterbag(this,nparam,distparam)
+  subroutine distIOTA_waterbag(BB,nparam,distparam)
     implicit none
-    type (BeamBunch), intent(inout) :: this
+    type (BeamBunch), intent(inout) :: BB
     integer, intent(in) :: nparam
     double precision, dimension(nparam) :: distparam
-    type (distIOTA_class) :: IOTA
-    integer,parameter :: beta_=3,betap_=4,emittance_=5
+    type (distIOTA_class) :: IOTA   
     
     call IOTA%init(distParam(1:2))
-    call IOTA%genP_waterbag(this,distparam(beta_),distparam(betap_),distparam(emittance_))
+    call IOTA%genP_waterbag(BB,nparam,distparam)
   end subroutine distIOTA_waterbag
   
   double precision function distIOTA_secant_method(self,x0,emittance)
