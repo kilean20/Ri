@@ -569,7 +569,7 @@
         !double precision :: sumtest, sumtest2, sumtest3
         double precision, dimension(8) :: drange
         double precision, dimension(3) :: al0,ga0,epson0
-        double precision :: tg,tv,gam,piperad2
+        double precision :: tg,tv,gam,piperad2!,piperad_x, piperad_y
         integer :: nsubstep,Flagbctmp
         double precision :: zz,vref
         !parameters for stripper modeling

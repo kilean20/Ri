@@ -777,9 +777,12 @@
      implicit none
      double complex, intent(in):: z
      double complex:: carcsin,im1
+     !<<<<<<<<<<<<< kilean <<<<<<<<<<<<<
      im1 = dcmplx(0.0d0,1.0d0)
      carcsin = im1*z+croot(z)
      carcsin = -im1*cdlog(carcsin)
+     !carcsin = asin(z)
+     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
      end function
 
       function croot(z)

@@ -884,7 +884,6 @@
 !-------------------------------------------------------------------
 !start looping through 'Nturn'
       do iturn = 1, Nturn  
-
 !-------------------------------------------------------------------
 ! start looping through 'Nblem' beam line elements.
         tmpfile = 0
