@@ -459,11 +459,16 @@
         double precision :: tmpx,tmpy,pi,xl,rad,Qloc,Qtot,QlocNew,QtotNew
         integer :: ilost,i0,ierr
         real*8 :: fnplc,fnptot
+        !<<<<<<<<<<< Kilean <<<<<<<<<<<
+        real*8 :: lost_pdata(2,this%Nptlocal)
+        integer :: lost_pID(this%Nptlocal),my_rank
+        integer,allocatable :: ilost_list(:)
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
         pi = 2.0*asin(1.0)
         xl = Scxl
         rad = (xrad+yrad)/2 
-      
+        
         ilost = 0
         !<<<<<<<<<<<<<<<<<< kilean <<<<<<<<<<<<<<<<<<<<<<
         Qloc = sum(this%Pts1(8,1:this%Nptlocal))
@@ -503,13 +508,18 @@
 !            ilost = ilost + 1
           else
           endif
+          !<<<<<<<<<<<< MPI fopen (Kilean) <<<<<<<<<<<<
+          lost_pdata(1,ilost)=this%Pts1(1,i0)
+          lost_pdata(2,ilost)=this%Pts1(3,i0)
+          lost_pID(ilost)=int(this%Pts1(9,i0))
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         enddo
-
 !        if(ilost.gt.0) then
 !    		print*,'ilost=',ilost
         this%Nptlocal = this%Nptlocal - ilost
         nplc = this%Nptlocal
         !<<<<<<<<<<<<<<<<<< kilean <<<<<<<<<<<<<<<<<<<<<<
+        ! -- consider charge weights
         QlocNew = sum(this%Pts1(8,1:this%Nptlocal))
         call MPI_ALLREDUCE(QlocNew,QtotNew,1,MPI_DOUBLE_PRECISION,MPI_SUM,&
                            MPI_COMM_WORLD,ierr)
@@ -522,6 +532,9 @@
         nptot = fnptot + 0.1 
         this%Npt = nptot
         if(Qtot .ne. 0d0) this%current = this%current*QtotNew/Qtot
+        
+        ! -- write lost p
+        call write_lost_partcl(lost_pID(1:ilost),lost_pdata(1:2,1:ilost),ilost)
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 !		print*,'lostcount_BeamBunch exit, this%Npt = ',this%Npt

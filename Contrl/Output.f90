@@ -4381,7 +4381,7 @@
         endif
         end subroutine turn_by_turn_integral
         
-subroutine turn_by_turn_integral_on_momentum(BB,fileID,beta,alfa,tn,cn)
+        subroutine turn_by_turn_integral_on_momentum(BB,fileID,beta,alfa,tn,cn)
         ! write phase-space of test particles (q=0) turn-by-turn
         implicit none
         include 'mpif.h'
@@ -4464,5 +4464,65 @@ subroutine turn_by_turn_integral_on_momentum(BB,fileID,beta,alfa,tn,cn)
         endif
         end subroutine turn_by_turn_integral_on_momentum
 !>>>>>>>>>>>>>>>>>>>> end of TBToutput(Kilean) >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!<<<<<<<<<<<<<<<<<<< write lost particle information <<<<<<<<<<<<<<<<<<<<<<
+        subroutine write_lost_partcl(lost_pID,lost_pdata,ilost)
+        implicit none
+        integer, intent(in) :: ilost
+        integer, intent(in) :: lost_pID(ilost)
+        double precision, intent(in) :: lost_pdata(2,ilost)
+        integer ::i,myrank,ierr,np,ilost_tot
+        integer,allocatable :: ilost_list,ilost_disp,lost_pID_tot
+        double precision, allocatable :: lost_pdata_tot
 
+        call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+        call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
+
+        allocate(ilost_list(0:np-1))
+        allocate(ilost_disp(0:np-1))
+        ilost_list = 0
+        ilost_disp = 0
+        call MPI_GATHER(ilost,1,MPI_INTEGER,ilost_list,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+        ilost_tot = sum(nptlist)
+        do i=0,np-2
+          nptdisp(i+1) = nptlist(i)+nptdisp(i)
+        enddo
+        allocate(lost_pdata_tot(2,ilost_tot))
+        allocate(lost_pID_tot(ilost_tot))
+        call MPI_GATHERV(lost_pdata_tot,ilost*2,MPI_DOUBLE_PRECISION,&
+                         recvbuf,ilost_list*2,ilost_disp*2,MPI_DOUBLE_PRECISION,&
+                         0,MPI_COMM_WORLD,ierr)
+        call MPI_GATHERV(lost_pdata_tot,ilost*2,MPI_DOUBLE_PRECISION,&
+                         recvbuf,ilost_list*2,ilost_disp*2,MPI_DOUBLE_PRECISION,&
+                         0,MPI_COMM_WORLD,ierr)
+        if(my_rank.eq.0) then
+          do i=1,1000
+            if(isOn(i)) then
+              if(UnitfID(2,i)==fileID) then
+                iUnit = UnitfID(1,i)
+                exit
+              endif
+            else
+              isOn(i) = .true.
+              UnitfID(2,i)=fileID
+              UnitfID(1,i)=get_free_unit(7251)
+              iUnit = UnitfID(1,i)
+              open(iUnit,file='TBT.integral.onMomentum.'//trim(num2str_int(fileID)),form='unformatted',&
+                   action='write', iostat=ifail)
+              if(ifail /= 0)  STOP '--- Error in opening TBT.integral file ---'
+              exit
+            endif
+          enddo
+          if(i==1000) then
+            STOP 'Error : maximum number of TBT.integral file reached'
+          endif
+        
+          call sort(recvbuf, 3, 3, mtpt, 1, mtpt)
+          
+          write(iUnit) mtpt
+          write(iUnit) int(recvbuf(3,:))
+          write(iUnit) recvbuf(1:2,:)
+          flush(iUnit)
+        endif
+        end subroutine
+!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       end module Outputclass
