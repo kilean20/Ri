@@ -10,6 +10,9 @@
 !  1) Itype = -1, shift the transverse centroid position to 0.
 !  2) Itype = -2, shift the transverse centroid position and angle to 0.
 !                 (this one not work yet due to conflict of definition)
+!  *) Itype = -9,  pipe_override   !<<<<<<< Kilean <<<<<<<<
+!                  Param(2) : pipe_id(1=rectangular, 2=ellipse)
+!                  Param(3:4) : rad_x, rad_y  ! >>>>>>>>>>>>
 !  3) Itype = -10, mismatch the beam distribution by the amount given in
 !                  Param(3) - Param(8).  
 !  4) Itype = -14, lumped space-charge and wake field kick

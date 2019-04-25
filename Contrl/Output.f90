@@ -4145,7 +4145,7 @@
 
         end subroutine end_Output
 
-!<<<<<<<<<<<<<<<<<<<<<<<<< TBT output(Kilean) <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!<<<<<<<<<<<<<<<<<<<<<<<<< TBT output(Kilean) <<<<<<<<<<<<<<<<<<<<<<<<<<
         integer function get_free_unit(init)
         ! get a unit numer not occupied by others
         implicit none 
@@ -4253,10 +4253,10 @@
           nptdisp(i+1) = nptlist(i)+nptdisp(i)
         enddo
         allocate(recvbuf(7,mtpt))
-        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
         if(my_rank==0) print*, '[TBTphase]MPI_GATHERV, mtpt=',mtpt
-        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         call MPI_GATHERV(sendbuf,tpt*7,MPI_DOUBLE_PRECISION,&
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
@@ -4279,9 +4279,9 @@
               exit
             endif
           enddo
-          !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+          !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
           print*, '[TBTphase]i,UnitfID(:,i)=',i,UnitfID(:,i)
-          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           if(i==1000) then
             STOP 'Error : maximum number of TBT file reached'
           endif
@@ -4350,7 +4350,7 @@
         call MPI_GATHERV(sendbuf,tpt*3,MPI_DOUBLE_PRECISION,&
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
-        if(my_rank.eq.0) then
+        if(my_rank.eq.np-1) then
           do i=1,1000
             if(isOn(i)) then
               if(UnitfID(2,i)==fileID) then
@@ -4433,7 +4433,7 @@
         call MPI_GATHERV(sendbuf,tpt*3,MPI_DOUBLE_PRECISION,&
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
-        if(my_rank.eq.0) then
+        if(my_rank.eq.np-1) then
           do i=1,1000
             if(isOn(i)) then
               if(UnitfID(2,i)==fileID) then
@@ -4463,66 +4463,61 @@
           flush(iUnit)
         endif
         end subroutine turn_by_turn_integral_on_momentum
-!>>>>>>>>>>>>>>>>>>>> end of TBToutput(Kilean) >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!<<<<<<<<<<<<<<<<<<< write lost particle information <<<<<<<<<<<<<<<<<<<<<<
-        subroutine write_lost_partcl(lost_pID,lost_pdata,ilost)
+!>>>>>>>>>>>>>>>>>>>> end of TBToutput(Kilean) >>>>>>>>>>>>>>>>>>>>>>>>>
+!<<<<<<<<<<<<<<<<<<< write lost particle information <<<<<<<<<<<<<<<<<<<
+        subroutine write_lost_pData(lost_pdata,lost_pID,nlost,elemType,elemID)
         implicit none
-        integer, intent(in) :: ilost
-        integer, intent(in) :: lost_pID(ilost)
-        double precision, intent(in) :: lost_pdata(2,ilost)
-        integer ::i,myrank,ierr,np,ilost_tot
-        integer,allocatable :: ilost_list,ilost_disp,lost_pID_tot
+        integer, intent(in) :: elemType,elemID
+        integer, intent(inout) :: nlost
+        integer*8, allocatable, intent(inout) :: lost_pID(:)
+        real*8, allocatable, intent(inout) :: lost_pdata(:,:)
+        
+        logical,save :: fileCreated = .false.
+        integer,save :: iUnit
+        integer :: i,myrank,ierr,np,nlost_tot
+        integer,  allocatable :: nlost_list,nlost_disp
+        integer*8,allocatable :: lost_pID_tot
         double precision, allocatable :: lost_pdata_tot
 
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
 
-        allocate(ilost_list(0:np-1))
-        allocate(ilost_disp(0:np-1))
-        ilost_list = 0
-        ilost_disp = 0
-        call MPI_GATHER(ilost,1,MPI_INTEGER,ilost_list,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-        ilost_tot = sum(nptlist)
+        allocate(nlost_list(0:np-1))
+        allocate(nlost_disp(0:np-1))
+        nlost_list = 0
+
+        call MPI_GATHER(nlost,1,MPI_INTEGER,nlost_list,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+        nlost_tot = sum(nptlist)
+        if (nlost_tot=0) return
+        nlost_disp = 0
         do i=0,np-2
-          nptdisp(i+1) = nptlist(i)+nptdisp(i)
+          nlost_disp(i+1) = nlost_list(i)+nlost_disp(i)
         enddo
-        allocate(lost_pdata_tot(2,ilost_tot))
-        allocate(lost_pID_tot(ilost_tot))
-        call MPI_GATHERV(lost_pdata_tot,ilost*2,MPI_DOUBLE_PRECISION,&
-                         recvbuf,ilost_list*2,ilost_disp*2,MPI_DOUBLE_PRECISION,&
+        allocate(lost_pdata_tot(3,nlost_tot))
+        allocate(lost_pID_tot(nlost_tot))
+        call MPI_GATHERV(lost_pdata,nlost*3,MPI_DOUBLE_PRECISION,&
+                         lost_pdata_tot,nlost_list*3,nlost_disp*3,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
-        call MPI_GATHERV(lost_pdata_tot,ilost*2,MPI_DOUBLE_PRECISION,&
-                         recvbuf,ilost_list*2,ilost_disp*2,MPI_DOUBLE_PRECISION,&
+        call MPI_GATHERV(lost_pID,nlost*2,MPI_LONG,&
+                         lost_pID_tot,nlost_list,nlost_disp,MPI_LONG,&
                          0,MPI_COMM_WORLD,ierr)
-        if(my_rank.eq.0) then
-          do i=1,1000
-            if(isOn(i)) then
-              if(UnitfID(2,i)==fileID) then
-                iUnit = UnitfID(1,i)
-                exit
-              endif
-            else
-              isOn(i) = .true.
-              UnitfID(2,i)=fileID
-              UnitfID(1,i)=get_free_unit(7251)
-              iUnit = UnitfID(1,i)
-              open(iUnit,file='TBT.integral.onMomentum.'//trim(num2str_int(fileID)),form='unformatted',&
-                   action='write', iostat=ifail)
-              if(ifail /= 0)  STOP '--- Error in opening TBT.integral file ---'
-              exit
-            endif
-          enddo
-          if(i==1000) then
-            STOP 'Error : maximum number of TBT.integral file reached'
+        if(my_rank.eq.np-1) then
+          if(.not. fileCreated) then
+            fileCreated = .true.
+            iUnit=get_free_unit(4351)
+            open(iUnit,file='lost_partcl.data',action='write', iostat=ifail)
+            if(ifail /= 0)  STOP '--- Error in opening lost_partcl.data file ---'
+            write(iUnit,*) 'z','x','y','partcl ID','element type ID','element sequence number'
           endif
-        
-          call sort(recvbuf, 3, 3, mtpt, 1, mtpt)
-          
-          write(iUnit) mtpt
-          write(iUnit) int(recvbuf(3,:))
-          write(iUnit) recvbuf(1:2,:)
+          do i=1,nlost
+            write(iUnit,*) lost_pdata_tot(1:3,i),lost_pID_tot(i),elemType,elemID
+          enddo
           flush(iUnit)
         endif
+        
+        nlost = 0
+        deallocate(lost_pdata,lost_pID)
+        
         end subroutine
-!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       end module Outputclass

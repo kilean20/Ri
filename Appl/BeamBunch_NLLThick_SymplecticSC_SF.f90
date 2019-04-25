@@ -448,7 +448,9 @@
 
         !counter the particles get lost outside the xrad and yrad.
         !we have not put the lost through rf bucket yet.
-        subroutine lostcount_BeamBunch(this,nplc,nptot,xrad,yrad)
+        subroutine lostcount_BeamBunch(this,nplc,nptot,&
+                                       pipeID,xrad,yrad,&
+                                       lost_pdata,lost_pID,z,nlost)
         implicit none
         include 'mpif.h'
         type (BeamBunch), intent(inout) :: this
@@ -456,28 +458,35 @@
         integer, intent(inout) :: nplc
         integer*8, intent(inout) :: nptot
         integer :: i
-        double precision :: tmpx,tmpy,pi,xl,rad,Qloc,Qtot,QlocNew,QtotNew
+        double precision :: tmpx,tmpy,pi,rad
         integer :: ilost,i0,ierr
         real*8 :: fnplc,fnptot
-        !<<<<<<<<<<< Kilean <<<<<<<<<<<
-        real*8 :: lost_pdata(2,this%Nptlocal)
-        integer :: lost_pID(this%Nptlocal),my_rank
-        integer,allocatable :: ilost_list(:)
-        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        integer, intent(in) :: pipeID
+        integer, intent(inout) :: nlost
+        real*8,  intent(in) :: z
+        integer*8, allocatable, intent(inout) :: lost_pID(:)
+        real*8,    allocatable, intent(inout) :: lost_pdata(:,:)
+        real*8 :: Qloc,Qtot,QlocNew,QtotNew
+        integer,parameter :: _rectangular=1, _elliptic=2
+        
+        ! allocate lost particle data container assuming local # of particle particle un-balance at most 20%
+        if(.not. allocated(lost_pdata)) allocate(lost_pdata(3,int(this%Nptlocal*1.2)))
+        if(.not. allocated(lost_pID)) allocate(lost_pID(int(this%Nptlocal*1.2)))
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
         pi = 2.0*asin(1.0)
-        xl = Scxl
         rad = (xrad+yrad)/2 
-        
         ilost = 0
-        !<<<<<<<<<<<<<<<<<< kilean <<<<<<<<<<<<<<<<<<<<<<
+        
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<<<<<<
         Qloc = sum(this%Pts1(8,1:this%Nptlocal))
         call MPI_ALLREDUCE(Qloc,Qtot,1,MPI_DOUBLE_PRECISION,MPI_SUM,&
                            MPI_COMM_WORLD,ierr)
-        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        
         do i0 = 1, this%Nptlocal
           i = i0 - ilost
-
           this%Pts1(1,i) = this%Pts1(1,i0)
           this%Pts1(2,i) = this%Pts1(2,i0)
           this%Pts1(3,i) = this%Pts1(3,i0)
@@ -487,8 +496,8 @@
           this%Pts1(7,i) = this%Pts1(7,i0)
           this%Pts1(8,i) = this%Pts1(8,i0)
           this%Pts1(9,i) = this%Pts1(9,i0)
-          tmpx = this%Pts1(1,i0)*xl
-          tmpy = this%Pts1(3,i0)*xl
+          tmpx = this%Pts1(1,i0)*Scxl
+          tmpy = this%Pts1(3,i0)*Scxl
 !          radtest = sqrt(tmpx**2+tmpy**2)
 !          if(radtest.ge.rad) then
 !            ilost = ilost + 1
@@ -496,29 +505,32 @@
 !            ilost = ilost + 1
 !          else
 !          endif
-          if(tmpx.le.(-xrad)) then
-            ilost = ilost + 1
-          else if(tmpx.ge.xrad) then
-            ilost = ilost + 1
-          else if(tmpy.le.(-yrad)) then
-            ilost = ilost + 1
-          else if(tmpy.ge.yrad) then
-            ilost = ilost + 1
-!          else if(abs(this%Pts1(5,i0)).ge.pi) then
-!            ilost = ilost + 1
+          !<<<<<<<<<< elliptic and rectangular pipe (Kilean) <<<<<<<<<<<
+          if(pipeID == _elliptic) then
+            if ( ((tmpx/xrad)**2+(tmpy/yrad)**2)>=1d0 ) then
+              ilost = ilost + 1
+              lost_pdata(1,nlost+ilost)=z
+              lost_pdata(2,nlost+ilost)=tmpx
+              lost_pdata(3,nlost+ilost)=tmpy
+              lost_pID(nlost+ilost)=int(this%Pts1(9,i0))
+            endif
           else
+            if ( (abs(tmpx)>=xrad).or.(abs(tmpy)>=yrad) ) then
+              ilost = ilost + 1
+              lost_pdata(1,nlost+ilost)=z
+              lost_pdata(2,nlost+ilost)=tmpx
+              lost_pdata(3,nlost+ilost)=tmpy
+              lost_pID(nlost+ilost)=int(this%Pts1(9,i0))
+            endif
           endif
-          !<<<<<<<<<<<< MPI fopen (Kilean) <<<<<<<<<<<<
-          lost_pdata(1,ilost)=this%Pts1(1,i0)
-          lost_pdata(2,ilost)=this%Pts1(3,i0)
-          lost_pID(ilost)=int(this%Pts1(9,i0))
-          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         enddo
-!        if(ilost.gt.0) then
-!    		print*,'ilost=',ilost
+!        if(ilost.gt.0) print*,'ilost=',ilost
         this%Nptlocal = this%Nptlocal - ilost
         nplc = this%Nptlocal
-        !<<<<<<<<<<<<<<<<<< kilean <<<<<<<<<<<<<<<<<<<<<<
+        
+        
+        !<<<<<<<<<<<<<<<<<<<<<<<<<< kilean <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         ! -- consider charge weights
         QlocNew = sum(this%Pts1(8,1:this%Nptlocal))
         call MPI_ALLREDUCE(QlocNew,QtotNew,1,MPI_DOUBLE_PRECISION,MPI_SUM,&
@@ -532,10 +544,9 @@
         nptot = fnptot + 0.1 
         this%Npt = nptot
         if(Qtot .ne. 0d0) this%current = this%current*QtotNew/Qtot
-        
-        ! -- write lost p
-        call write_lost_partcl(lost_pID(1:ilost),lost_pdata(1:2,1:ilost),ilost)
-        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        ! -- total lost particles 
+        nlost = nlost + ilost        
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 !		print*,'lostcount_BeamBunch exit, this%Npt = ',this%Npt
 !        endif

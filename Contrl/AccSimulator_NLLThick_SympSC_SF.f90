@@ -555,7 +555,7 @@
         integer, allocatable, dimension(:) :: lctabnmx,lctabnmy,ytable,&
                                               ydisp,ztable,zdisp
         integer, allocatable, dimension(:,:,:) :: temptab
-        double precision :: z0,z,tau1,tau2,blength,t0
+        double precision :: z,tau1,tau2,blength,t0
         double precision, allocatable, dimension(:,:) :: lctabrgx, lctabrgy
         double precision, dimension(6) :: lcrange, range, ptrange,ptref
         double precision, dimension(3) :: msize
@@ -604,9 +604,12 @@
         dimension xmh(6,6),h(monoms)
         real*8, dimension(6) :: tmp6
         integer :: ntrace,ntaysym,norder
-        !<<<<<<<<<<< kilean <<<<<<<<<<<
-        integer :: ihalf, jslice, nslices, jadd, jend1, kend1
-        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        !<<<<<<<<<<<<<<<<<<<<<<<<< kilean <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        logical :: pipe_override
+        integer :: ihalf, jslice, nslices, jadd, jend1, kend1, pipeID, nlost
+        integer*8, allocatable :: lost_pID(:)
+        double precision, allocatable :: lost_pdata(:,:)
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         !integer :: ihalf,jslice,nslices
         !real*8 :: slfrac,pp,reftraj,tmh,th,angle,slen,arclen
         double precision, allocatable, dimension(:,:):: tmpPts
@@ -886,17 +889,21 @@
           endif
 
         enddo
-
-!-------------------------------------------------------------------
-!start looping through 'Nturn'
+      
+      !<<<<<<<<<<<<<<<<< prepare particle lost (Kilean) <<<<<<<<<<<<<<<<
+      nlost = 0
+      pipe_override = .false.
+      pipeID = 1
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      !-----------------------------------------------------------------
+      !start looping through 'Nturn'
       do iturn = 1, Nturn  
-
-!-------------------------------------------------------------------
-! start looping through 'Nblem' beam line elements.
         tmpfile = 0
         bitypeold = 0
         blengthold = 0.0d0
         zbleng = 0.0d0
+        !---------------------------------------------------------------
+        ! start looping through 'Nblem' beam line elements.
         do i = iend+1, Nblem
           call starttime_Timer(t11)
           call getparam_BeamLineElem(Blnelem(i),blength,bnseg,bmpstp,&
@@ -904,8 +911,6 @@
           call getradius_BeamLineElem(Blnelem(i),piperad,piperad2)
           nsubstep = bmpstp
           if(myid.eq.0) print*,"enter elment: ",i,bitype
-
-
           nfile = 0
           tau1 = 0.0
           if(bitype.ge.0) tau1 = 0.5*blength/bnseg
@@ -1080,6 +1085,13 @@
             !call outgeom_Output(nstep,z,i,j,npx,npy,Ageom)
             !call outpoint_Output(myid+31,Bpts,z,i,j,npx,npy,Ageom)
             call outpoint_Output(myid+51,Bpts,z,i,j,ibal,nstep,npx,npy,Ageom)
+          else if(bitype.eq.-9) then
+            call getparam_BeamLineElem(Blnelem(i),dparam)
+            pipe_override = .true.
+            pipeID  = int(dparam(2))
+            piperad = dparam(3)
+            piperad2 = dparam(4)
+            cycle
           else if(bitype.eq.-10) then
             !mismatch the beam at given location.
             !here, drange(3:8) stores the mismatch factor.
@@ -1243,12 +1255,11 @@
                                 ezamp*ezlaser*cos(rklaser*ss*csiglaser)
               endif
             enddo
-         else if(bitype.eq.5)then
+          else if(bitype.eq.5)then
            qmass = Bpts%Charge/Bpts%Mass
            call kickmultthinK(Blnelem(i)%pmult,Bpts%refptcl,&
                 Bpts%Pts1,Nplocal,qmass)
-          endif
-          if(bitype.eq.-99) then
+          elseif(bitype.eq.-99) then
             exit
           endif
 
@@ -1482,22 +1493,18 @@
 
             call starttime_Timer(t3)
             
-!            if(myid.eq.0) print*,"flagcoll: ",i,j,flagcoll,tau2,flagtmp,flagwake
 !-------------------------------------------------------------------
 ! escape the space charge calculation for 0 current case
             if(BcurrImp.lt.1.0e-30)  then !no space-charge
-            !<<<<<<<<<<<<<<<<<<<< check particle loss (Kilean) <<<<<<<<<<<<<<<<<<<<<
-              call lostcount_BeamBunch(Bpts,Nplocal,Np,piperad,piperad2)
-			!>>>>>>>>>>>>>>>>> end of check particle loss (Kilean) >>>>>>>>>>>>>>>>>
-            else if(Flagbc.eq.7) then
-              !<<<<<<<<<<< kilean <<<<<<<<<<<<<<<
-              call lostcount_BeamBunch(Bpts,Nplocal,Np,piperad,piperad2)
-              ! call conv0th_BeamBunch(Bpts,tau2,Nplocal,Np,ptrange,&
-                                   ! Flagbc,Perdlen,piperad,piperad2)
-              ! if(myid==0) print*, 'conv0th_BeamBunch passed'
-              ! call chgupdate_BeamBunch(Bpts,nchrg,nptlist0,qmcclist0)
-              ! if(myid==0) print*, 'chgupdate_BeamBunch passed'
-              !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            !<<<<<<<<<<<<<< check particle loss (Kilean) <<<<<<<<<<<<<<<
+              call lostcount_BeamBunch(Bpts,Nplocal,Np,&
+                                       pipeID,piperad,piperad2,&
+                                       lost_pdata,lost_pID,z,nlost)
+            else if(Flagbc.eq.7 .or. Flagbc.eq.8 .or. Flagbc.eq.9) then
+              call lostcount_BeamBunch(Bpts,Nplocal,Np,&
+                                       pipeID,piperad,piperad2,&
+                                       lost_pdata,lost_pID,z,nlost)
+            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
               goto 200
             else if(flagcoll.eq.1) then !calculate space charge forces
             !start sc calculation-------------------
@@ -2243,6 +2250,12 @@
 !output after each element
           call diagnostic1_Output(z,Bpts,nchrg,[Bpts%Npt])
         !-------------------------------------------------
+        ! <<<<<<<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        call write_lost_pData(lost_pdata,lost_pdata_pID,nlost,bitype,i)
+        pipe_override = .false.
+        pipeID = 1
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        
         enddo !end loop of N beam line elements
 
         if(myid.eq.0) print*,"iturn: ",iturn
