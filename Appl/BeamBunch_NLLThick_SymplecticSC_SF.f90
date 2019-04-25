@@ -468,7 +468,7 @@
         integer*8, allocatable, intent(inout) :: lost_pID(:)
         real*8,    allocatable, intent(inout) :: lost_pdata(:,:)
         real*8 :: Qloc,Qtot,QlocNew,QtotNew
-        integer,parameter :: _rectangular=1, _elliptic=2
+        integer,parameter :: rectangular_=1, elliptic_=2
         
         ! allocate lost particle data container assuming local # of particle particle un-balance at most 20%
         if(.not. allocated(lost_pdata)) allocate(lost_pdata(3,int(this%Nptlocal*1.2)))
@@ -484,7 +484,7 @@
         call MPI_ALLREDUCE(Qloc,Qtot,1,MPI_DOUBLE_PRECISION,MPI_SUM,&
                            MPI_COMM_WORLD,ierr)
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        
+        print*, 'pipeID,xrad,yrad',pipeID,xrad,yrad
         do i0 = 1, this%Nptlocal
           i = i0 - ilost
           this%Pts1(1,i) = this%Pts1(1,i0)
@@ -506,7 +506,7 @@
 !          else
 !          endif
           !<<<<<<<<<< elliptic and rectangular pipe (Kilean) <<<<<<<<<<<
-          if(pipeID == _elliptic) then
+          if(pipeID == elliptic_) then
             if ( ((tmpx/xrad)**2+(tmpy/yrad)**2)>=1d0 ) then
               ilost = ilost + 1
               lost_pdata(1,nlost+ilost)=z

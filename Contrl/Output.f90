@@ -4212,12 +4212,12 @@
         end subroutine sort
 
 
-        subroutine turn_by_turn_phasespace(BB,fileID)
-        ! write phase-space of test particles (q=0) turn-by-turn
+        subroutine turn_by_turn_phasespace(BB,fileID,pIDbegin,pIDend)
+        ! write turn-by-turn phase-space of particles whose ID is in pIDbegin <= pID <= pIDend
         implicit none
         include 'mpif.h'
         type (BeamBunch), intent(in) :: BB
-        integer, intent(in) :: fileID
+        integer, intent(in) :: fileID,pIDbegin,pIDend
         integer, save :: unitfID(2,1000)
         logical, save :: isOn(1000)=.false.
         integer :: i,j,ifail,np,my_rank,ierr,tpt,mtpt,iUnit
@@ -4229,7 +4229,8 @@
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
         
-        isTest = BB%Pts1(8,1:BB%Nptlocal) < tiny(0.0)  ! inteded type cast. ignore compiler warining.
+        isTest = pIDbegin <= BB%Pts1(9,1:BB%Nptlocal) .and. &  ! inteded type cast. ignore compiler warining.
+                 BB%Pts1(9,1:BB%Nptlocal) <= pIDend  
         tpt = count(isTest)
         allocate(sendbuf(7,tpt))
         tpt = 0
@@ -4297,12 +4298,12 @@
         endif
         end subroutine turn_by_turn_phasespace
         
-        subroutine turn_by_turn_integral(BB,fileID,beta,alfa,tn,cn)
+        subroutine turn_by_turn_integral(BB,fileID,beta,alfa,tn,cn,pIDbegin,pIDend)
         ! write phase-space of test particles (q=0) turn-by-turn
         implicit none
         include 'mpif.h'
         type (BeamBunch), intent(in) :: BB
-        integer, intent(in) :: fileID
+        integer, intent(in) :: fileID,pIDbegin,pIDend
         double precision, intent(in) :: beta,alfa,cn,tn
         integer, save :: unitfID(2,1000)
         logical, save :: isOn(1000)=.false.
@@ -4316,7 +4317,8 @@
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
         gambet0 = sqrt(BB%refptcl(6)**2-1.0d0) 
-        isTest = BB%Pts1(8,1:BB%Nptlocal) < tiny(0.0)  ! inteded type cast. ignore compiler warining.
+        isTest = pIDbegin <= BB%Pts1(9,1:BB%Nptlocal) .and. &  ! inteded type cast. ignore compiler warining.
+                 BB%Pts1(9,1:BB%Nptlocal) <= pIDend  
         tpt = count(isTest)
         allocate(sendbuf(3,tpt))
         tpt = 0
@@ -4381,12 +4383,12 @@
         endif
         end subroutine turn_by_turn_integral
         
-        subroutine turn_by_turn_integral_on_momentum(BB,fileID,beta,alfa,tn,cn)
+        subroutine turn_by_turn_integral_on_momentum(BB,fileID,beta,alfa,tn,cn,pIDbegin,pIDend)
         ! write phase-space of test particles (q=0) turn-by-turn
         implicit none
         include 'mpif.h'
         type (BeamBunch), intent(in) :: BB
-        integer, intent(in) :: fileID
+        integer, intent(in) :: fileID,pIDbegin,pIDend
         double precision, intent(in) :: beta,alfa,cn,tn
         integer, save :: unitfID(2,1000)
         logical, save :: isOn(1000)=.false.
@@ -4400,7 +4402,8 @@
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
         gambet0 = sqrt(BB%refptcl(6)**2-1.0d0) 
-        isTest = BB%Pts1(8,1:BB%Nptlocal) < tiny(0.0)  ! inteded type cast. ignore compiler warining.
+        isTest = pIDbegin <= BB%Pts1(9,1:BB%Nptlocal) .and. &  ! inteded type cast. ignore compiler warining.
+                 BB%Pts1(9,1:BB%Nptlocal) <= pIDend  
         tpt = count(isTest)
         allocate(sendbuf(3,tpt))
         tpt = 0
@@ -4467,6 +4470,7 @@
 !<<<<<<<<<<<<<<<<<<< write lost particle information <<<<<<<<<<<<<<<<<<<
         subroutine write_lost_pData(lost_pdata,lost_pID,nlost,elemType,elemID)
         implicit none
+        include 'mpif.h'
         integer, intent(in) :: elemType,elemID
         integer, intent(inout) :: nlost
         integer*8, allocatable, intent(inout) :: lost_pID(:)
@@ -4474,10 +4478,10 @@
         
         logical,save :: fileCreated = .false.
         integer,save :: iUnit
-        integer :: i,myrank,ierr,np,nlost_tot
-        integer,  allocatable :: nlost_list,nlost_disp
-        integer*8,allocatable :: lost_pID_tot
-        double precision, allocatable :: lost_pdata_tot
+        integer :: i,my_rank,ierr,np,nlost_tot,ifail
+        integer,  allocatable :: nlost_list(:),nlost_disp(:)
+        integer*8,allocatable :: lost_pID_tot(:)
+        double precision, allocatable :: lost_pdata_tot(:,:)
 
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
@@ -4487,8 +4491,8 @@
         nlost_list = 0
 
         call MPI_GATHER(nlost,1,MPI_INTEGER,nlost_list,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-        nlost_tot = sum(nptlist)
-        if (nlost_tot=0) return
+        nlost_tot = sum(nlost_list)
+        if (nlost_tot==0) return
         nlost_disp = 0
         do i=0,np-2
           nlost_disp(i+1) = nlost_list(i)+nlost_disp(i)
@@ -4498,7 +4502,7 @@
         call MPI_GATHERV(lost_pdata,nlost*3,MPI_DOUBLE_PRECISION,&
                          lost_pdata_tot,nlost_list*3,nlost_disp*3,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
-        call MPI_GATHERV(lost_pID,nlost*2,MPI_LONG,&
+        call MPI_GATHERV(lost_pID,nlost,MPI_LONG,&
                          lost_pID_tot,nlost_list,nlost_disp,MPI_LONG,&
                          0,MPI_COMM_WORLD,ierr)
         if(my_rank.eq.np-1) then
@@ -4507,7 +4511,8 @@
             iUnit=get_free_unit(4351)
             open(iUnit,file='lost_partcl.data',action='write', iostat=ifail)
             if(ifail /= 0)  STOP '--- Error in opening lost_partcl.data file ---'
-            write(iUnit,*) 'z','x','y','partcl ID','element type ID','element sequence number'
+            write(iUnit,*) 'z   ','x   ','y   ','partcl_ID   ',&
+                           'element_type_ID   ','element_sequence_number'
           endif
           do i=1,nlost
             write(iUnit,*) lost_pdata_tot(1:3,i),lost_pID_tot(i),elemType,elemID

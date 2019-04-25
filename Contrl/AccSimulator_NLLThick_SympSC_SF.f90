@@ -908,7 +908,7 @@
           call starttime_Timer(t11)
           call getparam_BeamLineElem(Blnelem(i),blength,bnseg,bmpstp,&
                                      bitype)
-          call getradius_BeamLineElem(Blnelem(i),piperad,piperad2)
+          if(.not. pipe_override) call getradius_BeamLineElem(Blnelem(i),piperad,piperad2)
           nsubstep = bmpstp
           if(myid.eq.0) print*,"enter elment: ",i,bitype
           nfile = 0
@@ -1044,17 +1044,18 @@
           endif
 !<<<<<<<<<<<<<<<<<<<<<< TBToutput(Kilean) <<<<<<<<<<<<<<<<<<<<<<<<<<<
           if(bitype.eq.-89) then
-            call turn_by_turn_phasespace(Bpts,bmpstp)
+            call getparam_BeamLineElem(Blnelem(i),dparam)
+            call turn_by_turn_phasespace(Bpts,int(dparam(2)),int(dparam(3)),int(dparam(4)))
           endif
           if(bitype.eq.-88) then
             call getparam_BeamLineElem(Blnelem(i),dparam)
-            call turn_by_turn_integral(Bpts,bmpstp,dparam(2),&
-                                       dparam(3),dparam(4),dparam(5))
+            call turn_by_turn_integral(Bpts,int(dparam(2)),dparam(3),dparam(4)&
+                                      ,dparam(5),dparam(6),int(dparam(7)),int(dparam(8)))
           endif
           if(bitype.eq.-87) then
             call getparam_BeamLineElem(Blnelem(i),dparam)
-            call turn_by_turn_integral_on_momentum(Bpts,bmpstp,dparam(2),&
-                                                   dparam(3),dparam(4),dparam(5))
+            call turn_by_turn_integral_on_momentum(Bpts,int(dparam(2)),dparam(3),dparam(4)&
+                                      ,dparam(5),dparam(6),int(dparam(7)),int(dparam(8)))
           endif
 !>>>>>>>>>>>>>>>>>>>>>>> end of TBToutput >>>>>>>>>>>>>>>>>>>>>>>>>>>
           if(bitype.eq.-2) then
@@ -1091,6 +1092,7 @@
             pipeID  = int(dparam(2))
             piperad = dparam(3)
             piperad2 = dparam(4)
+            print*, 'piperad,piperad2',piperad,piperad2
             cycle
           else if(bitype.eq.-10) then
             !mismatch the beam at given location.
@@ -2251,7 +2253,7 @@
           call diagnostic1_Output(z,Bpts,nchrg,[Bpts%Npt])
         !-------------------------------------------------
         ! <<<<<<<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        call write_lost_pData(lost_pdata,lost_pdata_pID,nlost,bitype,i)
+        call write_lost_pData(lost_pdata,lost_pID,nlost,bitype,i)
         pipe_override = .false.
         pipeID = 1
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
