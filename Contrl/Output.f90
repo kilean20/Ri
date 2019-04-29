@@ -2650,7 +2650,6 @@
         include 'mpif.h'
         integer, intent(in) :: nfile,iter,samplePeriod
         type (BeamBunch), intent(in) :: this
-        integer,optional,intent(in) :: samplePeriod
         integer :: np,my_rank,ierr
         integer status(MPI_STATUS_SIZE)
         integer :: i,j,sixnpt,mnpt,npt
@@ -2658,7 +2657,7 @@
         character(len=*) :: pName
         double precision :: ibetgam
         double precision,allocatable,dimension(:,:) :: recvbuf  
-        double precision,parameter :: mc = 5.014394307056302d-19, sl=c/omegascl
+        double precision,parameter :: sl=c/omegascl
         
         if(abs(this%mass/proton_mass-1d0) < 0.001 .and. this%charge==1d0) then
           pName = 'proton' 
@@ -2674,14 +2673,13 @@
           pName = 'unknown'
         endif
         
-        ibetgam = 1d0/sqrt(this%refptcl(6)**2-1d0)
-        betC = sqrt(1d0-(1d0/this%refptcl(6))**2)*cLight
-        
         if(nfile<0) then
-          call hdf5_particle_output(this%Pts1,this%Nptlocal,&
-                                   &nfile,iter,mass*eV_2_kg,pName,&
+          ibetgam = 1d0/sqrt(this%refptcl(6)**2-1d0)
+          betC = sqrt(1d0-(1d0/this%refptcl(6))**2)*cLight
+          call hdf5_particle_output(this%Pts1,this%Nptlocal,nfile,iter,&
+                                   &mass*eV_2_kg,pName,samplePeriod,&
                                    &[Scxl,ibetgam,Scxl,ibetgam,&
-                                    &betC/(2d0*Pi*Scfreq),-mass ] )
+                                   & betC/(2d0*Pi*Scfreq),-mass ])
           return
         endif
 
@@ -2697,7 +2695,7 @@
 
         call MPI_GATHER(this%Nptlocal,1,MPI_INTEGER,nptlist,1,&
                         MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-
+  
         nptlist = 9*nptlist
         
         if(my_rank.eq.0) then

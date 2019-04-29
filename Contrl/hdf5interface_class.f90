@@ -37,12 +37,13 @@ module hdf5_interface_class
     !print*,HDF5nyp,HDF5noff
   end subroutine init_hdf5_interface
 
-  subroutine hdf5_particle_output(BptPointer,Nplocal,nfile,iteration,mass,pName,normalF)
+  subroutine hdf5_particle_output(BptPointer,Nplocal,nfile,iteration,&
+                                 &mass,pName,samplePeriod,normalF)
     double precision, dimension(:,:), intent(in) :: BptPointer
     double precision, intent(in) :: mass !kg
     character(len=*), intent(in) :: pName
     double precision, optional, intent(in) :: normalF(6)
-    integer, intent(in) :: Nplocal,nfile,iteration
+    integer, intent(in) :: Nplocal,nfile,iteration,samplePeriod
     integer :: ierr
 
     ! Initialize the file data for particle postion x
@@ -55,9 +56,9 @@ module hdf5_interface_class
 
     ! Write position x
     if(present(normalF)) then
-      call pwpart(pp,file_hdf5,BptPointer(1,:)*normalF(1),Nplocal,ierr)
+      call pwpart(pp,file_hdf5,BptPointer(1,1:Nplocal:samplePeriod)*normalF(1),Nplocal/samplePeriod,ierr)
     else
-      call pwpart(pp,file_hdf5,BptPointer(1,:),Nplocal,ierr)
+      call pwpart(pp,file_hdf5,BptPointer(1,1:Nplocal:samplePeriod),Nplocal/samplePeriod,ierr)
     endif
     
      ! Initialize the file data for particle momentum x
@@ -69,9 +70,9 @@ module hdf5_interface_class
 
     ! Write momentum x
     if(present(normalF)) then
-      call pwpart(pp,file_hdf5,BptPointer(2,:)*normalF(2),Nplocal,ierr)
+      call pwpart(pp,file_hdf5,BptPointer(2,1:Nplocal:samplePeriod)*normalF(2),Nplocal/samplePeriod,ierr)
     else
-      call pwpart(pp,file_hdf5,BptPointer(2,:),Nplocal,ierr)
+      call pwpart(pp,file_hdf5,BptPointer(2,1:Nplocal:samplePeriod),Nplocal/samplePeriod,ierr)
     endif
     
     ! Initialize the file data for particle postion y
@@ -82,9 +83,9 @@ module hdf5_interface_class
 
     ! Write position y
     if(present(normalF)) then
-      call pwpart(pp,file_hdf5,BptPointer(3,:)*normalF(3),Nplocal,ierr)
+      call pwpart(pp,file_hdf5,BptPointer(3,1:Nplocal:samplePeriod)*normalF(3),Nplocal/samplePeriod,ierr)
     else
-      call pwpart(pp,file_hdf5,BptPointer(3,:),Nplocal,ierr)
+      call pwpart(pp,file_hdf5,BptPointer(3,1:Nplocal:samplePeriod),Nplocal/samplePeriod,ierr)
     endif
     
      ! Initialize the file data for particle momentum y
@@ -95,9 +96,9 @@ module hdf5_interface_class
 
     ! Write momentum y
     if(present(normalF)) then
-      call pwpart(pp,file_hdf5,BptPointer(4,:)*normalF(4),Nplocal,ierr)
+      call pwpart(pp,file_hdf5,BptPointer(4,1:Nplocal:samplePeriod)*normalF(4),Nplocal/samplePeriod,ierr)
     else
-      call pwpart(pp,file_hdf5,BptPointer(4,:),Nplocal,ierr)
+      call pwpart(pp,file_hdf5,BptPointer(4,1:Nplocal:samplePeriod),Nplocal/samplePeriod,ierr)
     endif
     
     ! Initialize the file data for particle postion z
@@ -108,9 +109,9 @@ module hdf5_interface_class
 
     ! Write position t (or position z)
     if(present(normalF)) then
-      call pwpart(pp,file_hdf5,BptPointer(5,:)*normalF(5),Nplocal,ierr)
+      call pwpart(pp,file_hdf5,BptPointer(5,1:Nplocal:samplePeriod)*normalF(5),Nplocal/samplePeriod,ierr)
     else
-      call pwpart(pp,file_hdf5,BptPointer(5,:),Nplocal,ierr)
+      call pwpart(pp,file_hdf5,BptPointer(5,1:Nplocal:samplePeriod),Nplocal/samplePeriod,ierr)
     endif
 
      ! Initialize the file data for particle momentum z
@@ -121,9 +122,9 @@ module hdf5_interface_class
 
     ! Write momentum pt (or momentum pz)
     if(present(normalF)) then
-      call pwpart(pp,file_hdf5,BptPointer(6,:)*normalF(6),Nplocal,ierr)
+      call pwpart(pp,file_hdf5,BptPointer(6,1:Nplocal:samplePeriod)*normalF(6),Nplocal/samplePeriod,ierr)
     else
-      call pwpart(pp,file_hdf5,BptPointer(6,:),Nplocal,ierr)
+      call pwpart(pp,file_hdf5,BptPointer(6,1:Nplocal:samplePeriod),Nplocal/samplePeriod,ierr)
     endif
 
     ! Initialize the file data for particle mass

@@ -27,6 +27,7 @@ OBJS = \
 	Appl/NonlinearLens_NLLThick_Reversible_SF_track.o Appl/BeamLineElem_NLLThick.o \
 	Appl/CompDom.o Appl/BeamBunch_NLLThick_SymplecticSC_SF.o Appl/sym2dsolver.o \
 	Appl/Field_2D.o Appl/Distribution.o \
+	Contrl/parallel_class.o Contrl/hdf5io_class.o Contrl/hdf5interface_class.o\
 	Contrl/Input.o Contrl/Output.o Contrl/AccSimulator_NLLThick_SympSC_SF.o Contrl/main.o
 
 OBJS1 = \
@@ -42,6 +43,7 @@ OBJS2 = \
   SpaceChargeSF_Tracking.o \
 	NonlinearLens_NLLThick_Reversible_SF_track.o BeamLineElem_NLLThick.o CompDom.o \
 	BeamBunch_NLLThick_SymplecticSC_SF.o sym2dsolver.o Field_2D.o Distribution.o \
+	parallel_class.o hdf5io_class.o hdf5interface_class.o\
 	Input.o Output.o AccSimulator_NLLThick_SympSC_SF.o main.o	
 #**************************************************************************
 # Change this line if you don't like 'a.out'.
@@ -73,13 +75,14 @@ $(EXENAME):  $(OBJS)
 # the following line say Timer.o is depended on Timer.f90
 #Timer.o: Timer.f90
 #	$(CC) -c -O3 Timer.f90
-	cp  AccSimulator_NLLThick_SympSC_SF.o main.o Input.o Output.o Filter.o Utility.o Contrl
+	cp  AccSimulator_NLLThick_SympSC_SF.o main.o Input.o Output.o Filter.o Utility.o \
+      parallel_class.o hdf5io_class.o hdf5interface_class.o Contrl
 	cp  BPM_NLLThick.o CCL.o CCDTL.o DTL.o SC.o DriftTube.o Quadrupole.o \
 	    ConstFoc.o BeamLineElem_NLLThick.o BeamBunch_NLLThick_SymplecticSC_SF.o \
             Field_2D.o CompDom.o \
 	    Multipole_NLL.o sym2dsolver.o Distribution.o SolRF.o Sol.o Dipole.o TWS.o \
 	    NonlinearLens_NLLThick_Reversible_SF_track.o EMfld.o Appl
-	cp  Timer.o Transpose.o Fldmger.o Ptclmger.o FFT.o Bessel.o Func	
+	cp  Timer.o Transpose.o Fldmger.o Ptclmger.o FFT.o Bessel.o Func
 	cp  NumConst.o PhysConst.o Data.o Pgrid.o DataStruct
 #***********************************************************************
 all: $(EXENAME)
