@@ -450,7 +450,7 @@
         !we have not put the lost through rf bucket yet.
         subroutine lostcount_BeamBunch(this,nplc,nptot,&
                                        pipeID,xrad,yrad,&
-                                       lost_pdata,lost_pID,z,nlost)
+                                       lost_pdata,z,nlost)
         implicit none
         include 'mpif.h'
         type (BeamBunch), intent(inout) :: this
@@ -465,14 +465,12 @@
         integer, intent(in) :: pipeID
         integer, intent(inout) :: nlost
         real*8,  intent(in) :: z
-        integer*8, allocatable, intent(inout) :: lost_pID(:)
-        real*8,    allocatable, intent(inout) :: lost_pdata(:,:)
+        real*8,  allocatable, intent(inout) :: lost_pdata(:,:)
         real*8 :: Qloc,Qtot,QlocNew,QtotNew
         integer,parameter :: rectangular_=1, elliptic_=2
         
         ! allocate lost particle data container assuming local # of particle particle un-balance at most 20%
-        if(.not. allocated(lost_pdata)) allocate(lost_pdata(3,int(this%Nptlocal*1.2)))
-        if(.not. allocated(lost_pID)) allocate(lost_pID(int(this%Nptlocal*1.2)))
+        if(.not. allocated(lost_pdata)) allocate(lost_pdata(4,int(this%Nptlocal*1.2)))
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
         pi = 2.0*asin(1.0)
@@ -512,7 +510,7 @@
               lost_pdata(1,nlost+ilost)=z
               lost_pdata(2,nlost+ilost)=tmpx
               lost_pdata(3,nlost+ilost)=tmpy
-              lost_pID(nlost+ilost)=int(this%Pts1(9,i0))
+              lost_pdata(4,nlost+ilost)=this%Pts1(9,i0)
             endif
           else
             if ( (abs(tmpx)>=xrad).or.(abs(tmpy)>=yrad) ) then
@@ -520,7 +518,7 @@
               lost_pdata(1,nlost+ilost)=z
               lost_pdata(2,nlost+ilost)=tmpx
               lost_pdata(3,nlost+ilost)=tmpy
-              lost_pID(nlost+ilost)=int(this%Pts1(9,i0))
+              lost_pdata(4,nlost+ilost)=this%Pts1(9,i0)
             endif
           endif
           !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

@@ -30,6 +30,7 @@
         use Besselclass
         use Filterclass
         use SpaceChargeSF
+        use hdf5_interface_class
 
 !        implicit none
         !# of phase dim., num. total and local particles, int. dist. 
@@ -191,7 +192,7 @@
 !-------------------------------------------------------------------
 ! initialize Data class.
         call init_Data()
-
+        call init_hdf5_interface(Ny)
 !-------------------------------------------------------------------
 ! construct BeamBunch class.
         call construct_BeamBunch(Bpts,BcurrImp,Bkenergy,Bmass,Bcharge,&
@@ -607,7 +608,6 @@
         !<<<<<<<<<<<<<<<<<<<<<<<<< kilean <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         logical :: pipe_override
         integer :: ihalf, jslice, nslices, jadd, jend1, kend1, pipeID, nlost
-        integer*8, allocatable :: lost_pID(:)
         double precision, allocatable :: lost_pdata(:,:)
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         !integer :: ihalf,jslice,nslices
@@ -1501,11 +1501,11 @@
             !<<<<<<<<<<<<<< check particle loss (Kilean) <<<<<<<<<<<<<<<
               call lostcount_BeamBunch(Bpts,Nplocal,Np,&
                                        pipeID,piperad,piperad2,&
-                                       lost_pdata,lost_pID,z,nlost)
+                                       lost_pdata,z,nlost)
             else if(Flagbc.eq.7 .or. Flagbc.eq.8 .or. Flagbc.eq.9) then
               call lostcount_BeamBunch(Bpts,Nplocal,Np,&
                                        pipeID,piperad,piperad2,&
-                                       lost_pdata,lost_pID,z,nlost)
+                                       lost_pdata,z,nlost)
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
               goto 200
             else if(flagcoll.eq.1) then !calculate space charge forces
@@ -2253,7 +2253,7 @@
           call diagnostic1_Output(z,Bpts,nchrg,[Bpts%Npt])
         !-------------------------------------------------
         ! <<<<<<<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        call write_lost_pData(lost_pdata,lost_pID,nlost,bitype,i)
+        call write_lost_pData(lost_pdata,nlost,bitype,i)
         pipe_override = .false.
         pipeID = 1
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

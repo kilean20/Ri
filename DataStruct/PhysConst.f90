@@ -19,6 +19,11 @@
         double precision :: Rad2deg !conversion factor from radian to degree
         double precision :: Epsilon0 !permittivity of vacuum
         double precision :: Scfreq !time scale
+        !<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<
+        double precision,parameter :: proton_mass = 938272081d0, &
+        &electron_mass = 510998.94d0,&
+        &eV_2_kg = 1.782662d-36
+        
       contains
         subroutine construct_PhysConst(freq)
         double precision, intent(in) :: freq
