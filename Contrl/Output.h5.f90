@@ -16,7 +16,9 @@
         use PhysConstclass
         use Multipoleclass
         !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Kilean
-        use hdf5_interface_class
+        #IFDEF NERSC_HOST
+          use hdf5_interface_class
+        #ENDIF
         private :: get_free_unit,num2str_int,sort
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Kilean
       contains
@@ -2664,28 +2666,30 @@
         
         
         !<<<<<<<<<<<<<<<<<<<<<<<< openPMD <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        if(formatID==2) then
-          if(abs(this%mass/proton_mass-1d0) < 0.001 .and. this%charge==1d0) then
-            pName = 'proton' 
-          elseif(abs(this%mass/electron_mass-1d0)<0.001) then
-            if(this%charge==-1d0) then
-              pName = 'electron' 
-            elseif(this%charge==1d0) then
-              pName = 'positron'
+        #IFDEF NERSC_HOST
+          if(formatID==2) then
+            if(abs(this%mass/proton_mass-1d0) < 0.001 .and. this%charge==1d0) then
+              pName = 'proton' 
+            elseif(abs(this%mass/electron_mass-1d0)<0.001) then
+              if(this%charge==-1d0) then
+                pName = 'electron' 
+              elseif(this%charge==1d0) then
+                pName = 'positron'
+              else
+                pName = 'unknown'
+              endif
             else
               pName = 'unknown'
             endif
-          else
-            pName = 'unknown'
+            ibetgam = 1d0/sqrt(this%refptcl(6)**2-1d0)
+            betC = sqrt(1d0-(1d0/this%refptcl(6))**2)*cLight
+            call hdf5_particle_output(this%Pts1,this%Nptlocal,nfile,iter,&
+                                     &this%mass*eV_2_kg,pName,samplePeriod,&
+                                     &[Scxl,ibetgam,Scxl,ibetgam,&
+                                     & betC/(2d0*Pi*Scfreq),-this%mass ])
+            return
           endif
-          ibetgam = 1d0/sqrt(this%refptcl(6)**2-1d0)
-          betC = sqrt(1d0-(1d0/this%refptcl(6))**2)*cLight
-          call hdf5_particle_output(this%Pts1,this%Nptlocal,nfile,iter,&
-                                   &this%mass*eV_2_kg,pName,samplePeriod,&
-                                   &[Scxl,ibetgam,Scxl,ibetgam,&
-                                   & betC/(2d0*Pi*Scfreq),-this%mass ])
-          return
-        endif
+        #ENDIF
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 

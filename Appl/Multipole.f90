@@ -514,44 +514,6 @@
  
       end subroutine kicksextthinK
 
-!<<<<<<<<<<<<< sextupole drift-kick-drift map (Kilean) <<<<<<<<<<<<<<<<<
-subroutine transfmap_sextupole(tau,ksext,refpt,npt,pData)
-!========================
-! the vector potential is As = 1/6 * d(dBy/dx)/dx * (x^3 - 3xy^2)
-! ksext == d(dBy/dx)/dx
-!========================
-  implicit none
-  integer, intent(in) :: npt
-  double precision, intent(in) :: tau,ksext
-  double precision, intent(inout), dimension(6) :: refpt
-  double precision, intent(inout), dimension(6,npt) :: pData
-  double precision :: gambet0,beta0,ibg(npt)
-  
-  print*, '@@@ in sextupole : ksext = ', ksext
-  gambet0 = sqrt(refpt(6)**2 - 1.0)
-  beta0   = sqrt(1.0-1.0/(refpt(6)**2))
-  refpt(5) = refpt(5) + tau/beta0/Scxl
-  
-  ! ---- drfit ----
-  ibg = 0.5*tau/sqrt( (refpt(6)-pData(6,:))**2 - 1.0 &
-                      -pData(2,:)**2 -pData(4,:)**2)
-  pData(1,:) = pData(1,:) + pData(2,:)*ibg/Scxl
-  pData(3,:) = pData(3,:) + pData(4,:)*ibg/Scxl
-  pData(5,:) = pData(5,:) + (refpt(6)-pData(6,:))*ibg/Scxl*Clight
-  ! ---- kick ----
-  pData(2,:) = pData(2,:) + 0.5*ksext*Scxl*Scxl*tau*cLight&
-                            *pData(7,:)*(pData(2,:)**2-pData(4,:)**2)
-  pData(4,:) = pData(4,:) - ksext*Scxl*Scxl*tau*cLight&
-                            *pData(7,:)*pData(2,:)*pData(4,:)
-  ! ---- drfit ----
-  ibg = 0.5*tau/sqrt( (refpt(6)-pData(6,:))**2 - 1.0 &
-                      -pData(2,:)**2 -pData(4,:)**2)
-  pData(1,:) = pData(1,:) + pData(2,:)*ibg/Scxl
-  pData(3,:) = pData(3,:) + pData(4,:)*ibg/Scxl
-  pData(5,:) = pData(5,:) + (refpt(6)-pData(6,:))*ibg/Scxl*Clight
-end subroutine transfmap_sextupole
-!<<<<<<<<<< end of sextupole drift-kick-drift map (Kilean) <<<<<<<<<<<<<
-
      !the following modified the original version following the
       !MAD-X tracking function.
       subroutine kickmultthinK(this,refpt,Pts1in,nptlc,qmass)
@@ -566,17 +528,7 @@ end subroutine transfmap_sextupole
         real*8 :: gam,gambet,gambet0,bet0,k0,k1,k2,k3,k4,scxl2,scxl3,scxl4
         real*8 :: xx,yy,k5,bet,dpp
         integer  :: i
-          ! Param(1) : zedge
-          !      (2) : id for sextupole(2), octupole(3), decapole(4)
-          !      (3) : field strength
-          !      (4) : file ID
-          !      (5) : radius
-          !      (6) : x misalignment error
-          !      (7) : y misalignment error
-          !      (8) : rotation error x
-          !      (9) : rotation error y
-          !      (10) : rotation error z
-          
+
         k0 = this%Param(3) !dipole
         k1 = this%Param(4) !quad
         k2 = this%Param(5) !sext
@@ -585,8 +537,7 @@ end subroutine transfmap_sextupole
         k5 = this%Param(8) !
         gambet0 = sqrt(refpt(6)**2-1.0d0)
         bet0 = -gambet0/refpt(6)
-
-        print*, 'k0,k1,k2,k3,k4,k5=',k0,k1,k2,k3,k4,k5
+!        print*, 'k0,k1,k2,k3,k4,k5=',k0,k1,k2,k3,k4,k5
         do i = 1, nptlc
           gam = -refpt(6)-Pts1in(6,i)
           gambet = sqrt(gam**2-1.0d0-Pts1in(2,i)**2-Pts1in(4,i)**2)
@@ -615,4 +566,359 @@ end subroutine transfmap_sextupole
       end subroutine kickmultthinK
 
 
-      end module Multipoleclass
+      !Thin lens kick associated with nonlinear lens
+      !
+      subroutine NonlinearLensthnK(this,refpt,Pts1in,nptlc,qmass)
+        implicit none
+        include 'mpif.h'
+        integer, intent(in) :: nptlc
+        double precision, intent(in) :: qmass
+        double precision, dimension(6), intent(inout) :: refpt
+        double precision, dimension(4) :: coord
+        type (Multipole), intent(in) :: this
+        double precision, pointer, dimension(:,:) :: Pts1in
+        real*8 :: gam,gambet,gambet0,knll,cnll,b,d,u,v
+        integer  :: i
+
+        knll = this%Param(3)
+        cnll = this%Param(4)
+        b = this%Param(5)
+        d = this%Param(6)
+        gambet0 = sqrt(refpt(6)**2-1.0d0)
+        !print*, 'refpt(6)=',refpt(6)
+        !print*, 'knll,cnll,b,d:'
+        !print*, knll,cnll,b,d
+        !print*, 'Scxl,gambet'
+        !print*, Scxl,gambet0
+
+        do i = 1, nptlc
+          gam = -refpt(6)-Pts1in(6,i)
+          gambet = sqrt(gam**2-1.0d0-Pts1in(2,i)**2-Pts1in(4,i)**2)
+          coord(1) = Pts1in(1,i)*Scxl
+          coord(2) = Pts1in(2,i)/gambet0
+          coord(3) = Pts1in(3,i)*Scxl
+          coord(4) = Pts1in(4,i)/gambet0
+          !print*, 'Coordinates before:'
+          !print*, coord(:)
+          call NonlinearLensPropagator(knll,cnll,b,d,coord,u,v)
+          !print*, 'Coordinates after:'
+          !print*, coord(:)
+          Pts1in(2,i) = coord(2)*gambet0
+          Pts1in(4,i) = coord(4)*gambet0
+        enddo
+ 
+      end subroutine NonlinearLensthnK
+
+
+      !The following subroutine computes the nonlinear momentum kick
+      !across a thin lens associated with a single short segment of the
+      !nonlinear magnetic insert described in V. Danilov and S. Nagaitsev,
+      !PRSTAB 13, 084002 (2010), Sect. V.A.  The arguments are as follows:
+      !		knll - integrated strength of the lens (m)
+      !		cnll - dimensional parameter of the lens (m)
+      !		b - dimensionless parameter (default -pi/2)
+      !		d - dimensionless parameter (default 0)
+      !		coord = (x [m], px/p0, y [m], py/p0)
+      !This implementation is based on a combination of the routines
+      !TRACK_EXT by A. Valishev (ORBIT) and "propagate" in 
+      !NonlinearLensPropagators.cc by C. S. Park (SYNERGIA), with 
+      !modifications by C. Hall for small-y.  Variable definitions
+      !are consistent with TRACK_EXT.  C. Mitchell, 11/4/2016.
+      !
+      subroutine NonlinearLensPropagator(knll,cnll,b,d,coord,u,v)      
+        implicit none
+        include 'mpif.h'
+        double precision, intent(in) :: knll,cnll,b,d
+        double precision, dimension(4), intent(inout) :: coord
+        double precision, intent(out) :: u,v
+        double precision :: x,y,dUu,dUv,dux,duy,dvx,dvy,dUdx,dUdy,kick
+        double precision:: Hinv,mu0,l0,tn,cn,bn,an
+        double precision, parameter:: tol = 1.0d-7
+
+        x = coord(1)/cnll                          !Dimensionless horizontal coord
+        y = coord(3)/cnll                          !Dimensionless vertical coord
+        kick = knll/cnll                           !Dimensionless kick strength
+        u=0.5d0*sqrt((x-1.d0)**2+y**2)+0.5d0*sqrt((x+1.d0)**2+y**2)  !Parameter xi
+        v=0.5d0*sqrt((x+1.d0)**2+y**2)-0.5d0*sqrt((x-1.d0)**2+y**2)  !Parameter eta
+
+      !At the singularities:
+        if((y==0.d0).and.(dabs(x)==1.d0)) then
+          write(*,*) "Error:  NonlinearLensPropagator propagates with singular points!"
+      !Near the midplane, with |x| > 1 (that is, |v| is near 1):
+        elseif((dabs(y).le.tol).and.(dabs(x).gt.1.d0)) then        
+          write(*,*) "Warning:  Particle near the midplane, but outside the singularity!"
+      !Near the midplane, with |x| < 1 (that is, |u| is near 1):
+        elseif((dabs(y).le.tol).and.(dabs(x).lt.1.d0)) then
+          write(*,*) "Using small y Expansion Case!  Currently assumes that d = 0."
+          dUu = u+sqrt(u**2-1.d0)*(d+acosh(u))
+          dUu = dUu+1.0d0+(5.0d0/3.0d0)*(u-1.0d0)+(7.0d0/15.0d0)*(u-1.0d0)**2
+          dUu = dUu-2.d0*u**2*sqrt(u**2-1.d0)*(d+acosh(u))/(u**2-v**2)
+          dUu = dUu-2.d0*u*v*sqrt(1.d0-v**2)*(b+acos(v))/(u**2-v**2)
+          dUu = dUu/(u**2-v**2)
+          dUv = -v+sqrt(1.d0-v**2)*(b+acos(v))-v**2*(b+acos(v))/sqrt(1.d0-v**2)
+          dUv = dUv+2.d0*u*v*sqrt(u**2-1.d0)*(d+acosh(u))/(u**2-v**2)
+          dUv = dUv+2.d0*v**2*sqrt(1.d0-v**2)*(b+acos(v))/(u**2-v**2)
+          dUv = dUv/(u**2-v**2)
+      !Away from the midplane:
+        else
+          dUu = u+sqrt(u**2-1.d0)*(d+acosh(u))+u**2*(d+acosh(u))/sqrt(u**2-1.d0)
+          dUu = dUu-2.d0*u**2*sqrt(u**2-1.d0)*(d+acosh(u))/(u**2-v**2)
+          dUu = dUu-2.d0*u*v*sqrt(1.d0-v**2)*(b+acos(v))/(u**2-v**2)
+          dUu = dUu/(u**2-v**2)
+          dUv = -v+sqrt(1.d0-v**2)*(b+acos(v))-v**2*(b+acos(v))/sqrt(1.d0-v**2)
+          dUv = dUv+2.d0*u*v*sqrt(u**2-1.d0)*(d+acosh(u))/(u**2-v**2)
+          dUv = dUv+2.d0*v**2*sqrt(1.d0-v**2)*(b+acos(v))/(u**2-v**2)
+          dUv = dUv/(u**2-v**2)
+
+          dux=0.5d0*(x-1.d0)/sqrt((x-1.d0)**2+y**2) & 
+             +0.5d0*(x+1.d0)/sqrt((x+1.d0)**2+y**2)
+          duy=0.5d0*y/sqrt((x-1.d0)**2+y**2) & 
+             +0.5d0*y/sqrt((x+1.d0)**2+y**2)
+          dvx=0.5d0*(x+1.d0)/sqrt((x+1.d0)**2+y**2) & 
+             -0.5d0*(x-1.d0)/sqrt((x-1.d0)**2+y**2)
+          dvy=0.5d0*y/sqrt((x+1.d0)**2+y**2) & 
+             -0.5d0*y/sqrt((x-1.d0)**2+y**2)
+
+          !print*, 'dUu,dUv:',dUu,dUv
+          !print*, 'dux,dvx:',dux,dvx
+          !print*, 'dvx,dvy:',dvx,dvy
+        endif
+
+        dUdx=dUu*dux+dUv*dvx
+        dUdy=dUu*duy+dUv*dvy
+
+      !Momentum update
+        !print*, 'dUdx,dUdy:',dUdx,dUdy
+        coord(2)=coord(2)+kick*dUdx
+        coord(4)=coord(4)+kick*dUdy
+
+        if(coord(2).ne.coord(2)) then
+          write(*,*) 'NaN inside NLL kick.'
+          write(*,*) 'x,y,u,v,dUdx,dUdy'
+          write(*,*) x,y,u,v,dUdx,dUdy
+          write(*,*) 'dUu,dUv,dux,duy,dvx,dvy'
+          write(*,*) dUu,dUv,dux,duy,dvx,dvy
+        endif
+
+      end subroutine NonlinearLensPropagator      
+
+      subroutine NonlinearLensPropagatorCmplx(knll,cnll,coord)      
+    !*****************************************************************
+    !The following subroutine computes the nonlinear momentum kick
+    !across a thin lens associated with a single short segment of the
+    !nonlinear magnetic insert described in V. Danilov and S. Nagaitsev,
+    !PRSTAB 13, 084002 (2010), Sect. V.A.  The arguments are as follows:
+    !         knll - integrated strength of the lens (m)
+    !         cnll - dimensional parameter of the lens (m)
+    !         coord = (x [m], px/p0, y [m], py/p0)
+    !This implementation is based on the note "Complex Representation of
+    !Potentials and Fields for the IOTA Nonlinear Insert," Feb., 2017.
+    !Variable definitions are chosen to be consistent with TRACK_EXT.
+    !C. Mitchell, 2/8/2017.
+    !*****************************************************************
+        implicit none
+        include 'mpif.h'
+        double precision, intent(in) :: knll,cnll
+        double precision, dimension(4), intent(inout) :: coord
+        double complex:: dF
+        double precision :: x,y,kick,dPx,dPy
+        x = coord(1)/cnll                          !Dimensionless horizontal coord
+        y = coord(3)/cnll                          !Dimensionless vertical coord
+        kick = knll/cnll                           !Dimensionless kick strength
+      !Avoid the branch cuts:
+        if((y==0.d0).and.(dabs(x).ge.1.d0)) then
+          write(*,*) "Error:  NonlinearLensPropagatorCmplx propagates across branch cuts!"
+          return
+        else
+          dF = Fderivative(x,y)
+          dPx = kick*real(dF)
+          dPy = -kick*aimag(dF)
+        endif
+      !Momentum update
+        coord(2)=coord(2)-dPx
+        coord(4)=coord(4)-dPy
+      end subroutine NonlinearLensPropagatorCmplx  
+
+     function Fpotential(x,y)
+   !****************************************
+   ! Computes the dimensionless complex
+   ! potential Az+i*Psi of the IOTA
+   ! nonlinear insert.
+   !****************************************
+     implicit none
+     double precision, intent(in):: x,y
+     double complex:: Fpotential,zeta
+     zeta = dcmplx(x,y)
+     Fpotential = zeta/croot(zeta)
+     Fpotential = Fpotential*carcsin(zeta)
+     end function
+
+     function Fderivative(x,y)
+   !****************************************
+   ! Computes the derivative of the
+   ! dimensionless complex potential for
+   ! the IOTA nonlinear insert.
+   !****************************************
+     implicit none
+     double precision, intent(in):: x,y
+     double complex:: Fderivative,zeta
+     double complex:: denom
+     zeta = dcmplx(x,y)
+     denom = croot(zeta)
+     Fderivative = zeta/denom**2
+     Fderivative = Fderivative+carcsin(zeta)/denom**3
+     end function
+
+     function carcsin(z)
+   !******************************************
+   ! Computes the complex function arcsin(z)
+   ! using the principal branch.
+   !******************************************
+     implicit none
+     double complex, intent(in):: z
+     double complex:: carcsin,im1
+     !<<<<<<<<<<<<< kilean <<<<<<<<<<<<<
+     im1 = dcmplx(0.0d0,1.0d0)
+     carcsin = im1*z+croot(z)
+     carcsin = -im1*cdlog(carcsin)
+     !carcsin = asin(z)
+     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+     end function
+
+      function croot(z)
+   !*******************************************
+   ! Computes the complex function sqrt(1-z^2)
+   ! using the principal branch.
+   !*******************************************
+      implicit none
+      double complex, intent(in):: z
+      double complex:: croot,re1
+      re1 = dcmplx(1.0d0,0.0d0)
+      croot = re1-z**2
+      croot = cdsqrt(croot)
+      end function croot
+    
+     subroutine InvariantPotentials(x,y,Hinv,Iinv)
+   !**********************************************************
+   ! Computes the dimensionless potentials that determine the
+   ! spatial dependence of the two invariants (H,I) for IOTA.
+   ! The arguments are as follows:
+   !       (x,y) - normalized dimensionless coordinates
+   !       Hinv - the vector potential describing the spatial
+   !              dependence of the first invariant H.
+   !       Iinv - function describing the spatial dependence
+   !              of the second invariant I.
+   ! This implementation is based on the note
+   ! C. Mitchell, 2/8/2017.
+   !**********************************************************
+     implicit none
+     double precision, intent(in):: x,y
+     double precision, intent(out):: Hinv,Iinv
+     double complex:: zeta,zetaconj,Hpotential,Ipotential
+     zeta = dcmplx(x,y)
+     zetaconj = conjg(zeta)
+     Hpotential = zeta/croot(zeta)
+     Ipotential = (zeta+zetaconj)/croot(zeta)   
+     Hpotential = Hpotential*carcsin(zeta)
+     Ipotential = Ipotential*carcsin(zeta)
+     Hinv = real(Hpotential)
+     Iinv = real(Ipotential)
+     end subroutine
+
+      subroutine DriftPropagator(ds,beta0,gambet0,coord)
+    !*****************************************************************
+    !The following subroutine computes the exact map across a drift
+    !space in coordinates (x [m], px/p0, y [m], py/p0, ct [m], pt/cp0)
+    !for application to the symplectic integrator for the
+    !nonlinear magnetic insert described in V. Danilov and S. Nagaitsev,
+    !PRSTAB 13, 084002 (2010), Sect. V.A.  The arguments are as follows:
+    !         ds - length of step in s [m]
+    !         coord = (x [m], px/p0, y [m], py/p0, ct [m], pt/cp0)
+    !This subroutine was added to allow the inclusion of kinematic
+    !nonlinearities and nonvanishing momentum deviation in the insert.
+    !C. Mitchell, 5/3/2017.
+    !*****************************************************************
+        implicit none
+        include 'mpif.h'
+        double precision, intent(in) :: ds,beta0,gambet0
+        double precision, dimension(6), intent(inout) :: coord
+        double precision :: root,dX,dY,dT,delta
+        integer:: exactflag
+        exactflag = 3    !Default to 0 for linearized drift step
+        if(exactflag==1) then
+!   Exact drift (6D) - H is exact
+!    (This case has NOT yet been carefully benchmarked)
+          root = 1.0d0+coord(6)**2-2.0d0*coord(6)/beta0
+          root = dsqrt(root-coord(2)**2-coord(4)**2)
+          dX = ds*coord(2)/root
+          dY = ds*coord(4)/root
+          dT = (1.0d0-coord(6)*beta0)/root - 1.0d0
+          dT = ds*dT/beta0
+        elseif(exactflag==2) then
+!   Paraxial drift (6D) - H is 2nd order in Px,Py (exact otherwise)
+!    (This case has NOT yet been carefully benchmarked)
+          delta = 1.0d0+coord(6)**2-2.0d0*coord(6)/beta0
+          delta = 1.0d0/dsqrt(delta)
+          dX = ds*delta*coord(2)
+          dY = ds*delta*coord(4)
+          dT = 1.0d0+delta**2*(coord(2)**2+coord(4)**2)/2.0d0
+          dT = (dT*delta*(1.0d0-coord(6)*beta0)-1.0d0)/beta0
+          dT = ds*dT  
+        else
+!   Linearized drift (6D) - H is 2nd order in all variables
+!   (This case has been carefully benchmarked, C.M. 5/4/2017)
+          dX = ds*coord(2)
+          dY = ds*coord(4)
+          dT = ds*coord(6)/gambet0**2
+        endif
+!   Coordinate update
+        coord(1)=coord(1)+dX
+        coord(3)=coord(3)+dY
+!  FOR BENCHMARKING ONLY COMMENT THE FOLLOWING LINE TO 
+!  AVOID THE LONGITUDINAL COORDINATE UPDATE:
+        coord(5)=coord(5)+dT
+!   For benchmarking:
+!        write(*,*) 'ds,dX,dY,dT=',ds,dX,dY,dT
+      end subroutine DriftPropagator
+
+
+! !<<<<<<<<<<<<< sextupole drift-kick-drift map (Kilean) <<<<<<<<<<<<<<<<<
+! subroutine transfmap_sextupole(tau,ksext,refpt,npt,pData)
+! !========================
+! ! the vector potential is As = 1/6 * d(dBy/dx)/dx * (x^3 - 3xy^2)
+! ! ksext == d(dBy/dx)/dx
+! !========================
+  ! implicit none
+  ! integer, intent(in) :: npt
+  ! double precision, intent(in) :: tau,ksext
+  ! double precision, intent(inout), dimension(6) :: refpt
+  ! double precision, intent(inout), dimension(9,npt) :: pData
+  ! double precision :: gambet0,beta0,ibg(npt)
+  
+  ! print*, '@@@ in sextupole : ksext = ', ksext
+  ! gambet0 = sqrt(refpt(6)**2 - 1.0)
+  ! beta0   = sqrt(1.0-1.0/(refpt(6)**2))
+  ! refpt(5) = refpt(5) + tau/beta0/Scxl
+  
+  ! ! ---- drfit ----
+  ! ibg = 0.5*tau/sqrt( (refpt(6)-pData(6,:))**2 - 1.0 &
+                      ! -pData(2,:)**2 -pData(4,:)**2)
+  ! pData(1,:) = pData(1,:) + pData(2,:)*ibg/Scxl
+  ! pData(3,:) = pData(3,:) + pData(4,:)*ibg/Scxl
+  ! pData(5,:) = pData(5,:) + (refpt(6)-pData(6,:))*ibg/Scxl*Clight
+  ! ! ---- kick ----
+  ! pData(2,:) = pData(2,:) + 0.5*ksext*Scxl*Scxl*tau*cLight&
+                            ! *pData(7,:)*(pData(2,:)**2-pData(4,:)**2)
+  ! pData(4,:) = pData(4,:) - ksext*Scxl*Scxl*tau*cLight&
+                            ! *pData(7,:)*pData(2,:)*pData(4,:)
+  ! ! ---- drfit ----
+  ! ibg = 0.5*tau/sqrt( (refpt(6)-pData(6,:))**2 - 1.0 &
+                      ! -pData(2,:)**2 -pData(4,:)**2)
+  ! pData(1,:) = pData(1,:) + pData(2,:)*ibg/Scxl
+  ! pData(3,:) = pData(3,:) + pData(4,:)*ibg/Scxl
+  ! pData(5,:) = pData(5,:) + (refpt(6)-pData(6,:))*ibg/Scxl*Clight
+! end subroutine transfmap_sextupole
+! !<<<<<<<<<< end of sextupole drift-kick-drift map (Kilean) <<<<<<<<<<<<<
+      
+      
+     end module Multipoleclass

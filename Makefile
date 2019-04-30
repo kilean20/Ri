@@ -33,14 +33,14 @@ OBJS = \
 	DataStruct/Data.o \
 	Func/Timer.o Func/Transpose.o Func/Fldmger.o Func/Ptclmger.o  \
 	Func/FFT.o Func/Bessel.o Func/Filter.o Func/Utility.o \
-	Appl/BPM_NLLThick.o Appl/CCL.o Appl/CCDTL.o Appl/DTL.o Appl/SC.o \
+	Appl/BPM.o Appl/CCL.o Appl/CCDTL.o Appl/DTL.o Appl/SC.o \
 	Appl/DriftTube.o Appl/Quadrupole.o Appl/ConstFoc.o Appl/SolRF.o \
-	Appl/Sol.o Appl/Dipole.o Appl/Multipole_NLL.o Appl/EMfld.o Appl/TWS.o \
+	Appl/Sol.o Appl/Dipole.o Appl/Multipole.o Appl/EMfld.o Appl/TWS.o \
   Appl/SpaceChargeSF_Tracking.o \
-	Appl/NonlinearLens_NLLThick_Reversible_SF_track.o Appl/BeamLineElem_NLLThick.o \
-	Appl/CompDom.o Appl/BeamBunch_NLLThick_SymplecticSC_SF.o Appl/sym2dsolver.o \
+	Appl/NonlinearLens.o Appl/BeamLineElem.o \
+	Appl/CompDom.o Appl/BeamBunch.o Appl/sym2dsolver.o \
 	Appl/Field_2D.o Appl/Distribution.o \
-	$(cOUT) Contrl/Input.o Contrl/AccSimulator_NLLThick_SympSC_SF.o Contrl/main.o
+	$(cOUT) Contrl/Input.o Contrl/AccSimulator.o Contrl/main.o
 
 OBJS1 = \
 	base.o beam_mod.o book.o cex.o \
@@ -50,12 +50,12 @@ OBJS1 = \
 OBJS2 = \
 	NumConst.o PhysConst.o Pgrid.o Data.o \
 	Timer.o Transpose.o Fldmger.o Ptclmger.o FFT.o Bessel.o Filter.o Utility.o \
-	BPM_NLLThick.o CCL.o CCDTL.o DTL.o SC.o DriftTube.o Quadrupole.o ConstFoc.o \
-	SolRF.o Sol.o Dipole.o Multipole_NLL.o EMfld.o TWS.o \
+	BPM.o CCL.o CCDTL.o DTL.o SC.o DriftTube.o Quadrupole.o ConstFoc.o \
+	SolRF.o Sol.o Dipole.o Multipole.o EMfld.o TWS.o \
   SpaceChargeSF_Tracking.o \
-	NonlinearLens_NLLThick_Reversible_SF_track.o BeamLineElem_NLLThick.o CompDom.o \
-	BeamBunch_NLLThick_SymplecticSC_SF.o sym2dsolver.o Field_2D.o Distribution.o \
-	Input.o $(OUT) AccSimulator_NLLThick_SympSC_SF.o main.o	
+	NonlinearLens.o BeamLineElem.o CompDom.o \
+	BeamBunch.o sym2dsolver.o Field_2D.o Distribution.o \
+	Input.o $(OUT) AccSimulator.o main.o	
 #**************************************************************************
 # Change this line if you don't like 'a.out'.
 
@@ -86,12 +86,12 @@ $(EXENAME): $(OBJS)
 # the following line say Timer.o is depended on Timer.f90
 #Timer.o: Timer.f90
 #	$(CC) -c -O3 Timer.f90
-	cp  AccSimulator_NLLThick_SympSC_SF.o main.o Input.o $(OUT) Filter.o Utility.o Contrl
-	cp  BPM_NLLThick.o CCL.o CCDTL.o DTL.o SC.o DriftTube.o Quadrupole.o \
-	    ConstFoc.o BeamLineElem_NLLThick.o BeamBunch_NLLThick_SymplecticSC_SF.o \
+	cp  AccSimulator.o main.o Input.o $(OUT) Filter.o Utility.o Contrl
+	cp  BPM.o CCL.o CCDTL.o DTL.o SC.o DriftTube.o Quadrupole.o \
+	    ConstFoc.o BeamLineElem.o BeamBunch.o \
             Field_2D.o CompDom.o \
-	    Multipole_NLL.o sym2dsolver.o Distribution.o SolRF.o Sol.o Dipole.o TWS.o \
-	    NonlinearLens_NLLThick_Reversible_SF_track.o EMfld.o Appl
+	    Multipole.o sym2dsolver.o Distribution.o SolRF.o Sol.o Dipole.o TWS.o \
+	    NonlinearLens.o EMfld.o Appl
 	cp  Timer.o Transpose.o Fldmger.o Ptclmger.o FFT.o Bessel.o Func
 	cp  NumConst.o PhysConst.o Data.o Pgrid.o DataStruct
 #***********************************************************************

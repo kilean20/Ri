@@ -10,6 +10,9 @@
 !  1) Itype = -1, shift the transverse centroid position to 0.
 !  2) Itype = -2, shift the transverse centroid position and angle to 0.
 !                 (this one not work yet due to conflict of definition)
+!  *) Itype = -9,  pipe_override   !<<<<<<< Kilean <<<<<<<<
+!                  Param(2) : pipe_id(1=rectangular, 2=ellipse)
+!                  Param(3:4) : rad_x, rad_y  ! >>>>>>>>>>>>
 !  3) Itype = -10, mismatch the beam distribution by the amount given in
 !                  Param(3) - Param(8).  
 !  4) Itype = -14, lumped space-charge and wake field kick
@@ -24,6 +27,23 @@
         !part has been included in the map integrator and substracted.)
         !Param(3); vmax (V)
         !Param(4); phi0 (degree)
+!  8) Itype = -45, apply a zero-length thin-lens focusing kick
+!                  Param(3): horizontal focusing strength kx
+!                  Param(4): vertical focusing strength ky
+!  9) Itype = -46, apply a zero-length linear transformation
+!                  corresponding to a phase advance rotation
+!                  inside the IOTA toy lattice
+!                  Param(3): length of the NLI (in m)
+!                  Param(4): phase advance/2pi across the NLI
+!                  Param(5): phase advance/2pi across the arc
+! 10) Itype = -47, apply a zero-length linear transformation
+!                  inside the IOTA toy lattice corresponding
+!                  to a small phase times the generator of
+!                  the linear D&N map
+!                  Param(3): length of the NLI (in m)
+!                  Param(4): phase advance/2pi across the NLI
+!                  Param(5): phase advance/2pi across the arc
+!                  Param(6): dimensionless strength of the NLI
 !----------------------------------------------------------------
       module BPMclass
         use PhysConstclass
@@ -114,9 +134,10 @@
         implicit none
         type (BPM), intent(in) :: this
         double precision, dimension(:), intent(out) :: blparams
-
-        blparams = this%Param
-
+        !<<<<<<<< Kilean <<<<<<<<<<
+        !blparams = this%Param
+        blparams(1:Nparam) = this%Param   ! Nparam = 8 in ver. 11/6/2018
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>
         end subroutine getparam2_BPM
 
         subroutine getparam3_BPM(this,blength,bnseg,bmapstp,&
@@ -313,5 +334,167 @@
 !        print*,"vtmp: ",vmax,phi0,horm,mass
  
         end subroutine kickRF2_BPM
+
+
+        !Apply a zero-length thin lens kick in the 4D phase space.
+        !drange(3); focusing strength in x (1/m)
+        !drange(4); focusing strength in y (1/m)
+        !gam; relativistic gamma factor for design particle
+        !mass; mass in eV/c^2
+        subroutine kick_focusing(Pts1,innp,kxfoc,kyfoc,gam,mass)
+        implicit none
+        include 'mpif.h'
+        integer, intent(in) :: innp
+        double precision, pointer, dimension(:,:) :: Pts1
+        double precision, intent(in) :: kxfoc,kyfoc
+        double precision, intent(in) :: gam,mass
+        integer :: i
+        double precision :: gambet0
+
+        gambet0 = sqrt(gam**2-1.0d0)
+
+        !print*, 'gambet0,kx,ky:',gambet0,kxfoc,kyfoc
+        !print*, 'Scxl = ',Scxl
+        !print*, 'x, y = ',Pts1(1,1)*Scxl,Pts1(3,1)*Scxl
+        do i = 1, innp
+            Pts1(2,i) = Pts1(2,i)-kxfoc*gambet0*Pts1(1,i)*Scxl
+            Pts1(4,i) = Pts1(4,i)-kyfoc*gambet0*Pts1(3,i)*Scxl
+        enddo
+
+        end subroutine kick_focusing
+
+
+        !Apply a zero-length phase advance in the 4D phase space
+        !for the arc in the IOTA toy lattice
+        !drange(3); length of the nonlinear insert (m)
+        !drange(4); phase advance across the nonlinear insert (2pi)
+        !drange(5); phase advance across the arc (2pi)
+        !gam; relativistic gamma factor for design particle
+        !mass; mass in eV/c^2
+        subroutine kick_phaseadvance(Pts1,innp,L,muNLI,muArc,gam,mass)
+        implicit none
+        include 'mpif.h'
+        integer, intent(in) :: innp
+        double precision, pointer, dimension(:,:) :: Pts1
+        double precision:: L,muNLI,muArc
+!        double precision, intent(in) :: L,muNLI,muArc
+        double precision, intent(in) :: gam,mass
+        integer :: i
+        double precision :: gambet0,m11,m12,m21,m22,psi,u
+        double precision:: x0,px0,y0,py0,p_p0
+
+        gambet0 = sqrt(gam**2-1.0d0)
+        psi = 2.0d0*pi*muNLI
+        u = 2.0d0*pi*muArc
+!  Test only
+!        gambet0 = 7.304823257567683d-2
+!        Scxl = 1.59044838641231d0
+!        u = 0.0d0
+!        L = 1.8d0
+!        muNLI = 0.3034496449165134d0
+!        psi = 1.9066303504082995d0
+!        pi = 4.0d0*datan(1.0d0)
+
+        if(u.eq.0.0d0) then
+          m11 = 1.0d0
+          m12 = 0.0d0
+          m21 = -4.0d0/L*(dsin(pi*muNLI))**2
+          m22 = 1.0d0
+        else
+          m11 = dcos(u+psi/2.0d0)/dcos(psi/2.0d0)
+          m12 = L*dsin(u)/dsin(psi)
+          m21 = -2.0d0/L*dsin(u+psi)*dtan(psi/2.0d0)
+          m22 = dcos(u+psi/2.0d0)/dcos(psi/2.0d0)
+        endif
+
+        !print*, 'gambet0,kx,ky:',gambet0,kxfoc,kyfoc
+        !print*, 'Scxl = ',Scxl
+        !print*, 'x, y = ',Pts1(1,1)*Scxl,Pts1(3,1)*Scxl
+        !print*, 'pi = ',pi
+        !print*, 'L,muNLI,muArc = ',L,muNLI,muArc
+        !print*, 'gambet = ',gambet0
+        !print*, 'm11,m12,m21,m22=',m11,m12,m21,m22
+        do i = 1, innp
+            x0 = Pts1(1,i)
+            px0 = Pts1(2,i)
+            y0 = Pts1(3,i)
+            py0 = Pts1(4,i)
+            !<<<<<<<<<<<<<<< p_p0 factor (Kilean) <<<<<<<<<<<<<<<<
+            p_p0 = sqrt((gam-Pts1(6,i))**2-1.0d0)/gambet0
+            Pts1(1,i) = m11*x0 + m12/p_p0*px0/(gambet0*Scxl)
+            Pts1(2,i) = m21*x0*p_p0*gambet0*Scxl + m22*px0
+            Pts1(3,i) = m11*y0 + m12/p_p0*py0/(gambet0*Scxl)
+            Pts1(4,i) = m21*y0*p_p0*gambet0*Scxl + m22*py0
+            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        enddo
+
+        end subroutine kick_phaseadvance
+
+        !Apply a zero-length linear advance in the 4D phase space
+        !for the arc in the IOTA toy lattice (using linear DN map)
+        !drange(3); length of the nonlinear insert (m)
+        !drange(4); phase advance across the nonlinear insert (2pi)
+        !drange(5); phase advance across the arc (2pi)
+        !drange(6); dimensionless strength of NLI
+        !gam; relativistic gamma factor for design particle
+        !mass; mass in eV/c^2
+        subroutine kick_linDNadvance(Pts1,innp,L,muNLI,muArc,tau,gam,mass)
+        implicit none
+        include 'mpif.h'
+        integer, intent(in) :: innp
+        double precision, pointer, dimension(:,:) :: Pts1
+        double precision, intent(in) :: L,muNLI,muArc,tau
+        double precision, intent(in) :: gam,mass
+        integer :: i
+        double precision :: gambet0,m11,m12,m21,m22,m44,psi,u
+        double precision:: x0,px0,y0,py0,kx,ky,m33,m34,m43,t
+
+        gambet0 = sqrt(gam**2-1.0d0)
+        psi = 2.0*pi*muNLI
+        u = 2.0*pi*muArc
+        t = -tau
+        kx = dsqrt(1.0d0-2.0d0*t)
+        ky = dsqrt(1.0d0+2.0d0*t)
+
+        if(u.eq.0.0d0) then
+          m11 = 1.0d0
+          m12 = 0.0d0
+          m21 = -4.0d0/L*(dsin(pi*muNLI))**2
+          m22 = 1.0d0
+        else
+          m11 = dcos(kx*u)-dsin(kx*u)*dtan(psi/2.0d0)/kx
+          m12 = L*dsin(kx*u)/dsin(psi)/kx
+          m21 = -2.0d0*kx*dcos(kx*u)*dtan(psi/2.0d0)
+          m21 = m21 + dsin(kx*u)*(-kx**2+dtan(psi/2.0d0)**2)
+          m21 = m21*dsin(psi)/(kx*L)
+          m22 = m11
+          m33 = dcos(ky*u)-dsin(ky*u)*dtan(psi/2.0d0)/ky
+          m34 = L*dsin(ky*u)/dsin(psi)/ky
+          m43 = -2.0d0*ky*dcos(ky*u)*dtan(psi/2.0d0)
+          m43 = m43 + dsin(ky*u)*(-ky**2+dtan(psi/2.0d0)**2)
+          m43 = m43*dsin(psi)/(ky*L)
+          m44 = m33
+        endif
+
+        !print*, 'gambet0,kx,ky:',gambet0,kxfoc,kyfoc
+        !print*, 'Scxl = ',Scxl
+        !print*, 'x, y = ',Pts1(1,1)*Scxl,Pts1(3,1)*Scxl
+        !print*, 'pi = ',pi
+        !print*, 'L,muNLI,muArc = ',L,muNLI,muArc
+        !print*, 'gambet = ',gambet0
+        !print*, 'm11,m12,m21,m22=',m11,m12,m21,m22
+        do i = 1, innp
+            x0 = Pts1(1,i)
+            px0 = Pts1(2,i)
+            y0 = Pts1(3,i)
+            py0 = Pts1(4,i)
+            Pts1(1,i) = m11*x0 + m12*px0/(gambet0*Scxl)
+            Pts1(2,i) = m21*x0*gambet0*Scxl + m22*px0
+            Pts1(3,i) = m33*y0 + m34*py0/(gambet0*Scxl)
+            Pts1(4,i) = m43*y0*gambet0*Scxl + m44*py0
+        enddo
+
+        end subroutine kick_linDNadvance
+
 
       end module BPMclass
