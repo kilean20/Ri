@@ -30,10 +30,6 @@
         use Besselclass
         use Filterclass
         use SpaceChargeSF
-        #ifdef NERSC_HOST
-          use hdf5_interface_class
-        #endif
-        
 
 !        implicit none
         !# of phase dim., num. total and local particles, int. dist. 
@@ -195,10 +191,6 @@
 !-------------------------------------------------------------------
 ! initialize Data class.
         call init_Data()
-        #ifdef NERSC_HOST
-          call init_hdf5_interface(Ny)
-        #endif
-        
 !-------------------------------------------------------------------
 ! construct BeamBunch class.
         call construct_BeamBunch(Bpts,BcurrImp,Bkenergy,Bmass,Bcharge,&

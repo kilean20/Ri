@@ -16,9 +16,7 @@
         use PhysConstclass
         use Multipoleclass
         !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Kilean
-        #IFDEF NERSC_HOST
-          use hdf5_interface_class
-        #ENDIF
+        use hdf5_interface_class
         private :: get_free_unit,num2str_int,sort
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Kilean
       contains
@@ -2656,6 +2654,7 @@
         include 'mpif.h'
         integer, intent(in) :: formatID,nfile,iter,samplePeriod
         type (BeamBunch), intent(in) :: this
+        logical,save :: openPMD_init=.false.
         integer :: np,my_rank,ierr
         integer status(MPI_STATUS_SIZE)
         integer :: i,j,sixnpt,mnpt,npt
@@ -2666,30 +2665,32 @@
         
         
         !<<<<<<<<<<<<<<<<<<<<<<<< openPMD <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        #IFDEF NERSC_HOST
-          if(formatID==2) then
-            if(abs(this%mass/proton_mass-1d0) < 0.001 .and. this%charge==1d0) then
-              pName = 'proton' 
-            elseif(abs(this%mass/electron_mass-1d0)<0.001) then
-              if(this%charge==-1d0) then
-                pName = 'electron' 
-              elseif(this%charge==1d0) then
-                pName = 'positron'
-              else
-                pName = 'unknown'
-              endif
+        if(formatID==2) then
+          if(.not. openPMD_init)
+            openPMD_init = .true.
+            call init_hdf5_interface(1)
+          endif
+          if(abs(this%mass/proton_mass-1d0) < 0.001 .and. this%charge==1d0) then
+            pName = 'proton' 
+          elseif(abs(this%mass/electron_mass-1d0)<0.001) then
+            if(this%charge==-1d0) then
+              pName = 'electron' 
+            elseif(this%charge==1d0) then
+              pName = 'positron'
             else
               pName = 'unknown'
             endif
-            ibetgam = 1d0/sqrt(this%refptcl(6)**2-1d0)
-            betC = sqrt(1d0-(1d0/this%refptcl(6))**2)*cLight
-            call hdf5_particle_output(this%Pts1,this%Nptlocal,nfile,iter,&
-                                     &this%mass*eV_2_kg,pName,samplePeriod,&
-                                     &[Scxl,ibetgam,Scxl,ibetgam,&
-                                     & betC/(2d0*Pi*Scfreq),-this%mass ])
-            return
+          else
+            pName = 'unknown'
           endif
-        #ENDIF
+          ibetgam = 1d0/sqrt(this%refptcl(6)**2-1d0)
+          betC = sqrt(1d0-(1d0/this%refptcl(6))**2)*cLight
+          call hdf5_particle_output(this%Pts1,this%Nptlocal,nfile,iter,&
+                                   &this%mass*eV_2_kg,pName,samplePeriod,&
+                                   &[Scxl,ibetgam,Scxl,ibetgam,&
+                                   & betC/(2d0*Pi*Scfreq),-this%mass ])
+          return
+        endif
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
