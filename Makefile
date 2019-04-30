@@ -5,16 +5,14 @@
 NODE := $(shell uname -n | cut -c1-3)
 #**************************************************************************
 # Macros defining the Fortran, C/C++ compiler and linker.
-ifeq ($(NODE),'cbp')
-	CBP = 'CBP'
+ifeq ($(NODE),cbp)
 	CC = mpifort 
 	LINK = mpifort
 	cOUT = Contrl/Output.o
 	OUT  = Output.o
 else
-	NERSC = 'NERSC'
-	CC = ftn -ldl
-	LINK = ftn -ldl
+	CC = ftn
+	LINK = ftn
 	cOUT = Contrl/parallel_class.o Contrl/hdf5io_class.o Contrl/hdf5interface_class.o Contrl/Output.h5.o
 	OUT  = parallel_class.o hdf5io_class.o hdf5interface_class.o Output.h5.o
 endif
@@ -79,8 +77,6 @@ EXENAME = xmain
 # Rules for building EXENAME from OBJS and OBJS from your source.
 
 $(EXENAME): $(OBJS)
-	echo $(NERSC)
-	echo $(CBP)
 	$(LINK) $(FFLAGS) -o $(EXENAME) $(OBJS1) $(OBJS2) $(BLAS_UBUNTU)
 #************************************************************************
 # if you wish to compile a certain object with different flags
