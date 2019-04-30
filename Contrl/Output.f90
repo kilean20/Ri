@@ -2654,7 +2654,7 @@
         include 'mpif.h'
         integer, intent(in) :: formatID,nfile,iter,samplePeriod
         type (BeamBunch), intent(in) :: this
-        !logical,save :: openPMD_init=.false.
+        logical,save :: openPMD_init=.false.
         integer :: np,my_rank,ierr
         integer status(MPI_STATUS_SIZE)
         integer :: i,j,sixnpt,mnpt,npt
@@ -4405,12 +4405,12 @@
         allocate(recvbuf(7,mtpt))
         !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-        if(my_rank==0) print*, '[TBTphase]MPI_GATHERV, mtpt=',mtpt
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         call MPI_GATHERV(sendbuf,tpt*7,MPI_DOUBLE_PRECISION,&
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
         if(my_rank.eq.0) then
+          print*, 'tpt,mtpt=',tpt,mtpt
           call sort(recvbuf, 7, 7, mtpt, 1, mtpt)
           do i=1,1000
             if(isOn(i)) then
@@ -4430,7 +4430,6 @@
             endif
           enddo
           !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-          print*, '[TBTphase]i,UnitfID(:,i)=',i,UnitfID(:,i)
           !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           if(i==1000) then
             STOP 'Error : maximum number of TBT file reached'
