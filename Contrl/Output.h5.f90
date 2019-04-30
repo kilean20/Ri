@@ -2706,41 +2706,72 @@
         call MPI_GATHER(this%Nptlocal,1,MPI_INTEGER,nptlist,1,&
                         MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   
-        nptlist = 9*nptlist
         
         if(my_rank.eq.0) then
           !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
           if(formatID==1) then
             open(nfile,status='unknown',form='unformatted',&
                         action='write')
-            npt = ceiling(real(this%Npt)/real(samplePeriod))
-            write(nfile) npt
-            do i = 1, this%Nptlocal,samplePeriod
-              write(nfile) this%Pts1(1:9,i)
-            enddo
-            do i = 1, np-1
-              call MPI_RECV(recvbuf(1,1),nptlist(i),MPI_DOUBLE_PRECISION,&
-                            i,1,MPI_COMM_WORLD,status,ierr) 
-         
-              do j = 1, nptlist(i)/9,samplePeriod
-                write(nfile) recvbuf(1:9,j)
+                        
+            if(samplePeriod>1) then
+              npt = sum(nptlist/samplePeriod)
+              write(nfile) npt
+              do i = 1, this%Nptlocal,samplePeriod
+                write(nfile) this%Pts1(1:9,i)
               enddo
-            enddo
+              do i = 1, np-1
+                call MPI_RECV(recvbuf(1,1),9*(nptlist(i)/samplePeriod),MPI_DOUBLE_PRECISION,&
+                              i,1,MPI_COMM_WORLD,status,ierr) 
+           
+                do j = 1, nptlist(i),samplePeriod
+                  write(nfile) recvbuf(1:9,j)
+                enddo
+              enddo
+            else 
+              npt = this%Npt
+              write(nfile) npt
+              do i = 1, this%Nptlocal
+                write(nfile) this%Pts1(1:9,i)
+              enddo
+              do i = 1, np-1
+                call MPI_RECV(recvbuf(1,1),9*nptlist(i),MPI_DOUBLE_PRECISION,&
+                              i,1,MPI_COMM_WORLD,status,ierr) 
+           
+                do j = 1, nptlist(i)
+                  write(nfile) recvbuf(1:9,j)
+                enddo
+              enddo
+            endif
+            
             close(nfile)
           else
           !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             open(nfile,status='unknown')
-            do i = 1, this%Nptlocal,samplePeriod
-              write(nfile,100)this%Pts1(1:9,i)
-            enddo
-            do i = 1, np-1
-              call MPI_RECV(recvbuf(1,1),nptlist(i),MPI_DOUBLE_PRECISION,&
-                            i,1,MPI_COMM_WORLD,status,ierr) 
-          
-              do j = 1, nptlist(i)/9,samplePeriod
-                write(nfile,100)recvbuf(1:9,j)
+            if(samplePeriod>1) then
+              do i = 1, this%Nptlocal,samplePeriod
+                write(nfile,100)this%Pts1(1:9,i)
               enddo
-            enddo
+              do i = 1, np-1
+                call MPI_RECV(recvbuf(1,1),9*(nptlist(i)/samplePeriod),MPI_DOUBLE_PRECISION,&
+                              i,1,MPI_COMM_WORLD,status,ierr) 
+            
+                do j = 1, nptlist(i),samplePeriod
+                  write(nfile,100)recvbuf(1:9,j)
+                enddo
+              enddo
+            else
+              do i = 1, this%Nptlocal
+                write(nfile,100)this%Pts1(1:9,i)
+              enddo
+              do i = 1, np-1
+                call MPI_RECV(recvbuf(1,1),9*nptlist(i),MPI_DOUBLE_PRECISION,&
+                              i,1,MPI_COMM_WORLD,status,ierr) 
+            
+                do j = 1, nptlist(i)
+                  write(nfile,100)recvbuf(1:9,j)
+                enddo
+              enddo
+            endif
             close(nfile)
           !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
           endif

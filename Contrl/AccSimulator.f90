@@ -1043,25 +1043,25 @@
 !<<<<<<<<<<<<<<<<<<<<<< TBToutput(Kilean) <<<<<<<<<<<<<<<<<<<<<<<<<<<
           if(bitype.eq.-89) then
             call getparam_BeamLineElem(Blnelem(i),dparam)
-            call turn_by_turn_phasespace(Bpts,int(dparam(2)),int(dparam(3)),int(dparam(4)))
+            call turn_by_turn_phasespace(Bpts,bmpstp,int(dparam(2)),int(dparam(3)))
           endif
           if(bitype.eq.-88) then
             call getparam_BeamLineElem(Blnelem(i),dparam)
-            call turn_by_turn_integral(Bpts,int(dparam(2)),dparam(3),dparam(4)&
-                                      ,dparam(5),dparam(6),int(dparam(7)),int(dparam(8)))
+            call turn_by_turn_integral(Bpts,bmpstp,int(dparam(2)),dparam(3),dparam(4)&
+                                      ,dparam(5),int(dparam(6)),int(dparam(7)))
           endif
           if(bitype.eq.-87) then
             call getparam_BeamLineElem(Blnelem(i),dparam)
-            call turn_by_turn_integral_on_momentum(Bpts,int(dparam(2)),dparam(3),dparam(4)&
-                                      ,dparam(5),dparam(6),int(dparam(7)),int(dparam(8)))
+            call turn_by_turn_integral_on_momentum(Bpts,bmpstp,int(dparam(2)),dparam(3),dparam(4)&
+                                      ,dparam(5),int(dparam(6)),int(dparam(7)))
           endif
 !>>>>>>>>>>>>>>>>>>>>>>> end of TBToutput >>>>>>>>>>>>>>>>>>>>>>>>>>>
           if(bitype.eq.-2) then
             !call phase_Output(bmpstp,Bpts)
             !call phaseleda_Output(bmpstp,Bpts)
             call getparam_BeamLineElem(Blnelem(i),dparam)
-            if(int(dparam(2))==iturn) then
-              call phase_Output(Bpts,int(dparam(3)),bmpstp,iturn,int(dparam(4)))
+            if(int(dparam(3))==iturn) then
+              call phase_Output(Bpts,int(dparam(2)),bmpstp,iturn,int(dparam(4)))
             endif
           else if(bitype.eq.-3) then
             call getparam_BeamLineElem(Blnelem(i),drange)

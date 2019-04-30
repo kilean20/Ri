@@ -11,6 +11,7 @@ ifeq ($(NODE),cbp)
 	cOUT = Contrl/Output.o
 	OUT  = Output.o
   FFLAGS = -fopenmp -O3
+  BLAS_UBUNTU = -L/usr/lib/x86_64-linux-gnu -lblas
 else
 	CC = ftn
 	LINK = ftn
@@ -24,7 +25,6 @@ endif
 
 #for debugging
 #FFLAGS = -g -fimplicit-none  -Wall  -Wline-truncation  -Wcharacter-truncation  -Wsurprising  -Waliasing  -Wimplicit-interface  -Wunused-parameter  -fwhole-file  -fcheck=all  -pedantic  -fbacktrace
-#BLAS_UBUNTU = -L/usr/lib/x86_64-linux-gnu -lblas
 #**************************************************************************
 # List of .o files that EXENAME depends on.  Edit as appropriate for MP.
 

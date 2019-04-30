@@ -16,6 +16,7 @@
         use PhysConstclass
         use Multipoleclass
         !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Kilean
+        !use hdf5_interface_class
         private :: get_free_unit,num2str_int,sort
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Kilean
       contains
@@ -2647,17 +2648,51 @@
         !   Modified to output various format (Kilean)
         !   formatID = 0 ASCII
         !   formatID = 1 binary
+        !   formatID = 2 openPMD (hdf)
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         implicit none
         include 'mpif.h'
         integer, intent(in) :: formatID,nfile,iter,samplePeriod
         type (BeamBunch), intent(in) :: this
+        !logical,save :: openPMD_init=.false.
         integer :: np,my_rank,ierr
         integer status(MPI_STATUS_SIZE)
         integer :: i,j,sixnpt,mnpt,npt
         integer, allocatable, dimension(:) :: nptlist
+        character(len=20) :: pName
+        double precision :: ibetgam,betC
         double precision,allocatable,dimension(:,:) :: recvbuf  
         
+        
+        !<<<<<<<<<<<<<<<<<<<<<<<< openPMD <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        ! if(formatID==2) then
+          ! if(.not. openPMD_init)
+            ! openPMD_init = .true.
+            ! call init_hdf5_interface(1)
+          ! endif
+          ! if(abs(this%mass/proton_mass-1d0) < 0.001 .and. this%charge==1d0) then
+            ! pName = 'proton' 
+          ! elseif(abs(this%mass/electron_mass-1d0)<0.001) then
+            ! if(this%charge==-1d0) then
+              ! pName = 'electron' 
+            ! elseif(this%charge==1d0) then
+              ! pName = 'positron'
+            ! else
+              ! pName = 'unknown'
+            ! endif
+          ! else
+            ! pName = 'unknown'
+          ! endif
+          ! ibetgam = 1d0/sqrt(this%refptcl(6)**2-1d0)
+          ! betC = sqrt(1d0-(1d0/this%refptcl(6))**2)*cLight
+          ! call hdf5_particle_output(this%Pts1,this%Nptlocal,nfile,iter,&
+                                   ! &this%mass*eV_2_kg,pName,samplePeriod,&
+                                   ! &[Scxl,ibetgam,Scxl,ibetgam,&
+                                   ! & betC/(2d0*Pi*Scfreq),-this%mass ])
+          ! return
+        ! endif
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
@@ -2671,41 +2706,72 @@
         call MPI_GATHER(this%Nptlocal,1,MPI_INTEGER,nptlist,1,&
                         MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   
-        nptlist = 9*nptlist
         
         if(my_rank.eq.0) then
           !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
           if(formatID==1) then
             open(nfile,status='unknown',form='unformatted',&
                         action='write')
-            npt = ceiling(real(this%Npt)/real(samplePeriod))
-            write(nfile) npt
-            do i = 1, this%Nptlocal,samplePeriod
-              write(nfile) this%Pts1(1:9,i)
-            enddo
-            do i = 1, np-1
-              call MPI_RECV(recvbuf(1,1),nptlist(i),MPI_DOUBLE_PRECISION,&
-                            i,1,MPI_COMM_WORLD,status,ierr) 
-         
-              do j = 1, nptlist(i)/9,samplePeriod
-                write(nfile) recvbuf(1:9,j)
+                        
+            if(samplePeriod>1) then
+              npt = sum(nptlist/samplePeriod)
+              write(nfile) npt
+              do i = 1, this%Nptlocal,samplePeriod
+                write(nfile) this%Pts1(1:9,i)
               enddo
-            enddo
+              do i = 1, np-1
+                call MPI_RECV(recvbuf(1,1),9*(nptlist(i)/samplePeriod),MPI_DOUBLE_PRECISION,&
+                              i,1,MPI_COMM_WORLD,status,ierr) 
+           
+                do j = 1, nptlist(i),samplePeriod
+                  write(nfile) recvbuf(1:9,j)
+                enddo
+              enddo
+            else 
+              npt = this%Npt
+              write(nfile) npt
+              do i = 1, this%Nptlocal
+                write(nfile) this%Pts1(1:9,i)
+              enddo
+              do i = 1, np-1
+                call MPI_RECV(recvbuf(1,1),9*nptlist(i),MPI_DOUBLE_PRECISION,&
+                              i,1,MPI_COMM_WORLD,status,ierr) 
+           
+                do j = 1, nptlist(i)
+                  write(nfile) recvbuf(1:9,j)
+                enddo
+              enddo
+            endif
+            
             close(nfile)
           else
           !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             open(nfile,status='unknown')
-            do i = 1, this%Nptlocal,samplePeriod
-              write(nfile,100)this%Pts1(1:9,i)
-            enddo
-            do i = 1, np-1
-              call MPI_RECV(recvbuf(1,1),nptlist(i),MPI_DOUBLE_PRECISION,&
-                            i,1,MPI_COMM_WORLD,status,ierr) 
-          
-              do j = 1, nptlist(i)/9,samplePeriod
-                write(nfile,100)recvbuf(1:9,j)
+            if(samplePeriod>1) then
+              do i = 1, this%Nptlocal,samplePeriod
+                write(nfile,100)this%Pts1(1:9,i)
               enddo
-            enddo
+              do i = 1, np-1
+                call MPI_RECV(recvbuf(1,1),9*(nptlist(i)/samplePeriod),MPI_DOUBLE_PRECISION,&
+                              i,1,MPI_COMM_WORLD,status,ierr) 
+            
+                do j = 1, nptlist(i),samplePeriod
+                  write(nfile,100)recvbuf(1:9,j)
+                enddo
+              enddo
+            else
+              do i = 1, this%Nptlocal
+                write(nfile,100)this%Pts1(1:9,i)
+              enddo
+              do i = 1, np-1
+                call MPI_RECV(recvbuf(1,1),9*nptlist(i),MPI_DOUBLE_PRECISION,&
+                              i,1,MPI_COMM_WORLD,status,ierr) 
+            
+                do j = 1, nptlist(i)
+                  write(nfile,100)recvbuf(1:9,j)
+                enddo
+              enddo
+            endif
             close(nfile)
           !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
           endif
