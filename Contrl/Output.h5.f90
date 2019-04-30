@@ -4405,7 +4405,6 @@
         allocate(recvbuf(7,mtpt))
         !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-        if(my_rank==0) print*, '[TBTphase]MPI_GATHERV, mtpt=',mtpt
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         call MPI_GATHERV(sendbuf,tpt*7,MPI_DOUBLE_PRECISION,&
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
@@ -4430,7 +4429,6 @@
             endif
           enddo
           !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-          print*, '[TBTphase]i,UnitfID(:,i)=',i,UnitfID(:,i)
           !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           if(i==1000) then
             STOP 'Error : maximum number of TBT file reached'
