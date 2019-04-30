@@ -161,8 +161,6 @@
           currlist0(i) =  currlist(i)
           qmcclist0(i) =  qmcclist(i)
         enddo
-!        print*,"npt0: ",nptlist0
-!        print*,"qmcc0: ",qmcclist0
 !-------------------------------------------------------------------
 ! construct 2D logical processor Cartesian coordinate
         call construct_Pgrid2d(grid2d,MPI_COMM_WORLD,nprow,npcol)
@@ -223,7 +221,6 @@
         endif
         call MPI_BARRIER(MPI_COMM_WORLD,ierr)
         if(myid.eq.0) print*,"pass generating initial distribution..."
-!        print*,"qmcclist1: ",qmcclist0
 
         !get local particle number and mesh number on each processor.
         call getnpt_BeamBunch(Bpts,Nplocal)
@@ -519,7 +516,6 @@
             tmp13(14) = val13(i) 
             call setparam_EMfld(beamln11(iemfld),tmp13)
             Blnelem(i) = assign_BeamLineElem(beamln11(iemfld))
-            !print*,"tmp13_12: ",tmp13(12),tmp13(13)
           else
           endif 
         enddo
@@ -776,7 +772,6 @@
           allocate(gltmppot(1))
         else
           nsendy = (lcgrid(1)-iend0)*(lcgrid(2)-jend0)*(lcgrid(3)-kend0)
-          !print*,"nsendy: ", nsendy
           allocate(tmppot(nsendy))
           nsendz = (lcgrid(1)-iend0)*(Ny-jend1)*(lcgrid(3)-kend0)
           allocate(recvtmppot(nsendz))
@@ -966,12 +961,10 @@
 
 !-------------------------------------------------------------------
 ! read in the on axis E field for rf cavities.
-!          if(myid.eq.0) print*,"bitype: ",bitype
           if(bitype.gt.100) then
             call getparam_BeamLineElem(Blnelem(i),5,rfile)
             nfile = int(rfile + 0.1)
             ifile = nfile
-!            if(myid.eq.0) print*,"ifile: ",nfile
             if(ifile.ne.tmpfile)then
               !for linear map integrator
               if(Flagmap.eq.1) then
@@ -1092,7 +1085,6 @@
             pipeID  = int(dparam(2))
             piperad = dparam(3)
             piperad2 = dparam(4)
-            print*, 'piperad,piperad2',piperad,piperad2
             cycle
           else if(bitype.eq.-10) then
             !mismatch the beam at given location.
@@ -1149,13 +1141,11 @@
             avgw = avgw/Nplocal
             call chgupdate_BeamBunch(Bpts,nchrg,nptlist0,qmcclist0)
             !update reference particle information
-            !print*,"Bcharge0: ",Bcharge,Bpts%refptcl(6)
             !Bcharge = Bmass*qmcclist0(1)
             Bcharge = 931.49326d6*qmcclist0(1)
             Bpts%Charge = Bcharge
             !Bpts%refptcl(6) = -(1.0+rwkinq/Bmass)
             Bpts%refptcl(6) = -(1.0+rwkinq/931.49326d6)
-            !print*,"Bcharge: ",Bcharge,Bpts%refptcl(6)
           else if(bitype.eq.-21)then
             !shift the beam centroid in the 6D phase space.
             !This element can be used to model steering magnets etc.
@@ -1265,14 +1255,12 @@
             exit
           endif
 
-!          print*,"nptlist: ",nptlist0
-!          print*,"currlist: ",currlist0
+
 !-------------------------------------------------------------------
 ! loop through 'bnseg' numerical segments in each beam element
 ! using 2 step symplectic integeration (ie. leap frog).
           zedge = z
           call setparam_BeamLineElem(Blnelem(i),1,zedge)
-!          if(myid.eq.0) print*,"zedge: ",zedge
           if(bitype.eq.4) then
             call getparam_BeamLineElem(Blnelem(i),dparam)
             !add the tranisent drift effects
@@ -1288,8 +1276,6 @@
              (flagcsrTr.eq.1)) then
             flagcsr = 1
           endif
-
-!          print*,"ii: ",i,bitype,flagwake,flagsc,flagcoll,flagtmp
 
           !use Z as independent variable for no bend magnet or bend using transfer map
           !//no bend or bend using Transport transfer map
@@ -1603,7 +1589,6 @@
             if((totnp.gt.1) .and. (flagdecomp.eq.1)) then
               ! pass particles to local space domain on new processor.
               if((Flagbc.eq.3).or.(Flagbc.eq.4)) then
-!                print*,"before ptcl manager: ...",myid
                 call ptsmv5r_Ptclmger(Bpts%Pts1,Nplocal,grid2d,Pdim,&
                                       Nplcmax,lcrange)
               else
@@ -1611,7 +1596,6 @@
                                 Nplcmax,lcrange)
               endif
             endif
-            !print*,"after ptmanger: ",Nplocal
             ! assign new 'Nplocal' local particles on each processor.
             call setnpt_BeamBunch(Bpts,Nplocal)
 
@@ -1628,7 +1612,6 @@
                                   grid2d,chgdens,Flagbc,Perdlen)
             else
             endif
-!            print*,"after charge: ",sum(chgdens),nplocal,myid
 
 !-------------------------------------------------------------------
 ! start load balance. (at the location of new space charge calculation)
@@ -1638,10 +1621,6 @@
             if((mod(ibal,nbal).eq.0).and.(totnp.gt.1).and.&
                (flagdecomp.eq.1)) then
               call MPI_BARRIER(comm2d,ierr)
-!              if(myid.eq.0) then 
-!                print*," load balance! "
-!              endif
-
               call getlctabnm_CompDom(Ageom,temptab)
               lctabnmx(0:npx-1) = temptab(1,0:npx-1,0)
               lctabnmy(0:npy-1) = temptab(2,0,0:npy-1)
@@ -1651,7 +1630,6 @@
               call getrange_CompDom(Ageom,range)
               ymin = range(3)
               zmin = range(5)
-              !print*,"in load, range: ",range,Nxlocal,Nylocal,Nzlocal,myid
               if((Flagbc.eq.3).or.(Flagbc.eq.4)) then
                 call balance_CompDom(chgdens,lctabnmx,&
                 lctabrgx,npx,npy,commrow,commcol, &
@@ -1700,8 +1678,6 @@
             ibal = ibal + 1
 !end load balance.
 !-------------------------------------------------------------------
-            !print*,"after balance: ",Nplocal
-
             if(npx.gt.1) then
               nzlcr = Nzlocal-2
               kadd = 1
@@ -1922,7 +1898,6 @@
 
 !-------------------------------------------------------------------
 ! use linear map or nonlinear Lorentz integrator to advance particles.
-            !print*,"before kick:"
 !------------------------------------------------------
             !use transfer map
             if(Flagmap.eq.1) then
@@ -1944,7 +1919,6 @@
                 else
                 endif
               endif
-              !print*,"pass particle kick: ",myid,Nplocal
               if(bitype.ne.4) then
                 if(bitype.ne.-14) then
                 call map1_BeamBunch(Bpts,Blnelem(i),z,tau1,bitype)
@@ -2041,7 +2015,6 @@
                   enddo
                 endif
                 do ipt = 1, Nplocal
-                  !print*,"gambetz: ",ipt,gambetz
                   gamn = gamma0 - Bpts%Pts1(6,ipt)
                   gambetz = sqrt(gamn**2-1.0-Bpts%Pts1(2,ipt)**2-&
                                Bpts%Pts1(4,ipt)**2)
@@ -2080,7 +2053,6 @@
                 endif
               endif
             endif
-            !print*,"pass sec2: ",z
 
             if((Flagerr.eq.1).and.(Flagmap.eq.1)) then
               call geomerrT_BeamBunch(Bpts,Blnelem(i)) 
@@ -2165,7 +2137,6 @@
             call read3_Data(nfile) !input the geometry information of bend
             !Bheit = Fcoef(2)/Scxl !vertical bend height (wrong one)
             Bpts%refptcl(6) = -Fcoef(2)
-!            print*,"inito bend T frame: ",nfile, Fcoef(1:10)
             !//go to T frame
             call convZT_BeamBunch(Bpts)
             !//loop through bnseg steps
@@ -2224,7 +2195,6 @@
               grid2d,Nxlocal,Nylocal,Nzlocal,npx,npy,nylcr,nzlcr)
 400           continue
               !//kick particles in the rotated local coordinates.
-              !print*,"Blnlem: ",i,Blnelem(i)%pdipole%Itype
               call kickT_BeamBunch(Bpts,Blnelem(i),tv,tau2,Nxlocal,Nylocal,&
                       Nzlocal,Potential%FieldQ,Ageom,grid2d,Flagbc,Flagerr)
               call rotback_BeamBunch(Bpts,ptref)
@@ -2351,11 +2321,6 @@
         call getpost_Pgrid2d(grid2d,myid,myidy,myidx)
         call getcomm_Pgrid2d(grid2d,comm2d,commcol,commrow)
         call getsize_Pgrid2d(grid2d,totnp,npy,npx)
-        !if(myid.eq.0) then
-          !print*,&
-          !read(2,*)iend,jend,ibalend,nstepend,zend
-          !close(2)
-        !endif
 
         call MPI_BARRIER(comm2d,ierr)
 
@@ -2439,10 +2404,6 @@
 
 !-------------------------------------------------------------------
 ! start looping through 'Nblem' beam line elements.
-          !if(myid.eq.0) then
-          !  print*,"enter elment: ",iend
-          !endif
-
           call getparam_BeamLineElem(Blnelem(iend),blength,bnseg,bmpstp,&
                                      bitype)
           call getradius_BeamLineElem(Blnelem(iend),piperad,piperad2)
@@ -2478,7 +2439,6 @@
 ! using 2 step symplectic integeration (ie. leap frog).
           zedge = z
           call setparam_BeamLineElem(Blnelem(iend),1,zedge)
-          !if(myid.eq.0) print*,"zedge: ",zedge
           do j = jend+1, bnseg
             if((Flagerr.eq.1).and.(Flagmap.eq.1)) then
               call geomerrL_BeamBunch(Bpts,Blnelem(iend)) 
@@ -2565,9 +2525,6 @@
 ! start load balance.
             if((mod(ibal,nbal).eq.0).and.(totnp.gt.1)) then
               call MPI_BARRIER(comm2d,ierr)
-!              if(myid.eq.0) then 
-!                print*," load balance! "
-!              endif
 
               call getlctabnm_CompDom(Ageom,temptab)
               lctabnmx(0:npx-1) = temptab(1,0:npx-1,0)
@@ -2740,18 +2697,7 @@
           !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             endif
 
-!            if(myid.eq.0) then
-!              print*,"At critical location, Flagbc = ",Flagbc
-!            endif
-!            if(Flagbc.eq.7) then    !Diagnostic output for symplectic SC solver:
-!              call map2_BeamBunch(Bpts,z,tau2,Nplocal,Nx,Ny,xrad,yrad,&
-!                   1,flagcoll)
-!            endif
-
             nstep = nstep + 1
-            !if(myid.eq.0) then 
-            !  print*,"j, nstep, z",j,nstep,z
-            !endif
 
           end do
 

@@ -68,7 +68,6 @@
 
         innp = this%Nptlocal
         nptot = this%Npt
-        !print*,"pts1: ",this%Pts1(1,1),this%Pts1(2,1),my_rank,innp
 
         den1 = 1.0/dble(nptot)
         den2 = den1*den1
@@ -203,13 +202,7 @@
         tmplc(25) = z0lc4
         tmplc(26) = pz0lc3
         tmplc(27) = pz0lc4
-        !print*,"xlc: ",tmplc(1),tmplc(2),sqsum1local,sqsum2local
-        
-        !for the calculation of bunched beam current.
-!        call MPI_REDUCE(localaa,aa,3,MPI_DOUBLE_PRECISION,&
-!                        MPI_SUM,0,MPI_COMM_WORLD,ierr)
-!        call MPI_REDUCE(localbb,bb,3,MPI_DOUBLE_PRECISION,&
-!                        MPI_SUM,0,MPI_COMM_WORLD,ierr)
+
 
         call MPI_REDUCE(tmplc,tmpgl,27,MPI_DOUBLE_PRECISION,&
                         MPI_SUM,0,MPI_COMM_WORLD,ierr)
@@ -586,7 +579,6 @@
               exit
             endif
           enddo
-          !print*,"i1: ",i,nbin,glbin(i-1),glbin(i),f90,f95,f99
           do i = 1, nbin
             if(glbin(i).gt.f95) then
               ex95 = ((f95 - glbin(i-1))/(glbin(i)-glbin(i-1)))*hxeps+&
@@ -594,7 +586,6 @@
               exit
             endif
           enddo
-          !print*,"i2: ",i,nbin,glbin(i-1),glbin(i)
           do i =1, nbin
             if(glbin(i).gt.f99) then
               ex99 = ((f99 - glbin(i-1))/(glbin(i)-glbin(i-1)))*hxeps+&
@@ -602,8 +593,7 @@
               exit
             endif
           enddo
-          !print*,"i3: ",i,nbin,glbin(i-1),glbin(i)
-          !print*,"pass hxeps: ",glbin(nbin),nptot,epsmx,ex90,ex95,ex99
+
           ex90 = ex90*gambet
           ex95 = ex95*gambet
           ex99 = ex99*gambet
@@ -647,7 +637,7 @@
               exit
             endif
           enddo
-          !print*,"i4: ",i,nbin,glbin(i-1),glbin(i)
+
           do i = 1, nbin
             if(glbin(i).gt.f95) then
               ey95 = ((f95 - glbin(i-1))/(glbin(i)-glbin(i-1)))*hyeps+&
@@ -655,7 +645,7 @@
               exit
             endif
           enddo
-          !print*,"i5: ",i,nbin,glbin(i-1),glbin(i)
+
           do i = 1, nbin
             if(glbin(i).gt.f99) then
               ey99 = ((f99 - glbin(i-1))/(glbin(i)-glbin(i-1)))*hyeps+&
@@ -663,8 +653,7 @@
               exit
             endif
           enddo
-          !print*,"i6: ",i,nbin,glbin(i-1),glbin(i)
-          !print*,"pass hyeps: ",glbin(nbin),nptot,epsmy,ey90,ey95,ey99
+
           ey90 = ey90*gambet
           ey95 = ey95*gambet
           ey99 = ey99*gambet
@@ -705,7 +694,7 @@
               exit
             endif
           enddo
-          !print*,"i7: ",i,nbin,glbin(i-1),glbin(i)
+
           do i = 1, nbin
             if(glbin(i).gt.f95) then
               ez95 = ((f95 - glbin(i-1))/(glbin(i)-glbin(i-1)))*hzeps+&
@@ -713,7 +702,7 @@
               exit
             endif
           enddo
-          !print*,"i8: ",i,nbin,glbin(i-1),glbin(i)
+
           do i = 1, nbin
             if(glbin(i).gt.f99) then
               ez99 = ((f99 - glbin(i-1))/(glbin(i)-glbin(i-1)))*hzeps+&
@@ -721,8 +710,7 @@
               exit
             endif
           enddo
-          !print*,"i9: ",i,nbin,glbin(i-1),glbin(i)
-          !print*,"pass hzeps: ",glbin(nbin),nptot,epsmz,ez90,ez95,ez99
+
           ez90 = ez90*gam**3*bet
           ez95 = ez95*gam**3*bet
           ez99 = ez99*gam**3*bet
@@ -772,7 +760,7 @@
               exit
             endif
           enddo
-          !print*,"i10: ",i,nbin,glbin(i-1),glbin(i)
+
           do i = 1, nbin
             if(glbin(i).gt.f95) then
               r95 = ((f95 - glbin(i-1))/(glbin(i)-glbin(i-1)))*hreps+&
@@ -780,7 +768,7 @@
               exit
             endif
           enddo
-          !print*,"i11: ",i,nbin,glbin(i-1),glbin(i)
+
           do i = 1, nbin
             if(glbin(i).gt.f99) then
               r99 = ((f99 - glbin(i-1))/(glbin(i)-glbin(i-1)))*hreps+&
@@ -788,8 +776,7 @@
               exit
             endif
           enddo
-          !print*,"i12: ",i,nbin,glbin(i-1),glbin(i)
-          !print*,"pass hreps: ",glbin(nbin),nptot,sqrt(rrmax),r90,r95,r99
+
         endif
 
         if(my_rank.eq.0) then
@@ -888,7 +875,6 @@
 
         innp = this%Nptlocal
         nptot = this%Npt
-        !print*,"pts1: ",this%Pts1(1,1),this%Pts1(2,1),my_rank,innp
 
 !        do i = 1, innp
 !          write(70,999)this%Pts1(1:9,i)
@@ -3630,7 +3616,6 @@
         ymax = max(ymxin,range(4))
         rmax = max(rmxin,sqrt(xmax*xmax+ymax*ymax))
         call MPI_BARRIER(MPI_COMM_WORLD,ierr);
-        !print*,"xmin: ",xmin,xmax,ymin,ymax,rmax
 
         hxx = (xmax-xmin)/nxcell
         hyy = (ymax-ymin)/nycell
@@ -3654,7 +3639,7 @@
           do i = 2, nrcell
             glcount(i) = glcount(i) + glcount(i-1)
           enddo
-          !print*,"glcount: ",glcount(nrcell)
+
 
 !          open(unit=nfile,file='RadDens.data',status='unknown',&
 !               position='append',form='unformatted')
@@ -3734,7 +3719,6 @@
           enddo
 
           close(nfile3)
-          !print*,"testsumy: ",testsum
         
           open(unit=nfile3,file='Xprof.data',status='unknown',&
                 position='append')
@@ -3761,7 +3745,7 @@
             write(nfile3,100)((i*hxx-0.5*hxx)+xmin)*xl,dble(acdensx(j))/nptot
           enddo
           close(nfile3)
-          !print*,"testsumx: ",testsum
+
         else
           call MPI_ISEND(sendbuf4(1,1),nsend,MPI_INTEGER,0,1,&
                         MPI_COMM_WORLD,req,ierr)
@@ -3872,7 +3856,6 @@
 !          do i = 2, nrcell
 !            glcount(i) = glcount(i) + glcount(i-1)
 !          enddo
-!          print*,"glcount: ",glcount(nrcell)
 
 !          open(unit=nfile,file='RadDens2.data',status='unknown',&
 !               position='append',form='unformatted')
@@ -3939,7 +3922,7 @@
             testsum = testsum + sumy
           enddo
           close(nfile3)
-!          print*,"testsumy: ",testsum
+
         
           open(unit=nfile3,file='Xprof2.data',status='unknown',&
                 position='append')
@@ -3955,7 +3938,7 @@
             testsum = testsum + sumx
           enddo
           close(nfile3)
-!          print*,"testsumx: ",testsum
+
         else
           call MPI_ISEND(sendbuf4(1,1),nsend,MPI_INTEGER,0,1,&
                         MPI_COMM_WORLD,req,ierr)
@@ -4061,27 +4044,18 @@
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_REDUCE(sumlocal,sumtot,1,MPI_DOUBLE_PRECISION,MPI_SUM,0,&
                         MPI_COMM_WORLD,ierr)
-        if(my_rank.eq.0) then
-!          print*,"sumrho: ",sumtot
-        endif
 
         call guardsum2_Fldmger(rho,innx,inny,innz,grid)
 
 !        sumlocal = sum(rho)
 !        call MPI_REDUCE(sumlocal,sumtot,1,MPI_DOUBLE_PRECISION,MPI_SUM,0,&
 !                        MPI_COMM_WORLD,ierr)
-!        if(my_rank.eq.0) then
-!          print*,"sumrho1: ",sumtot
-!        endif
 
         call boundint_Fldmger(rho,innx,inny,innz,grid)
 
 !        sumlocal = sum(rho)
 !        call MPI_REDUCE(sumlocal,sumtot,1,MPI_DOUBLE_PRECISION,MPI_SUM,0,&
 !                        MPI_COMM_WORLD,ierr)
-!        if(my_rank.eq.0) then
-!          print*,"sumrho2: ",sumtot
-!        endif
 
         do n = 1, innp
           kx=(rays(5,n)-zmin)*hzi + 1 + kadd
@@ -4106,9 +4080,6 @@
 !        sumlocal = sum(rhopts)
 !        call MPI_REDUCE(sumlocal,sumtot,1,MPI_DOUBLE_PRECISION,MPI_SUM,0,&
 !                        MPI_COMM_WORLD,ierr)
-!        if(my_rank.eq.0) then
-!          print*,"sumrho3: ",sumtot
-!        endif
 
         end subroutine depint_Output
 
@@ -4439,10 +4410,6 @@
           write(iUnit) int(recvbuf(7,:))
           write(iUnit) recvbuf(1:6,:)
           flush(iUnit)
-!          do i = 1, mtpt
-!            if(i>mtpt-5) print*, i,'-th recvbuf',recvbuf(:,i)
-!            write(iUnit,*) recvbuf(:,i)
-!          enddo
         endif
         end subroutine turn_by_turn_phasespace
         
