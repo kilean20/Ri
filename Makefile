@@ -10,14 +10,16 @@ ifeq ($(NODE),cbp)
 	LINK = mpifort
 	cOUT = Contrl/Output.o
 	OUT  = Output.o
+  FFLAGS = -fopenmp -O3
 else
 	CC = ftn
 	LINK = ftn
 	cOUT = Contrl/parallel_class.o Contrl/hdf5io_class.o Contrl/hdf5interface_class.o Contrl/Output.h5.o
 	OUT  = parallel_class.o hdf5io_class.o hdf5interface_class.o Output.h5.o
+  FFLAGS = -fopenmp -O3 -free -r8
 endif
 
-FFLAGS = -fopenmp -O3 -free -r8
+
 
 
 #for debugging
