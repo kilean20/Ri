@@ -16,6 +16,7 @@
         use PhysConstclass
         use Multipoleclass
         !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Kilean
+        use hdf5_interface_class
         private :: get_free_unit,num2str_int,sort
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Kilean
       contains
@@ -2647,6 +2648,7 @@
         !   Modified to output various format (Kilean)
         !   formatID = 0 ASCII
         !   formatID = 1 binary
+        !   formatID = 2 openPMD (hdf)
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         implicit none
         include 'mpif.h'
@@ -2656,8 +2658,36 @@
         integer status(MPI_STATUS_SIZE)
         integer :: i,j,sixnpt,mnpt,npt
         integer, allocatable, dimension(:) :: nptlist
+        character(len=20) :: pName
+        double precision :: ibetgam,betC
         double precision,allocatable,dimension(:,:) :: recvbuf  
         
+        
+        !<<<<<<<<<<<<<<<<<<<<<<<< openPMD <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        if(formatID==2) then
+          if(abs(this%mass/proton_mass-1d0) < 0.001 .and. this%charge==1d0) then
+            pName = 'proton' 
+          elseif(abs(this%mass/electron_mass-1d0)<0.001) then
+            if(this%charge==-1d0) then
+              pName = 'electron' 
+            elseif(this%charge==1d0) then
+              pName = 'positron'
+            else
+              pName = 'unknown'
+            endif
+          else
+            pName = 'unknown'
+          endif
+          ibetgam = 1d0/sqrt(this%refptcl(6)**2-1d0)
+          betC = sqrt(1d0-(1d0/this%refptcl(6))**2)*cLight
+          call hdf5_particle_output(this%Pts1,this%Nptlocal,nfile,iter,&
+                                   &this%mass*eV_2_kg,pName,samplePeriod,&
+                                   &[Scxl,ibetgam,Scxl,ibetgam,&
+                                   & betC/(2d0*Pi*Scfreq),-this%mass ])
+          return
+        endif
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)

@@ -482,7 +482,6 @@
         call MPI_ALLREDUCE(Qloc,Qtot,1,MPI_DOUBLE_PRECISION,MPI_SUM,&
                            MPI_COMM_WORLD,ierr)
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        print*, 'pipeID,xrad,yrad',pipeID,xrad,yrad
         do i0 = 1, this%Nptlocal
           i = i0 - ilost
           this%Pts1(1,i) = this%Pts1(1,i0)
@@ -549,6 +548,67 @@
 !		print*,'lostcount_BeamBunch exit, this%Npt = ',this%Npt
 !        endif
         end subroutine lostcount_BeamBunch
+        
+!        subroutine lostcount_BeamBunch(this,nplc,nptot,&
+!                                       pipeID,xrad,yrad,&
+!                                       lost_pdata,z,nlost)
+!        implicit none
+!        include 'mpif.h'
+!        type (BeamBunch), intent(inout) :: this
+!        double precision, intent(in) :: xrad,yrad
+!        integer, intent(inout) :: nplc
+!        integer*8, intent(inout) :: nptot
+!        integer :: i
+!        double precision :: tmpx,tmpy,pi,rad
+!        integer :: ilost,i0,ierr
+!        real*8 :: fnplc,fnptot
+!        !<<<<<<<<<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!        integer, intent(in) :: pipeID
+!        integer, intent(inout) :: nlost
+!        real*8,  intent(in) :: z
+!        real*8,  allocatable, intent(inout) :: lost_pdata(:,:)
+!        real*8 :: Qloc,Qtot,QlocNew,QtotNew
+!        integer,parameter :: rectangular_=1, elliptic_=2
+        
+!        ! allocate lost particle data container assuming local # of particle particle un-balance at most 20%
+!        if(.not. allocated(lost_pdata)) allocate(lost_pdata(4,int(this%Nptlocal*1.2)))
+
+!        Qloc = sum(this%Pts1(8,1:this%Nptlocal))
+!        call MPI_ALLREDUCE(Qloc,Qtot,1,MPI_DOUBLE_PRECISION,MPI_SUM,&
+!                           MPI_COMM_WORLD,ierr)
+
+!        ! elliptic and rectangular pipe 
+!        if(pipeID == elliptic_) then
+!          mask = ((this%Pts1(1,:)/xrad)**2+(this%Pts1(3,:)/yrad)**2)*(Scxl**2) >=1d0
+!        else
+!          mask = this%Pts1(1,:)*Scxl>=xrad .or. this%Pts1(3,:)*Scxl>=yrad
+!        endif
+!        ilost = count(mask)
+        
+
+!        this%Nptlocal = this%Nptlocal - ilost
+!        nplc = this%Nptlocal
+        
+!        ! -- consider charge weights
+!        QlocNew = sum(this%Pts1(8,1:this%Nptlocal))
+!        call MPI_ALLREDUCE(QlocNew,QtotNew,1,MPI_DOUBLE_PRECISION,MPI_SUM,&
+!                           MPI_COMM_WORLD,ierr)
+       
+!!        call MPI_ALLREDUCE(nplc,nptot,1,MPI_INTEGER,&
+!!                           MPI_SUM,MPI_COMM_WORLD,ierr)
+!        fnplc = nplc*1.0d0 
+!        call MPI_ALLREDUCE(fnplc,fnptot,1,MPI_DOUBLE_PRECISION,&
+!                           MPI_SUM,MPI_COMM_WORLD,ierr)
+!        nptot = fnptot + 0.1 
+!        this%Npt = nptot
+!        if(Qtot .ne. 0d0) this%current = this%current*QtotNew/Qtot
+!        ! -- total lost particles 
+!        nlost = nlost + ilost        
+!        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+!!		print*,'lostcount_BeamBunch exit, this%Npt = ',this%Npt
+!!        endif
+!        end subroutine lostcount_BeamBunch
 
         !//update the total current fraction of each charge state
         !//update total # of ptcl for each charge state

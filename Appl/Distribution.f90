@@ -121,8 +121,6 @@
           !call readElegantDB_Dist(this,nparam,distparam,geom,grid,Flagbc)
         else if(flagdist.eq.23) then
           call read_Dist(this)
-        else if(flagdist.eq.-23) then
-          call read_Dist_binary(this,nparam,distparam)
         else if(flagdist.eq.24) then
           call readElegant2_Dist(this,nparam,distparam,geom,grid,Flagbc)
         else if(flagdist.eq.25) then
@@ -151,6 +149,8 @@
         else if(flagdist.eq.39) then
           call readMLI_Dist(this,nparam,distparam,grid)
         !<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<
+        else if(flagdist.eq.40) then
+          call read_Dist_binary(this,nparam,distparam)
         else if(flagdist.eq.81) then
           call distIOTA_waterbag(this,nparam,distparam)
         else if(flagdist.eq.82) then

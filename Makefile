@@ -2,16 +2,29 @@
 #  General Makefile
 #
 #*****************************************************
-
+NODE := $(shell uname -n | cut -c1-3)
 #**************************************************************************
 # Macros defining the Fortran, C/C++ compiler and linker.
+ifeq ($(NODE),'cbp')
+	CBP = 'CBP'
+	CC = mpifort 
+	LINK = mpifort
+	cOUT = Contrl/Output.o
+	OUT  = Output.o
+else
+	NERSC = 'NERSC'
+	CC = ftn -ldl
+	LINK = ftn -ldl
+	cOUT = Contrl/parallel_class.o Contrl/hdf5io_class.o Contrl/hdf5interface_class.o Contrl/Output.h5.o
+	OUT  = parallel_class.o hdf5io_class.o hdf5interface_class.o Output.h5.o
+endif
 
-CC = mpifort
-LINK = mpifort
-FFLAGS = -O3
+FFLAGS = -fopenmp -O3 -free -r8
+
+
 #for debugging
 #FFLAGS = -g -fimplicit-none  -Wall  -Wline-truncation  -Wcharacter-truncation  -Wsurprising  -Waliasing  -Wimplicit-interface  -Wunused-parameter  -fwhole-file  -fcheck=all  -pedantic  -fbacktrace
-BLAS_UBUNTU = -L/usr/lib/x86_64-linux-gnu -lblas
+#BLAS_UBUNTU = -L/usr/lib/x86_64-linux-gnu -lblas
 #**************************************************************************
 # List of .o files that EXENAME depends on.  Edit as appropriate for MP.
 
@@ -27,8 +40,7 @@ OBJS = \
 	Appl/NonlinearLens_NLLThick_Reversible_SF_track.o Appl/BeamLineElem_NLLThick.o \
 	Appl/CompDom.o Appl/BeamBunch_NLLThick_SymplecticSC_SF.o Appl/sym2dsolver.o \
 	Appl/Field_2D.o Appl/Distribution.o \
-	Contrl/parallel_class.o Contrl/hdf5io_class.o Contrl/hdf5interface_class.o\
-	Contrl/Input.o Contrl/Output.o Contrl/AccSimulator_NLLThick_SympSC_SF.o Contrl/main.o
+	$(cOUT) Contrl/Input.o Contrl/AccSimulator_NLLThick_SympSC_SF.o Contrl/main.o
 
 OBJS1 = \
 	base.o beam_mod.o book.o cex.o \
@@ -43,8 +55,7 @@ OBJS2 = \
   SpaceChargeSF_Tracking.o \
 	NonlinearLens_NLLThick_Reversible_SF_track.o BeamLineElem_NLLThick.o CompDom.o \
 	BeamBunch_NLLThick_SymplecticSC_SF.o sym2dsolver.o Field_2D.o Distribution.o \
-	parallel_class.o hdf5io_class.o hdf5interface_class.o\
-	Input.o Output.o AccSimulator_NLLThick_SympSC_SF.o main.o	
+	Input.o $(OUT) AccSimulator_NLLThick_SympSC_SF.o main.o	
 #**************************************************************************
 # Change this line if you don't like 'a.out'.
 
@@ -62,21 +73,22 @@ EXENAME = xmain
 #  $< = dependent name
 
 .f90.o:
-	$(CC) -c  $(FFLAGS) $<
+	$(CC) $(FFLAGS) -c  $<
 
 #**************************************************************************
 # Rules for building EXENAME from OBJS and OBJS from your source.
 
-$(EXENAME):  $(OBJS) 
-	$(LINK) -o $(EXENAME) $(OBJS1) $(OBJS2) $(BLAS_UBUNTU)
+$(EXENAME): $(OBJS)
+	echo $(NERSC)
+	echo $(CBP)
+	$(LINK) $(FFLAGS) -o $(EXENAME) $(OBJS1) $(OBJS2) $(BLAS_UBUNTU)
 #************************************************************************
 # if you wish to compile a certain object with different flags
 # or in some special way, then specify the target & dependency explicitly
 # the following line say Timer.o is depended on Timer.f90
 #Timer.o: Timer.f90
 #	$(CC) -c -O3 Timer.f90
-	cp  AccSimulator_NLLThick_SympSC_SF.o main.o Input.o Output.o Filter.o Utility.o \
-      parallel_class.o hdf5io_class.o hdf5interface_class.o Contrl
+	cp  AccSimulator_NLLThick_SympSC_SF.o main.o Input.o $(OUT) Filter.o Utility.o Contrl
 	cp  BPM_NLLThick.o CCL.o CCDTL.o DTL.o SC.o DriftTube.o Quadrupole.o \
 	    ConstFoc.o BeamLineElem_NLLThick.o BeamBunch_NLLThick_SymplecticSC_SF.o \
             Field_2D.o CompDom.o \

@@ -3,7 +3,7 @@
 
 module hdf5io_class
 
-use parallel_class
+use pHDF5_class
 use HDF5
 use mpi
    
@@ -30,7 +30,7 @@ type hdf5file
   character(len=100) :: iterationEncoding = 'fileBased'
   character(len=100) :: iterationFormat = 'data%T.h5'
   character(len=100) :: filenamebase = 'data'
-  character(len=100) :: filename = 'impactout.partcl.h5'
+  character(len=100) :: filename = 'impactout.partcl'
   real :: time = 0.0
   real :: dt = 1.0
   real(kind=dp) :: timeUnitSI = 1.0
@@ -80,7 +80,7 @@ contains
 
 subroutine init_hdf5file(this,openPMD, openPMDextension, iter, base,&
 &basePath, meshesPath, particlesPath, iterationEncoding, iterationFormat,&
-&filenamebase, time, dt, timeUnitSI, records, component, geometry,&
+&filename,filenamebase, time, dt, timeUnitSI, records, component, geometry,&
 &geometryParameters, dataOrder, axisLabels, gridSpacing, gridGlobalOffset,&
 &gridUnitSI, position, particleName, unitSI, unitDimension, timeOffset,filepath)
 
@@ -96,6 +96,7 @@ subroutine init_hdf5file(this,openPMD, openPMDextension, iter, base,&
   character(len=*), intent(in), optional :: particlesPath
   character(len=*), intent(in), optional :: iterationEncoding
   character(len=*), intent(in), optional :: iterationFormat
+  character(len=*), intent(in), optional :: filename
   character(len=*), intent(in), optional :: filenamebase
   real, intent(in), optional :: time
   real, intent(in), optional :: dt
@@ -436,7 +437,7 @@ subroutine createfile(pp,file,ierr)
 
   implicit none
 
-  class(parallel), intent(in), pointer :: pp
+  class(pHDF5), intent(in), pointer :: pp
   class(hdf5file), intent(in) :: file
   integer, intent(inout) :: ierr
   ! local data
@@ -487,7 +488,7 @@ subroutine pwfield_3d(pp,file,fd,gs,ls,noff,ierr)
 
   implicit none
 
-  class(parallel), intent(in), pointer :: pp
+  class(pHDF5), intent(in), pointer :: pp
   class(hdf5file), intent(in) :: file
   real, dimension(:,:,:), intent(in) :: fd
   integer, dimension(3), intent(in) :: gs, ls
@@ -572,7 +573,7 @@ subroutine pwfield_2d(pp,file,fd,gs,ls,noff,ierr)
 
   implicit none
 
-  class(parallel), intent(in), pointer :: pp
+  class(pHDF5), intent(in), pointer :: pp
   class(hdf5file), intent(in) :: file
   real, dimension(:,:), intent(in) :: fd
   integer, dimension(2), intent(in) :: gs, ls
@@ -659,7 +660,7 @@ subroutine pwpart_array(pp,file,part,npp,ierr)
 
   implicit none
 
-  class(parallel), intent(in), pointer :: pp
+  class(pHDF5), intent(in), pointer :: pp
   class(hdf5file), intent(in) :: file
   real, dimension(:), intent(in) :: part
   integer, intent(in) :: npp
@@ -786,7 +787,7 @@ subroutine pwpart_const(pp,file,value,ierr)
 
   implicit none
 
-  class(parallel), intent(in), pointer :: pp
+  class(pHDF5), intent(in), pointer :: pp
   class(hdf5file), intent(in) :: file
   real, intent(in) :: value
   integer, intent(inout) :: ierr

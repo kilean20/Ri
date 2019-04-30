@@ -1062,7 +1062,9 @@
             !call phase_Output(bmpstp,Bpts)
             !call phaseleda_Output(bmpstp,Bpts)
             call getparam_BeamLineElem(Blnelem(i),dparam)
-            if(int(dparam(2))==iturn) call phase_Output(bmpstp,Bpts,int(dparam(3)))
+            if(int(dparam(2))==iturn) then
+              call phase_Output(Bpts,int(dparam(3)),bmpstp,iturn,int(dparam(4)))
+            endif
           else if(bitype.eq.-3) then
             call getparam_BeamLineElem(Blnelem(i),drange)
             call accdens1d_Output(nstep,8,Bpts,Np,drange(2),-drange(3),&

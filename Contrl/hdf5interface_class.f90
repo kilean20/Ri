@@ -3,13 +3,13 @@
 !  @ for impact particle data
 
 module hdf5_interface_class
-  use parallel_class
+  use pHDF5_class
   use hdf5io_class
 
   implicit none
 
-  type(parallel),target :: p
-  class(parallel), pointer :: pp => null()
+  type(pHDF5),target :: p
+  class(pHDF5), pointer :: pp => null()
   type(hdf5file) :: file_hdf5
   real, dimension(:,:), allocatable :: arr
   real, dimension(:,:,:), allocatable :: arr3d
@@ -46,13 +46,13 @@ module hdf5_interface_class
     integer, intent(in) :: Nplocal,nfile,iteration,samplePeriod
     integer :: ierr
 
-    ! Initialize the file data for particle postion x
+!    ! Initialize the file data for particle postion x
     call file_hdf5%new(iter=iteration,&
-                &particleName=trim(pName),&
-                &unitDimension=(/1.d0,0.d0,0.d0,0.d0,0.d0,0.d0,0.d0/),&
-                &chiter=str(nfile),&
-                &records='position',&
-                &component='x')
+                      &particleName=trim(pName),&
+                      &filename = 'impact.out.partcl.'//trim(str(nfile))//'.h5',&
+                      &unitDimension=(/1.d0,0.d0,0.d0,0.d0,0.d0,0.d0,0.d0/),&
+                      &records='position',&
+                      &component='x')
 
     ! Write position x
     if(present(normalF)) then
@@ -166,5 +166,14 @@ module hdf5_interface_class
 
   end subroutine hdf5_field3d_output
 
+
+!<<<<<<<<<<<<<<<<<<<<<<<
+function str(num)
+  implicit none
+  integer, intent(in) :: num
+  character(len=20) :: str
+  write(str,*) num
+end function str
+!>>>>>>>>>>>>>>>>>>>>>>>
 end module hdf5_interface_class
 

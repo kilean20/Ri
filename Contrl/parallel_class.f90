@@ -1,7 +1,7 @@
 ! Parallel class for QuickPIC Open Source 1.0
 ! update: 04/18/2016
 
-module parallel_class
+module pHDF5_class
 
 use mpi
 use omp_lib
@@ -10,9 +10,9 @@ implicit none
 
 private
 
-public :: parallel
+public :: pHDF5
 
-type parallel
+type pHDF5
 
    private
 ! nvp: number of MPI nodes
@@ -43,7 +43,7 @@ type parallel
    procedure, private :: init_parallel
    procedure, private :: end_parallel
             
-end type parallel         
+end type pHDF5         
 
 contains
 !      
@@ -51,7 +51,7 @@ function getnvp(this)
 
    implicit none
 
-   class(parallel), intent(in) :: this
+   class(pHDF5), intent(in) :: this
    integer :: getnvp
    
    getnvp = this%nvp
@@ -62,7 +62,7 @@ function getidproc(this)
 
    implicit none
 
-   class(parallel), intent(in) :: this
+   class(pHDF5), intent(in) :: this
    integer :: getidproc
    
    getidproc = this%idproc
@@ -73,7 +73,7 @@ function getkstrt(this)
 
    implicit none
 
-   class(parallel), intent(in) :: this
+   class(pHDF5), intent(in) :: this
    integer :: getkstrt
    
    getkstrt = this%kstrt
@@ -84,7 +84,7 @@ function getlworld(this)
 
    implicit none
 
-   class(parallel), intent(in) :: this
+   class(pHDF5), intent(in) :: this
    integer :: getlworld
    
    getlworld = this%lworld
@@ -95,7 +95,7 @@ function getmint(this)
 
    implicit none
 
-   class(parallel), intent(in) :: this
+   class(pHDF5), intent(in) :: this
    integer :: getmint
    
    getmint = this%mint
@@ -106,7 +106,7 @@ function getmreal(this)
 
    implicit none
 
-   class(parallel), intent(in) :: this
+   class(pHDF5), intent(in) :: this
    integer :: getmreal
    
    getmreal = this%mreal
@@ -117,7 +117,7 @@ function getmdouble(this)
 
    implicit none
 
-   class(parallel), intent(in) :: this
+   class(pHDF5), intent(in) :: this
    integer :: getmdouble
    
    getmdouble = this%mdouble
@@ -128,7 +128,7 @@ function getmcplx(this)
 
    implicit none
 
-   class(parallel), intent(in) :: this
+   class(pHDF5), intent(in) :: this
    integer :: getmcplx
    
    getmcplx = this%mcplx
@@ -139,7 +139,7 @@ subroutine init_parallel(this)
 
    implicit none
 
-   class(parallel), intent(inout) :: this
+   class(pHDF5), intent(inout) :: this
 ! nvpp = number of shared memory threads (0=default)
    integer :: nvpp = 1
 
@@ -240,7 +240,7 @@ subroutine end_parallel(this)
 ! this subroutine terminates parallel processing
 implicit none
 
-class(parallel), intent(inout) :: this
+class(pHDF5), intent(inout) :: this
 ! lworld = MPI_COMM_WORLD communicator
 ! local data
 integer :: ierror
@@ -255,4 +255,4 @@ if (flag) then
 endif      
 end subroutine end_parallel
 !
-end module parallel_class      
+end module pHDF5_class      
