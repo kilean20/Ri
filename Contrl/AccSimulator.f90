@@ -30,9 +30,9 @@
         use Besselclass
         use Filterclass
         use SpaceChargeSF
-        #IFDEF NERSC_HOST
+        #ifdef NERSC_HOST
           use hdf5_interface_class
-        #ENDIF
+        #endif
         
 
 !        implicit none
@@ -195,9 +195,9 @@
 !-------------------------------------------------------------------
 ! initialize Data class.
         call init_Data()
-        #IFDEF NERSC_HOST
+        #ifdef NERSC_HOST
           call init_hdf5_interface(Ny)
-        #ENDIF
+        #endif
         
 !-------------------------------------------------------------------
 ! construct BeamBunch class.
