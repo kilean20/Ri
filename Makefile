@@ -10,7 +10,7 @@ ifeq ($(NODE),cbp)
 	LINK = mpifort
 	cOUT = Contrl/Output.o
 	OUT  = Output.o
-  FFLAGS = -fopenmp -O3
+  FFLAGS = -fopenmp -O3 -cpp
 else
 	CC = ftn
 	LINK = ftn
