@@ -4608,10 +4608,10 @@
           call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
           call MPI_COMM_SIZE(comm,np,ierr)
           if(my_rank == np-1) then
-            open(iUnit,file='lost_partcl.data',action='write',status='new')
+            open(iUnit,file='lost_partcl.data',action='write')
+            write(iUnit,*) 'z     x     y     pID   elem_type  elem_sequence'
             close(iUnit)
           endif
-        
         endif
 
         if (nlost > 0) then 
