@@ -1,6 +1,7 @@
 ! Interface bewteen IMPACTZ and hdf5io module for OpenPMD
 ! modification: 4/26/2019 Kilean
-!  @ for impact particle data
+!               - particle data 
+!               - TBT
 
 module hdf5_interface_class
   use pHDF5_class
@@ -8,13 +9,10 @@ module hdf5_interface_class
 
   implicit none
 
-  type(pHDF5),target :: p
-  class(pHDF5), pointer :: pp => null()
-  type(hdf5file) :: file_hdf5
-  real, dimension(:,:), allocatable :: arr
-  real, dimension(:,:,:), allocatable :: arr3d
-  real, dimension(:,:), allocatable :: part
-  integer :: HDF5noff, HDF5nyp, HDF5Out,HDF5FieldOutFlag=0,HDF5iteration
+  type(pHDF5),private,target :: p
+  class(pHDF5),private,pointer :: pp => null()
+  type(hdf5file), private :: file_hdf5
+  integer :: HDF5noff, HDF5nyp, HDF5Out,HDF5FieldOutFlag=0
 
   contains
 
@@ -49,7 +47,7 @@ module hdf5_interface_class
 !    ! Initialize the file data for particle postion x
     call file_hdf5%new(iter=iteration,&
                       &particleName=trim(pName),&
-                      &filename = 'impact.out.partcl.'//trim(str(nfile))//'.h5',&
+                      &filenamebase = 'openPMD'//trim(str(nfile))//'.h5',&
                       &unitDimension=(/1.d0,0.d0,0.d0,0.d0,0.d0,0.d0,0.d0/),&
                       &records='position',&
                       &component='x')

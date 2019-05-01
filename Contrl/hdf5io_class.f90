@@ -30,7 +30,7 @@ type hdf5file
   character(len=100) :: iterationEncoding = 'fileBased'
   character(len=100) :: iterationFormat = 'data%T.h5'
   character(len=100) :: filenamebase = 'data'
-  character(len=100) :: filename = 'impactout.partcl'
+  character(len=100) :: filename = 'openPMD.h5'
   real :: time = 0.0
   real :: dt = 1.0
   real(kind=dp) :: timeUnitSI = 1.0
@@ -80,9 +80,9 @@ contains
 
 subroutine init_hdf5file(this,openPMD, openPMDextension, iter, base,&
 &basePath, meshesPath, particlesPath, iterationEncoding, iterationFormat,&
-&filename,filenamebase, time, dt, timeUnitSI, records, component, geometry,&
+&filenamebase, time, dt, timeUnitSI, records, component, geometry,&
 &geometryParameters, dataOrder, axisLabels, gridSpacing, gridGlobalOffset,&
-&gridUnitSI, position, particleName, unitSI, unitDimension, timeOffset,filepath)
+&gridUnitSI, position, particleName, unitSI, unitDimension, timeOffset)
 
   implicit none
 
@@ -96,7 +96,6 @@ subroutine init_hdf5file(this,openPMD, openPMDextension, iter, base,&
   character(len=*), intent(in), optional :: particlesPath
   character(len=*), intent(in), optional :: iterationEncoding
   character(len=*), intent(in), optional :: iterationFormat
-  character(len=*), intent(in), optional :: filename
   character(len=*), intent(in), optional :: filenamebase
   real, intent(in), optional :: time
   real, intent(in), optional :: dt
@@ -155,7 +154,7 @@ subroutine init_hdf5file(this,openPMD, openPMDextension, iter, base,&
   end if
 
   this%iterationFormat = trim(this%filenamebase)//'%T.h5'
-  this%filename = trim(this%filenamebase)//trim(this%chiter)//'.h5'
+  this%filename = trim(this%filenamebase)//'.'//trim(this%chiter)//'.h5'
 
   if (present(time)) then
     this%time = time
@@ -232,12 +231,6 @@ subroutine init_hdf5file(this,openPMD, openPMDextension, iter, base,&
   if (present(timeOffset)) then
     this%timeOffset = timeOffset
   end if
-
-  if (present(filepath)) then
-    this%filepath = trim(filepath)
-  end if
-
-  this%filename = trim(this%filepath)//trim(this%filename)
 
    
 end subroutine init_hdf5file

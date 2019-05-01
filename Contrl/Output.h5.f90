@@ -2652,7 +2652,7 @@
         
         !<<<<<<<<<<<<<<<<<<<<<<<< openPMD <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         if(formatID==2) then
-          if(.not. openPMD_init)
+          if(.not. openPMD_init) then
             openPMD_init = .true.
             call init_hdf5_interface(1)
           endif
@@ -4591,13 +4591,27 @@
         real*8, allocatable, intent(inout) :: lost_pdata(:,:)
         
         integer,save :: iUnit=0
+        logical,save :: fnew = .true.
         integer :: i,j,my_rank,ierr,np,nlost_tot,ifail,color,comm,nlost_max
         integer status(MPI_STATUS_SIZE)
         integer,  allocatable :: nlost_list(:)
         double precision, allocatable :: recvbuf(:,:)
 
+
+        
         if(iUnit==0) then
           iUnit=get_free_unit(4351)
+        endif
+        
+        if(fnew) then
+          fnew = .false.
+          call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+          call MPI_COMM_SIZE(comm,np,ierr)
+          if(my_rank = np-1) then
+            open(iUnit,file='lost_partcl.data',action='write',status='new')
+            close(iUnit)
+          endif
+        
         endif
 
         if (nlost > 0) then 
@@ -4615,8 +4629,8 @@
           nlost_list = 0
           call MPI_GATHER(nlost,1,MPI_INTEGER,nlost_list,1,MPI_INTEGER,0,comm,ierr)
           allocate(recvbuf(4,nlost_max))
-          if(my_rank==0) then            
-            open(iUnit,file='lost_partcl.data',action='write',status='unknown')
+          if(my_rank==0) then
+            open(iUnit,file='lost_partcl.data',action='write',position='append',status='old')
             do j=1,nlost
               write(iUnit,*) lost_pdata(1:3,j),int(lost_pdata(4,j)),elemType,elemID
             enddo
