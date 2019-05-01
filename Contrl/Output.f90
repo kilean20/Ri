@@ -4606,7 +4606,7 @@
         if(fnew) then
           fnew = .false.
           call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
-          call MPI_COMM_SIZE(comm,np,ierr)
+          call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
           if(my_rank == np-1) then
             open(iUnit,file='lost_partcl.data',action='write')
             write(iUnit,*) 'z     x     y     pID   elem_type  elem_sequence'
