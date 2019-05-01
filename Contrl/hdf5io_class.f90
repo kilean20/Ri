@@ -113,8 +113,7 @@ subroutine init_hdf5file(this,openPMD, openPMDextension, iter, base,&
   character(len=*), intent(in), optional :: particleName
   real(kind=dp), intent(in), optional :: unitSI
   real(kind=dp), dimension(7), intent(in), optional :: unitDimension
-  real, intent(in), optional :: timeOffset
-  character(len=*), intent(in), optional :: filepath         
+  real, intent(in), optional :: timeOffset      
   ! local data
   character(len=8) :: chiter
 
