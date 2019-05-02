@@ -15,8 +15,8 @@ ifeq ($(NODE),cbp)
 else
 	CC = ftn
 	LINK = ftn
-	cOUT = Contrl/parallel_class.o Contrl/hdf5io_class.o Contrl/hdf5interface_class.o Contrl/Output.h5.o
-	OUT  = parallel_class.o hdf5io_class.o hdf5interface_class.o Output.h5.o
+	cOUT = Contrl/hdf5io_class.o Contrl/hdf5interface_class.o Contrl/Output.h5.o
+	OUT  = hdf5io_class.o hdf5interface_class.o Output.h5.o
   FFLAGS = -fopenmp -O3 -free -r8
 endif
 

@@ -3,7 +3,6 @@
 
 module hdf5io_class
 
-use pHDF5_class
 use HDF5
 use mpi
    
@@ -11,7 +10,7 @@ implicit none
 
 private
 
-public :: hdf5file, pwfield, pwpart
+public :: hdf5file,pwpart,str,hdf5_write_matrix_double
 
 integer, parameter :: dp = kind(1.d0)
 
@@ -66,11 +65,6 @@ interface add_h5_atribute
   module procedure add_h5_atribute_v1_double         
 end interface
 
-interface pwfield
-  module procedure pwfield_2d
-  module procedure pwfield_3d
-end interface
-
 interface pwpart
   module procedure pwpart_array
   module procedure pwpart_const
@@ -80,7 +74,7 @@ contains
 
 subroutine init_hdf5file(this,openPMD, openPMDextension, iter, base,&
 &basePath, meshesPath, particlesPath, iterationEncoding, iterationFormat,&
-&filenamebase, time, dt, timeUnitSI, records, component, geometry,&
+&filename,filenamebase, time, dt, timeUnitSI, records, component, geometry,&
 &geometryParameters, dataOrder, axisLabels, gridSpacing, gridGlobalOffset,&
 &gridUnitSI, position, particleName, unitSI, unitDimension, timeOffset)
 
@@ -96,6 +90,7 @@ subroutine init_hdf5file(this,openPMD, openPMDextension, iter, base,&
   character(len=*), intent(in), optional :: particlesPath
   character(len=*), intent(in), optional :: iterationEncoding
   character(len=*), intent(in), optional :: iterationFormat
+  character(len=*), intent(in), optional :: filename
   character(len=*), intent(in), optional :: filenamebase
   real, intent(in), optional :: time
   real, intent(in), optional :: dt
@@ -115,7 +110,6 @@ subroutine init_hdf5file(this,openPMD, openPMDextension, iter, base,&
   real(kind=dp), dimension(7), intent(in), optional :: unitDimension
   real, intent(in), optional :: timeOffset      
   ! local data
-  character(len=8) :: chiter
 
   if (present(openPMD)) then
     this%openPMD = trim(openPMD)
@@ -129,9 +123,11 @@ subroutine init_hdf5file(this,openPMD, openPMDextension, iter, base,&
     this%iter = iter
   end if
 
-  call str(this%iter,chiter,8)
-  this%chiter = trim(chiter)
-
+  this%chiter = trim(str(this%iter))
+  print*, 'this%iter=',this%iter
+  print*, 'str(this%iter)=',str(this%iter)
+  print*, 'this%chiter=',this%chiter
+  
   if (present(base)) then
     this%base = trim(base)
   end if
@@ -153,8 +149,12 @@ subroutine init_hdf5file(this,openPMD, openPMDextension, iter, base,&
   end if
 
   this%iterationFormat = trim(this%filenamebase)//'%T.h5'
-  this%filename = trim(this%filenamebase)//'.'//trim(this%chiter)//'.h5'
 
+
+  if (present(filename)) then
+    this%filename = trim(filename)
+  endif
+  
   if (present(time)) then
     this%time = time
   end if
@@ -231,7 +231,6 @@ subroutine init_hdf5file(this,openPMD, openPMDextension, iter, base,&
     this%timeOffset = timeOffset
   end if
 
-   
 end subroutine init_hdf5file
 !
 subroutine add_h5_atribute_str(objID, name, attribute)
@@ -358,6 +357,7 @@ subroutine add_h5_atribute_int(objID, name, attribute)
   call h5sclose_f(dataspaceID, ierr)
   
 end subroutine add_h5_atribute_int
+
 !
 subroutine add_h5_atribute_v1_int(objID, name, attribute)
   
@@ -380,6 +380,7 @@ subroutine add_h5_atribute_v1_int(objID, name, attribute)
   call h5sclose_f(dataspaceID, ierr)
   
 end subroutine add_h5_atribute_v1_int
+
 !      
 subroutine add_h5_atribute_double(objID, name, attribute)
 
@@ -402,6 +403,7 @@ subroutine add_h5_atribute_double(objID, name, attribute)
   call h5sclose_f(dataspaceID, ierr)
   
 end subroutine add_h5_atribute_double
+
 !
 subroutine add_h5_atribute_v1_double(objID, name, attribute)
   
@@ -424,12 +426,12 @@ subroutine add_h5_atribute_v1_double(objID, name, attribute)
   call h5sclose_f(dataspaceID, ierr)
   
 end subroutine add_h5_atribute_v1_double
+
 !      
-subroutine createfile(pp,file,ierr)
+subroutine create_openPMD_file(file,ierr)
 
   implicit none
 
-  class(pHDF5), intent(in), pointer :: pp
   class(hdf5file), intent(in) :: file
   integer, intent(inout) :: ierr
   ! local data
@@ -439,14 +441,14 @@ subroutine createfile(pp,file,ierr)
   logical :: fexist
 
   inquire(FILE=trim(file%filename), EXIST=fexist)
-  call MPI_BARRIER(pp%getlworld(),ierr)
+  call MPI_BARRIER(MPI_COMM_WORLD,ierr)
   if(fexist) return         
 
   call h5open_f(ierr)
   call h5pcreate_f(H5P_FILE_ACCESS_F, flplID, ierr)         
   call h5pcreate_f(H5P_DATASET_XFER_F, xferID, ierr)  
   info = MPI_INFO_NULL
-  call h5pset_fapl_mpio_f(flplID, pp%getlworld(), info, ierr)
+  call h5pset_fapl_mpio_f(flplID, MPI_COMM_WORLD, info, ierr)
   call h5pset_dxpl_mpio_f(xferID, H5FD_MPIO_COLLECTIVE_F, ierr)    
   call h5fcreate_f(trim(file%filename),H5F_ACC_TRUNC_F,file_id,ierr,&
   &access_prp=flplID) 
@@ -474,185 +476,13 @@ subroutine createfile(pp,file,ierr)
   call h5fclose_f(file_id, ierr)
   call h5close_f(ierr)
 
-end subroutine createfile
-
-subroutine pwfield_3d(pp,file,fd,gs,ls,noff,ierr)
-
-  implicit none
-
-  class(pHDF5), intent(in), pointer :: pp
-  class(hdf5file), intent(in) :: file
-  real, dimension(:,:,:), intent(in) :: fd
-  integer, dimension(3), intent(in) :: gs, ls
-  integer, dimension(3), intent(in) :: noff
-  integer, intent(inout) :: ierr
-  ! local data
-  integer(hid_t) :: treal,flplID, xferID, dcplID, memspaceID 
-  integer(hid_t) :: file_id, rootID, meshid, dset_id, dspace_id, iterid
-  integer(hsize_t), dimension(3) :: start
-  integer(hsize_t), dimension(3) :: gsize, lsize
-  integer(hsize_t), dimension(3) :: lnoff
-  integer :: info
-  logical :: gexist
-          
-  ierr = 0
-  gsize = gs
-  lsize = ls
-  lnoff = noff
-
-  call createfile(pp,file,ierr)
-  call h5open_f(ierr)
-  treal = detect_precision()
-  call h5pcreate_f(H5P_FILE_ACCESS_F, flplID, ierr)         
-  call h5pcreate_f(H5P_DATASET_CREATE_F, dcplID, ierr)         
-  call h5pcreate_f(H5P_DATASET_XFER_F, xferID, ierr)  
-  info = MPI_INFO_NULL
-  call h5pset_fapl_mpio_f(flplID, pp%getlworld(), info, ierr)
-  call h5pset_dxpl_mpio_f(xferID, H5FD_MPIO_COLLECTIVE_F, ierr)    
-
-  call h5fopen_f(trim(file%filename),H5F_ACC_RDWR_F,file_id,ierr,&
-  &access_prp=flplID) 
-  call h5screate_simple_f(3, gsize, dspace_id, ierr)
-  call h5screate_simple_f(3, lsize, memspaceID, ierr)
-  call h5gopen_f(file_id, '/', rootID, ierr)
-  call h5gopen_f(rootID, trim(file%base)//trim(file%chiter), iterid, ierr)
-  call h5lexists_f(iterid, trim(file%meshesPath), gexist, ierr)
-  if (gexist) then
-    call h5gopen_f(iterid, trim(file%meshesPath), meshid, ierr)
-  else
-    call h5gcreate_f(iterid, trim(file%meshesPath), meshid, ierr)
-  end if
-  call h5dcreate_f(meshid, trim(file%records), treal, dspace_id, dset_id,&
-  &ierr, dcplID)
-
-  start(1) = lnoff(1)
-  start(2) = lnoff(2)
-  start(3) = lnoff(3)
-
-  call h5sselect_hyperslab_f(dspace_id, H5S_SELECT_SET_F, start, lsize,&
-  &ierr)
-
-  call h5dwrite_f(dset_id, treal, fd(1:lsize(1),1:lsize(2),1:lsize(3)),&
-  &lsize, ierr, memspaceID, dspace_id, xfer_prp=xferID)
-
-  call add_h5_atribute(dset_id, 'axisLabels', file%axisLabels) 
-  call add_h5_atribute(dset_id, 'dataOrder', trim(file%dataOrder)) 
-  call add_h5_atribute(dset_id, 'geometry', trim(file%geometry)) 
-  call add_h5_atribute(dset_id, 'geometryParameters', trim(file%geometryParameters)) 
-  call add_h5_atribute(dset_id, 'gridGlobalOffset', file%gridGlobalOffset) 
-  call add_h5_atribute(dset_id, 'gridSpacing', file%gridSpacing) 
-  call add_h5_atribute(dset_id, 'gridUnitSI', file%gridUnitSI) 
-  call add_h5_atribute(dset_id, 'timeOffset', file%timeOffset) 
-  call add_h5_atribute(dset_id, 'unitDimension', file%unitDimension) 
-  call add_h5_atribute(dset_id, 'position', file%position) 
-  call add_h5_atribute(dset_id, 'unitSI', file%unitSI) 
-
-  call h5sclose_f(memspaceID, ierr)
-  call h5sclose_f(dspace_id, ierr)
-  call h5pclose_f(xferID, ierr)
-  call h5pclose_f(dcplID, ierr)
-  call h5pclose_f(flplID, ierr)
-  call h5gclose_f(rootID, ierr)
-  call h5dclose_f(dset_id, ierr)
-  call h5gclose_f(meshid, ierr)
-  call h5gclose_f(iterid, ierr)
-  call h5fclose_f(file_id, ierr)
-  call h5close_f(ierr)
-         
-end subroutine pwfield_3d
-!
-subroutine pwfield_2d(pp,file,fd,gs,ls,noff,ierr)
-
-  implicit none
-
-  class(pHDF5), intent(in), pointer :: pp
-  class(hdf5file), intent(in) :: file
-  real, dimension(:,:), intent(in) :: fd
-  integer, dimension(2), intent(in) :: gs, ls
-  integer, dimension(2), intent(in) :: noff
-  integer, intent(inout) :: ierr
-  ! local data
-  integer(hid_t) :: treal,flplID, xferID, dcplID, memspaceID
-  integer(hid_t) :: file_id, rootID, meshid, dset_id, dspace_id, iterid
-  integer(hsize_t), dimension(2) :: start
-  integer(hsize_t), dimension(2) :: gsize, lsize
-  integer(hsize_t), dimension(2) :: lnoff
-  integer :: info
-  logical :: gexist
-          
-  ierr = 0
-  gsize = gs
-  lsize = ls
-  lnoff = noff
-          
-  call createfile(pp,file,ierr)
-  call h5open_f(ierr)
-  treal = detect_precision()
-  call h5pcreate_f(H5P_FILE_ACCESS_F, flplID, ierr)         
-  call h5pcreate_f(H5P_DATASET_CREATE_F, dcplID, ierr)         
-  call h5pcreate_f(H5P_DATASET_XFER_F, xferID, ierr)  
-  info = MPI_INFO_NULL
-  call h5pset_fapl_mpio_f(flplID, pp%getlworld(), info, ierr)
-  call h5pset_dxpl_mpio_f(xferID, H5FD_MPIO_COLLECTIVE_F, ierr)    
-
-  call h5fopen_f(trim(file%filename),H5F_ACC_RDWR_F,file_id,ierr,&
-  &access_prp=flplID) 
-  call h5screate_simple_f(2, gsize, dspace_id, ierr)
-  call h5screate_simple_f(2, lsize, memspaceID, ierr)
-  call h5gopen_f(file_id, '/', rootID, ierr)
-  call h5gopen_f(rootID, trim(file%base)//trim(file%chiter), iterid, ierr)
-  call h5lexists_f(iterid, trim(file%meshesPath), gexist, ierr)
-  if (gexist) then
-    call h5gopen_f(iterid, trim(file%meshesPath), meshid, ierr)
-  else
-    call h5gcreate_f(iterid, trim(file%meshesPath), meshid, ierr)
-  end if
-  call h5dcreate_f(meshid, trim(file%records), treal, dspace_id, dset_id,&
-  &ierr, dcplID)
-
-  start(1) = lnoff(1)
-  start(2) = lnoff(2)
-
-  call h5sselect_hyperslab_f(dspace_id, H5S_SELECT_SET_F, start, lsize,&
-  &ierr)
-
-  call h5dwrite_f(dset_id, treal, fd(1:lsize(1),1:lsize(2)),&
-  &lsize, ierr, memspaceID, dspace_id, xfer_prp=xferID)
-
-  call add_h5_atribute(dset_id, 'axisLabels', file%axisLabels) 
-  call add_h5_atribute(dset_id, 'dataOrder', trim(file%dataOrder)) 
-  call add_h5_atribute(dset_id, 'geometry', trim(file%geometry)) 
-  call add_h5_atribute(dset_id, 'geometryParameters', trim(file%geometryParameters)) 
-  call add_h5_atribute(dset_id, 'gridGlobalOffset', file%gridGlobalOffset) 
-  call add_h5_atribute(dset_id, 'gridSpacing', file%gridSpacing) 
-  call add_h5_atribute(dset_id, 'gridUnitSI', file%gridUnitSI) 
-  call add_h5_atribute(dset_id, 'timeOffset', file%timeOffset) 
-  call add_h5_atribute(dset_id, 'unitDimension', file%unitDimension) 
-  call add_h5_atribute(dset_id, 'position', file%position) 
-  call add_h5_atribute(dset_id, 'unitSI', file%unitSI) 
-
-
-  call h5sclose_f(memspaceID, ierr)
-  call h5sclose_f(dspace_id, ierr)
-  call h5pclose_f(xferID, ierr)
-  call h5pclose_f(dcplID, ierr)
-  call h5pclose_f(flplID, ierr)
-  call h5gclose_f(rootID, ierr)
-  call h5gclose_f(iterID, ierr)
-  call h5dclose_f(dset_id, ierr)
-  call h5gclose_f(meshid, ierr)
-  call h5fclose_f(file_id, ierr)
-  call h5close_f(ierr)
-         
-end subroutine pwfield_2d
-
+end subroutine create_openPMD_file
 
 !
-subroutine pwpart_array(pp,file,part,npp,ierr)
+subroutine pwpart_array(file,part,npp,ierr)
 
   implicit none
 
-  class(pHDF5), intent(in), pointer :: pp
   class(hdf5file), intent(in) :: file
   real, dimension(:), intent(in) :: part
   integer, intent(in) :: npp
@@ -676,21 +506,21 @@ subroutine pwpart_array(pp,file,part,npp,ierr)
   ierr = 0
   ldim(1) = 1
 
-  call createfile(pp,file,ierr)
+  call create_openPMD_file(file,ierr)
   call h5open_f(ierr)
 
   treal = detect_precision()
 
   tnpp = npp
   tp = 0
-  call MPI_ALLREDUCE(tnpp,tp,1,MPI_INTEGER,MPI_SUM,pp%getlworld(),ierr)
+  call MPI_ALLREDUCE(tnpp,tp,1,MPI_INTEGER,MPI_SUM,MPI_COMM_WORLD,ierr)
 
   if (tnpp > 0) then 
     color = 1
   else
     color = MPI_UNDEFINED
   end if
-  call MPI_COMM_SPLIT(pp%getlworld(), color, 0, pgrp, ierr)
+  call MPI_COMM_SPLIT(MPI_COMM_WORLD, color, 0, pgrp, ierr)
 
   if (tnpp > 0) then
     call MPI_COMM_RANK(pgrp, pid, ierr)
@@ -775,11 +605,10 @@ subroutine pwpart_array(pp,file,part,npp,ierr)
   call h5close_f(ierr)
 end subroutine pwpart_array
 !
-subroutine pwpart_const(pp,file,value,ierr)
+subroutine pwpart_const(file,value,ierr)
 
   implicit none
 
-  class(pHDF5), intent(in), pointer :: pp
   class(hdf5file), intent(in) :: file
   real, intent(in) :: value
   integer, intent(inout) :: ierr
@@ -795,7 +624,7 @@ subroutine pwpart_const(pp,file,value,ierr)
   ierr = 0
   ldim(1) = 1
 
-  call createfile(pp,file,ierr)
+  call create_openPMD_file(file,ierr)
   call h5open_f(ierr)
 
   treal = detect_precision()
@@ -803,7 +632,7 @@ subroutine pwpart_const(pp,file,value,ierr)
   call h5pcreate_f(H5P_FILE_ACCESS_F, flplID, ierr)         
   call h5pcreate_f(H5P_DATASET_XFER_F, xferID, ierr)  
   info = MPI_INFO_NULL
-  call h5pset_fapl_mpio_f(flplID, pp%getlworld(), info, ierr)
+  call h5pset_fapl_mpio_f(flplID, MPI_COMM_WORLD, info, ierr)
   call h5pset_dxpl_mpio_f(xferID, H5FD_MPIO_COLLECTIVE_F, ierr)    
   call h5fopen_f(trim(file%filename), H5F_ACC_RDWR_F, file_id, ierr,&
   &access_prp=flplID) 
@@ -856,35 +685,82 @@ subroutine pwpart_const(pp,file,value,ierr)
 
 end subroutine pwpart_const
 !
-subroutine str(int_in,string,ndigits)
-
+!<<<<<<<<<<<<<<<<<<<<<<<
+function str(num)
   implicit none
-  integer, intent(in) :: int_in, ndigits
-  character(len=*), intent(inout) :: string
+  integer, intent(in) :: num
+  character(len=20) :: str
+  write(str,"(I18)") num
+  str = ADJUSTL(str)
+end function str
 
-  ! local variables      
-  integer  ::  izero, i, nd, m
-  character(len=20)  :: chindx 
 
-  m = 1 
-  izero =  ichar('0')
-  if (ndigits > 20) then 
-     nd = 20
+subroutine hdf5_write_matrix_double(fname,mat,nRow,nCol)
+!=======================================================
+!  assumes 'mat' is column split among mpi tasks
+!=======================================================
+  implicit none
+  character(len=*), intent(in) :: fname
+  integer, intent(in) :: nRow,nCol
+  double precision, intent(in) :: mat(nRow,nCol)
+  ! local data
+  integer(HID_T) :: file_id, flplID, xferID,filespace, memspace, dataSetId
+  integer(HSIZE_T) :: dimTot(2),dimLoc(2)
+  integer(HSSIZE_T) :: off(2)
+  integer :: color,nTot,comm,comm_size,comm_rank,ierr
+  integer, allocatable :: nCol_list(:)
+  
+  
+  if (nCol > 0) then 
+    color = 1
   else
-     nd = ndigits
-  endif
-  if (nd > len(string)) then 
-     nd = len(string)
-  endif
+    color = MPI_UNDEFINED
+  end if  
+  
+  call MPI_COMM_SPLIT(MPI_COMM_WORLD, color, 0, comm, ierr)
+  dimTot(1) = nRow
+  dimLoc(1) = nRow
+  dimLoc(2) = nCol
+  call MPI_ALLREDUCE(nCol,dimTot(2),1,MPI_INTEGER,MPI_SUM,comm,ierr)
+  
+  call MPI_COMM_SIZE(comm,comm_size,ierr)
+  allocate(nCol_list(comm_size))
+  call MPI_GATHER(nCol,1,MPI_INTEGER,nCol_list,1,MPI_INTEGER,0,comm,ierr)
+  
+  call h5open_f(ierr)
+  
+  call h5pcreate_f(H5P_FILE_ACCESS_F,flplID, ierr)         
+  call h5pset_fapl_mpio_f(flplID, comm, MPI_INFO_NULL, ierr)
+  call h5fcreate_f(trim(fname),H5F_ACC_TRUNC_F,file_id,ierr,access_prp=flplID) 
+  call h5pclose_f(flplID, ierr)
+  
+  call h5screate_simple_f(2,dimTot,filespace,ierr)
+  call h5dcreate_f(file_id,'data',H5T_NATIVE_DOUBLE,filespace,dataSetId,ierr)
+  call h5sclose_f(filespace,ierr)
+  
+  call h5screate_simple_f(2,dimLoc,memspace,ierr)
+  call h5dget_space_f(dataSetId,filespace,ierr)
+  call MPI_COMM_RANK(comm,comm_rank,ierr)
+  off(1)=0
+  off(2)=sum(nCol_list(:comm_rank))
+  call h5sselect_hyperslab_f(filespace,H5S_SELECT_SET_F,off,dimLoc,ierr)
+  
+  call h5pcreate_f(H5P_DATASET_XFER_F, xferID, ierr)  
+  call h5pset_dxpl_mpio_f(xferID, H5FD_MPIO_COLLECTIVE_F, ierr)
+  call h5dwrite_f(dataSetId, H5T_NATIVE_DOUBLE, mat, dimTot,ierr,&
+                 &file_space_id = filespace, mem_space_id = memspace,&
+                 &xfer_prp=xferID)
+                 
+  call h5sclose_f(filespace, ierr)
+  call h5sclose_f(memspace, ierr)
+  call h5dclose_f(dataSetId, ierr)
+  call h5pclose_f(xferID, ierr)
+  call h5fclose_f(file_id, ierr)
+  call h5close_f(ierr)
 
-  chindx = ''
-  do i = nd, 1, -1 
-     m = 10**(i-1)
-     chindx = trim(chindx) // char(  izero + mod( int_in/m , 10 ) ) 
-  enddo 
-  string = trim(chindx)
+end subroutine hdf5_write_matrix_double
 
-end subroutine str    
+!>>>>>>>>>>>>>>>>>>>>>>>
 !
 function detect_precision()
   integer(hid_t) :: detect_precision

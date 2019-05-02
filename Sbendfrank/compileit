@@ -2,7 +2,7 @@
 machine=`uname -n | cut -c1-3`
 if [[ "$machine" == 'cbp' ]]; then
 	CC='mpifort'
-elif [[ "$machine" == 'edi' ]]; then
+else
 	CC='ftn'
 fi
 $CC -c -O3 beam_mod.f90 parallel_mod.f90 liea_mod.f90

@@ -2640,7 +2640,6 @@
         include 'mpif.h'
         integer, intent(in) :: formatID,nfile,iter,samplePeriod
         type (BeamBunch), intent(in) :: this
-        logical,save :: openPMD_init=.false.
         integer :: np,my_rank,ierr
         integer status(MPI_STATUS_SIZE)
         integer :: i,j,sixnpt,mnpt,npt
@@ -2651,11 +2650,7 @@
         
         
         !<<<<<<<<<<<<<<<<<<<<<<<< openPMD <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        if(formatID==2) then
-          if(.not. openPMD_init) then
-            openPMD_init = .true.
-            call init_hdf5_interface(1)
-          endif
+        if(formatID==4) then
           if(abs(this%mass/proton_mass-1d0) < 0.001 .and. this%charge==1d0) then
             pName = 'proton' 
           elseif(abs(this%mass/electron_mass-1d0)<0.001) then
@@ -2671,11 +2666,14 @@
           endif
           ibetgam = 1d0/sqrt(this%refptcl(6)**2-1d0)
           betC = sqrt(1d0-(1d0/this%refptcl(6))**2)*cLight
-          call hdf5_particle_output(this%Pts1,this%Nptlocal,nfile,iter,&
-                                   &this%mass*eV_2_kg,pName,samplePeriod,&
-                                   &[Scxl,ibetgam,Scxl,ibetgam,&
-                                   & betC/(2d0*Pi*Scfreq),-this%mass ])
+          call openPMD_particle_output(this%Pts1,this%Nptlocal,nfile,iter,&
+                                      &this%mass*eV_2_kg,pName,samplePeriod,&
+                                      &[Scxl,ibetgam,Scxl,ibetgam,&
+                                      & betC/(2d0*Pi*Scfreq),-this%mass ])
           return
+        elseif(formatID==3) then
+          call hdf5_particle_output(nfile,this%Pts1(1:9,1:this%Nptlocal),&
+                                   &this%Nptlocal)
         endif
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -2695,7 +2693,7 @@
         
         if(my_rank.eq.0) then
           !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-          if(formatID==1) then
+          if(formatID==2) then
             open(nfile,status='unknown',form='unformatted',&
                         action='write')
                         
