@@ -1034,19 +1034,23 @@
             call shift_BPM(Bpts%Pts1,bitype,Nplocal,Np)
           endif
 !<<<<<<<<<<<<<<<<<<<<<< TBToutput(Kilean) <<<<<<<<<<<<<<<<<<<<<<<<<<<
+          if(bitype.eq.-90) then
+            call getparam_BeamLineElem(Blnelem(i),dparam)
+            call turn_by_turn_phasespace_split(Bpts,bmpstp,int(dparam(2),8),int(dparam(3),8),int(dparam(4)))
+          endif
           if(bitype.eq.-89) then
             call getparam_BeamLineElem(Blnelem(i),dparam)
-            call turn_by_turn_phasespace(Bpts,bmpstp,int(dparam(2)),int(dparam(3)))
+            call turn_by_turn_phasespace(Bpts,bmpstp,int(dparam(2),8),int(dparam(3),8))
           endif
           if(bitype.eq.-88) then
             call getparam_BeamLineElem(Blnelem(i),dparam)
             call turn_by_turn_integral(Bpts,bmpstp,dparam(2),dparam(3),dparam(4)&
-                                      ,dparam(5),int(dparam(6)),int(dparam(7)))
+                                      ,dparam(5),int(dparam(6),8),int(dparam(7),8))
           endif
           if(bitype.eq.-87) then
             call getparam_BeamLineElem(Blnelem(i),dparam)
             call turn_by_turn_integral_on_momentum(Bpts,bmpstp,dparam(2),dparam(3),dparam(4)&
-                                      ,dparam(5),int(dparam(6)),int(dparam(7)))
+                                      ,dparam(5),int(dparam(6),8),int(dparam(7),8))
           endif
 !>>>>>>>>>>>>>>>>>>>>>>> end of TBToutput >>>>>>>>>>>>>>>>>>>>>>>>>>>
           if(bitype.eq.-2) then
