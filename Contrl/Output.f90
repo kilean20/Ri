@@ -2638,9 +2638,9 @@
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         implicit none
         include 'mpif.h'
-        integer, intent(in) :: formatID,nfile,iter,samplePeriod
+        integer, intent(in) :: formatID,nfile,iter
+        integer :: samplePeriod
         type (BeamBunch), intent(in) :: this
-        logical,save :: openPMD_init=.false.
         integer :: np,my_rank,ierr
         integer status(MPI_STATUS_SIZE)
         integer :: i,j,sixnpt,mnpt,npt
@@ -2648,35 +2648,37 @@
         character(len=20) :: pName
         double precision :: ibetgam,betC
         double precision,allocatable,dimension(:,:) :: recvbuf  
-        
+
+         if (samplePeriod < 1) then
+            samplePeriod = 1
+         endif       
         
         !<<<<<<<<<<<<<<<<<<<<<<<< openPMD <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        ! if(formatID==2) then
-          ! if(.not. openPMD_init) then
-            ! openPMD_init = .true.
-            ! call init_hdf5_interface(1)
-          ! endif
-          ! if(abs(this%mass/proton_mass-1d0) < 0.001 .and. this%charge==1d0) then
-            ! pName = 'proton' 
-          ! elseif(abs(this%mass/electron_mass-1d0)<0.001) then
-            ! if(this%charge==-1d0) then
-              ! pName = 'electron' 
-            ! elseif(this%charge==1d0) then
-              ! pName = 'positron'
-            ! else
-              ! pName = 'unknown'
-            ! endif
-          ! else
-            ! pName = 'unknown'
-          ! endif
-          ! ibetgam = 1d0/sqrt(this%refptcl(6)**2-1d0)
-          ! betC = sqrt(1d0-(1d0/this%refptcl(6))**2)*cLight
-          ! call hdf5_particle_output(this%Pts1,this%Nptlocal,nfile,iter,&
-                                   ! &this%mass*eV_2_kg,pName,samplePeriod,&
-                                   ! &[Scxl,ibetgam,Scxl,ibetgam,&
-                                   ! & betC/(2d0*Pi*Scfreq),-this%mass ])
-          ! return
-        ! endif
+!        if(formatID==4) then
+!          if(abs(this%mass/proton_mass-1d0) < 0.001 .and. this%charge==1d0) then
+!            pName = 'proton' 
+!          elseif(abs(this%mass/electron_mass-1d0)<0.001) then
+!            if(this%charge==-1d0) then
+!              pName = 'electron' 
+!            elseif(this%charge==1d0) then
+!              pName = 'positron'
+!            else
+!              pName = 'unknown'
+!            endif
+!          else
+!            pName = 'unknown'
+!          endif
+!          ibetgam = 1d0/sqrt(this%refptcl(6)**2-1d0)
+!          betC = sqrt(1d0-(1d0/this%refptcl(6))**2)*cLight
+!          call openPMD_particle_output(this%Pts1,this%Nptlocal,nfile,iter,&
+!                                      &this%mass*eV_2_kg,pName,samplePeriod,&
+!                                      &[Scxl,ibetgam,Scxl,ibetgam,&
+!                                      & betC/(2d0*Pi*Scfreq),-this%mass ])
+!          return
+!        elseif(formatID==3) then
+!          call hdf5_particle_output(nfile,this%Pts1(1:9,1:this%Nptlocal),&
+!                                   &this%Nptlocal)
+!        endif
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
@@ -2688,17 +2690,16 @@
         nptlist = 0
         allocate(recvbuf(9,mnpt))
         sixnpt = 9*this%Nptlocal
-
         call MPI_GATHER(this%Nptlocal,1,MPI_INTEGER,nptlist,1,&
                         MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+
   
-        
         if(my_rank.eq.0) then
           !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-          if(formatID==1) then
+          if(formatID==2) then
             open(nfile,status='unknown',form='unformatted',&
                         action='write')
-                        
+
             if(samplePeriod>1) then
               npt = sum(nptlist/samplePeriod)
               write(nfile) npt
@@ -2706,15 +2707,15 @@
                 write(nfile) this%Pts1(1:9,i)
               enddo
               do i = 1, np-1
-                call MPI_RECV(recvbuf(1,1),9*(nptlist(i)/samplePeriod),MPI_DOUBLE_PRECISION,&
+                call MPI_RECV(recvbuf(1,1),9*nptlist(i),MPI_DOUBLE_PRECISION,&
                               i,1,MPI_COMM_WORLD,status,ierr) 
-           
+
                 do j = 1, nptlist(i),samplePeriod
                   write(nfile) recvbuf(1:9,j)
                 enddo
               enddo
             else 
-              npt = this%Npt
+              npt = sum(nptlist)
               write(nfile) npt
               do i = 1, this%Nptlocal
                 write(nfile) this%Pts1(1:9,i)
@@ -2722,13 +2723,13 @@
               do i = 1, np-1
                 call MPI_RECV(recvbuf(1,1),9*nptlist(i),MPI_DOUBLE_PRECISION,&
                               i,1,MPI_COMM_WORLD,status,ierr) 
-           
+
                 do j = 1, nptlist(i)
                   write(nfile) recvbuf(1:9,j)
                 enddo
               enddo
             endif
-            
+
             close(nfile)
           else
           !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -4337,7 +4338,8 @@
         implicit none
         include 'mpif.h'
         type (BeamBunch), intent(in) :: BB
-        integer, intent(in) :: fileID,pIDbegin,pIDend
+        integer, intent(in) :: fileID
+        integer*8, intent(in) :: pIDbegin,pIDend
         integer, save :: unitfID(2,1000)
         logical, save :: isOn(1000)=.false.
         integer :: i,j,ifail,np,my_rank,ierr,tpt,mtpt,iUnit
@@ -4381,7 +4383,6 @@
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
         if(my_rank.eq.0) then
-          print*, 'tpt,mtpt=',tpt,mtpt
           call sort(recvbuf, 7, 7, mtpt, 1, mtpt)
           do i=1,1000
             if(isOn(i)) then
@@ -4407,18 +4408,130 @@
           endif
           
           write(iUnit) mtpt
-          write(iUnit) int(recvbuf(7,:))
+          write(iUnit) int(recvbuf(7,:),8)
           write(iUnit) recvbuf(1:6,:)
           flush(iUnit)
         endif
         end subroutine turn_by_turn_phasespace
+        
+        subroutine turn_by_turn_phasespace_split(BB,fileID,pIDbegin,pIDend,nSplit)
+        ! write turn-by-turn phase-space of particles whose ID is in pIDbegin <= pID <= pIDend
+        implicit none
+        include 'mpif.h'
+        type (BeamBunch), intent(in) :: BB
+        integer, intent(in) :: fileID,nSplit
+        integer*8, intent(in) :: pIDbegin,pIDend
+        integer, save :: unitfID(2,1000)
+        logical, save :: isOn(1000)=.false.
+        integer :: i,j,k,ifail,np,my_rank,ierr,npt,tpt,nSend,nRecv,np_split,iUnit
+        integer :: status(MPI_STATUS_SIZE)
+        logical :: isTest(BB%Nptlocal)
+        integer, allocatable, dimension(:) :: sendcounts,sdispls,recvcounts,rdispls
+        integer*8, allocatable, dimension(:) :: pIDlist
+        double precision, allocatable,dimension(:,:) :: recvbuf, sendbuf
+             
+        call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
+        call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+        if( mod(np,nSplit)>0) then
+          stop 'number MPI tasks is not integer multiple of the number of turn-by-trun file split.'
+        endif
+        tpt = pIDend -pIDbegin +1
+        allocate(pIDlist(0:nSplit))
+        pIDlist(0) = pIDbegin-1
+        npt = tpt/nSplit
+        do i=1,nSplit -mod(tpt,nSplit)
+          pIDlist(i) = pIDlist(i-1) + npt
+        enddo
+        do i=nSplit - mod(tpt,nSplit)+1,nSplit
+          pIDlist(i) = pIDlist(i-1) + npt + 1
+        enddo
+        isTest = pIDbegin <= BB%Pts1(9,1:BB%Nptlocal) .and. &  ! inteded type cast. ignore compiler warining.
+                 BB%Pts1(9,1:BB%Nptlocal) <= pIDend
+        nSend = count(isTest)
+        allocate(sendcounts(0:np-1))
+        sendcounts = 0
+        allocate(sendbuf(7,nSend))
+        k=1
+        np_split = np/nSplit
+        do i=1,nSplit-1
+          do j=1,BB%nptlocal
+            if(isTest(j)) then
+              if(BB%Pts1(9,j) <= pIDlist(i)) then
+                sendcounts(i*np_split-1) = sendcounts(i*np_split-1)+1
+                sendbuf(1:6,k) = BB%Pts1(1:6,j)
+                sendbuf(7,k) = BB%Pts1(9,j)
+                k=k+1
+                isTest(j) = .false.
+              endif
+            endif
+          enddo
+        enddo
+        sendcounts(nSplit*np_split-1)=nSend-k+1
+          do j=1,BB%nptlocal
+            if(isTest(j)) then
+              sendbuf(1:6,k) = BB%Pts1(1:6,j)
+              sendbuf(7,k) = BB%Pts1(9,j)
+              k=k+1
+            endif
+          enddo
+        allocate(sdispls(0:np-1))
+        sdispls(0)=0
+        do i=1,np-1
+          sdispls(i)=sdispls(i-1)+sendcounts(i-1)
+        enddo
+        
+        allocate(recvcounts(0:np-1),rdispls(0:np-1))
+        call MPI_ALLtoALL(sendcounts,1,MPI_INTEGER,recvcounts,1,MPI_INTEGER,MPI_COMM_WORLD,ierr)
+        rdispls(0) = 0
+        do i=1,np-1
+          rdispls(i)=rdispls(i-1)+recvcounts(i-1)
+        enddo
+        nRecv = rdispls(np-1) + recvcounts(np-1)
+        allocate(recvbuf(7,nRecv))
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        call MPI_ALLtoALLv(sendbuf,sendcounts*7,sdispls*7,MPI_DOUBLE_PRECISION,&
+                          &recvbuf,recvcounts*7,rdispls*7,MPI_DOUBLE_PRECISION,&
+                          &MPI_COMM_WORLD,ierr)
+        if(mod(my_rank,np_split)==np_split-1) then
+          call sort(recvbuf, 7, 7, nRecv, 1, nRecv)
+          do i=1,1000
+            if(isOn(i)) then
+              if(UnitfID(2,i)==fileID) then
+                iUnit = UnitfID(1,i)
+                exit
+              endif
+            else
+              isOn(i) = .true.
+              UnitfID(2,i)=fileID
+              UnitfID(1,i)=get_free_unit(5555)
+              iUnit = UnitfID(1,i)
+              open(iUnit,file='TBT.'//trim(num2str_int(fileID+my_rank/np_split)),form='unformatted',&
+                   action='write', iostat=ifail)
+              if(ifail /= 0)  STOP '--- Error in opening TBT file ---'
+              exit
+            endif
+          enddo
+          if(i==1000) then
+            STOP 'Error : maximum number of TBT file reached'
+          endif
+          
+          write(iUnit) nRecv
+          write(iUnit) int(recvbuf(7,:),8)
+          write(iUnit) recvbuf(1:6,:)
+          flush(iUnit)
+        endif
+        end subroutine turn_by_turn_phasespace_split
+        
         
         subroutine turn_by_turn_integral(BB,fileID,beta,alfa,tn,cn,pIDbegin,pIDend)
         ! write phase-space of test particles (q=0) turn-by-turn
         implicit none
         include 'mpif.h'
         type (BeamBunch), intent(in) :: BB
-        integer, intent(in) :: fileID,pIDbegin,pIDend
+        integer, intent(in) :: fileID
+        integer*8, intent(in) :: pIDbegin,pIDend
         double precision, intent(in) :: beta,alfa,cn,tn
         integer, save :: unitfID(2,1000)
         logical, save :: isOn(1000)=.false.
@@ -4492,7 +4605,7 @@
           call sort(recvbuf, 3, 3, mtpt, 1, mtpt)
           
           write(iUnit) mtpt
-          write(iUnit) int(recvbuf(3,:))
+          write(iUnit) int(recvbuf(3,:),8)
           write(iUnit) recvbuf(1:2,:)
           flush(iUnit)
         endif
@@ -4503,7 +4616,8 @@
         implicit none
         include 'mpif.h'
         type (BeamBunch), intent(in) :: BB
-        integer, intent(in) :: fileID,pIDbegin,pIDend
+        integer, intent(in) :: fileID
+        integer*8, intent(in) :: pIDbegin,pIDend
         double precision, intent(in) :: beta,alfa,cn,tn
         integer, save :: unitfID(2,1000)
         logical, save :: isOn(1000)=.false.
@@ -4576,7 +4690,7 @@
           call sort(recvbuf, 3, 3, mtpt, 1, mtpt)
           
           write(iUnit) mtpt
-          write(iUnit) int(recvbuf(3,:))
+          write(iUnit) int(recvbuf(3,:),8)
           write(iUnit) recvbuf(1:2,:)
           flush(iUnit)
         endif
