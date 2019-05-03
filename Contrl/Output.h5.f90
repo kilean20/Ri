@@ -4430,12 +4430,14 @@
         integer*8, allocatable, dimension(:) :: pIDlist
         double precision, allocatable,dimension(:,:) :: recvbuf, sendbuf
              
+        print*, 'in turn_by_turn_phasespace_split'
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         if( mod(np,nSplit)>0) then
           stop 'number MPI tasks is not integer multiple of the number of turn-by-trun file split.'
         endif
         tpt = pIDend -pIDbegin +1
+        print*, 'tpt=',tpt
         allocate(pIDlist(0:nSplit))
         pIDlist(0) = pIDbegin-1
         npt = tpt/nSplit
@@ -4453,6 +4455,7 @@
         allocate(sendbuf(7,nSend))
         k=1
         np_split = np/nSplit
+        print*, 'prepare sendbuf, np_split=',np_split
         do i=1,nSplit-1
           do j=1,BB%nptlocal
             if(isTest(j)) then
@@ -4480,6 +4483,7 @@
           sdispls(i)=sdispls(i-1)+sendcounts(i-1)
         enddo
         
+        print*, 'MPI_ALLtoALL'
         allocate(recvcounts(0:np-1),rdispls(0:np-1))
         call MPI_ALLtoALL(sendcounts,1,MPI_INTEGER,recvcounts,1,MPI_INTEGER,MPI_COMM_WORLD,ierr)
         rdispls(0) = 0
@@ -4495,6 +4499,7 @@
                           &recvbuf,recvcounts*7,rdispls*7,MPI_DOUBLE_PRECISION,&
                           &MPI_COMM_WORLD,ierr)
         if(mod(my_rank,np_split)==np_split-1) then
+          print*, 'my_rank=',my_rank
           call sort(recvbuf, 7, 7, nRecv, 1, nRecv)
           do i=1,1000
             if(isOn(i)) then
