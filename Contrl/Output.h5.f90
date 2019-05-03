@@ -4420,7 +4420,7 @@
         integer*8, intent(in) :: pIDbegin,pIDend
         integer, save :: unitfID(2,1000)
         logical, save :: isOn(1000)=.false.
-        integer :: i,j,ifail,np,my_rank,ierr,tpt,mtpt,iUnit
+        integer :: i,j,k,ifail,np,my_rank,ierr,npt,tpt,nSend,nRecv,np_split,iUnit
         integer :: status(MPI_STATUS_SIZE)
         logical :: isTest(BB%Nptlocal)
         integer, allocatable, dimension(:) :: sendcounts,sdispls,recvcounts,rdispls
@@ -4454,7 +4454,7 @@
         do i=1,nSplit-1
           do j=1,BB%nptlocal
             if(isTest(j)) then
-              if(BB%Pts1(9,j <= pID(i)) then
+              if(BB%Pts1(9,j) <= pIDlist(i)) then
                 sendcounts(i*np_split-1) = sendcounts(i*np_split-1)+1
                 sendbuf(1:6,k) = BB%Pts1(1:6,j)
                 sendbuf(7,k) = BB%Pts1(9,j)
