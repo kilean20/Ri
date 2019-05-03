@@ -2638,7 +2638,8 @@
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         implicit none
         include 'mpif.h'
-        integer, intent(in) :: formatID,nfile,iter,samplePeriod
+        integer, intent(in) :: formatID,nfile,iter
+        integer :: samplePeriod
         type (BeamBunch), intent(in) :: this
         integer :: np,my_rank,ierr
         integer status(MPI_STATUS_SIZE)
@@ -2647,7 +2648,10 @@
         character(len=20) :: pName
         double precision :: ibetgam,betC
         double precision,allocatable,dimension(:,:) :: recvbuf  
-        
+
+         if (samplePeriod < 1) then
+            samplePeriod = 1
+         endif       
         
         !<<<<<<<<<<<<<<<<<<<<<<<< openPMD <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         if(formatID==4) then
@@ -2686,17 +2690,16 @@
         nptlist = 0
         allocate(recvbuf(9,mnpt))
         sixnpt = 9*this%Nptlocal
-
         call MPI_GATHER(this%Nptlocal,1,MPI_INTEGER,nptlist,1,&
                         MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+
   
-        
         if(my_rank.eq.0) then
           !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
           if(formatID==2) then
             open(nfile,status='unknown',form='unformatted',&
                         action='write')
-                        
+
             if(samplePeriod>1) then
               npt = sum(nptlist/samplePeriod)
               write(nfile) npt
@@ -2704,15 +2707,15 @@
                 write(nfile) this%Pts1(1:9,i)
               enddo
               do i = 1, np-1
-                call MPI_RECV(recvbuf(1,1),9*(nptlist(i)/samplePeriod),MPI_DOUBLE_PRECISION,&
+                call MPI_RECV(recvbuf(1,1),9*nptlist(i),MPI_DOUBLE_PRECISION,&
                               i,1,MPI_COMM_WORLD,status,ierr) 
-           
+
                 do j = 1, nptlist(i),samplePeriod
                   write(nfile) recvbuf(1:9,j)
                 enddo
               enddo
             else 
-              npt = this%Npt
+              npt = sum(nptlist)
               write(nfile) npt
               do i = 1, this%Nptlocal
                 write(nfile) this%Pts1(1:9,i)
@@ -2720,13 +2723,13 @@
               do i = 1, np-1
                 call MPI_RECV(recvbuf(1,1),9*nptlist(i),MPI_DOUBLE_PRECISION,&
                               i,1,MPI_COMM_WORLD,status,ierr) 
-           
+
                 do j = 1, nptlist(i)
                   write(nfile) recvbuf(1:9,j)
                 enddo
               enddo
             endif
-            
+
             close(nfile)
           else
           !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -4428,6 +4431,7 @@
         double precision, allocatable,dimension(:,:) :: recvbuf, sendbuf
              
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
+        call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         if( mod(np,nSplit)>0) then
           stop 'number MPI tasks is not integer multiple of the number of turn-by-trun file split.'
         endif
@@ -4441,10 +4445,8 @@
         do i=nSplit - mod(tpt,nSplit)+1,nSplit
           pIDlist(i) = pIDlist(i-1) + npt + 1
         enddo
-        
         isTest = pIDbegin <= BB%Pts1(9,1:BB%Nptlocal) .and. &  ! inteded type cast. ignore compiler warining.
                  BB%Pts1(9,1:BB%Nptlocal) <= pIDend
-                 
         nSend = count(isTest)
         allocate(sendcounts(0:np-1))
         sendcounts = 0
@@ -4472,6 +4474,7 @@
               k=k+1
             endif
           enddo
+        allocate(sdispls(0:np-1))
         sdispls(0)=0
         do i=1,np-1
           sdispls(i)=sdispls(i-1)+sendcounts(i-1)
@@ -4491,7 +4494,6 @@
         call MPI_ALLtoALLv(sendbuf,sendcounts*7,sdispls*7,MPI_DOUBLE_PRECISION,&
                           &recvbuf,recvcounts*7,rdispls*7,MPI_DOUBLE_PRECISION,&
                           &MPI_COMM_WORLD,ierr)
-        
         if(mod(my_rank,np_split)==np_split-1) then
           call sort(recvbuf, 7, 7, nRecv, 1, nRecv)
           do i=1,1000
