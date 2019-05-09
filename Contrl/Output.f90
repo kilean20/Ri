@@ -4546,7 +4546,6 @@
         call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
         call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
         
-        if(my_rank==0) print*, 'fileID,beta,alfa,tn,cn,pIDbegin,pIDend=',fileID,beta,alfa,tn,cn,pIDbegin,pIDend
         gambet0 = sqrt(BB%refptcl(6)**2-1.0d0) 
         isTest = pIDbegin <= BB%Pts1(9,1:BB%Nptlocal) .and. &  ! inteded type cast. ignore compiler warining.
                  BB%Pts1(9,1:BB%Nptlocal) <= pIDend  
