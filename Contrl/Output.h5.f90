@@ -4582,7 +4582,7 @@
         call MPI_GATHERV(sendbuf,tpt*3,MPI_DOUBLE_PRECISION,&
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
-        if(my_rank.eq.np-1) then
+        if(my_rank.eq.0) then
           do i=1,1000
             if(isOn(i)) then
               if(UnitfID(2,i)==fileID) then
@@ -4667,7 +4667,7 @@
         call MPI_GATHERV(sendbuf,tpt*3,MPI_DOUBLE_PRECISION,&
                          recvbuf,nptlist,nptdisp,MPI_DOUBLE_PRECISION,&
                          0,MPI_COMM_WORLD,ierr)
-        if(my_rank.eq.np-1) then
+        if(my_rank.eq.0) then
           do i=1,1000
             if(isOn(i)) then
               if(UnitfID(2,i)==fileID) then
