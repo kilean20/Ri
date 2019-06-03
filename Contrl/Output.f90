@@ -4759,7 +4759,7 @@
             enddo
             close(iUnit)
           else
-            call MPI_SEND(lost_pdata(1:4,nlost),nlost*4,MPI_DOUBLE_PRECISION,0,1,comm,ierr)
+            call MPI_SEND(lost_pdata(1:4,1:nlost),nlost*4,MPI_DOUBLE_PRECISION,0,1,comm,ierr)
           endif
           nlost = 0
         endif
