@@ -65,21 +65,29 @@
         Qloc = sum(rays(8,1:innp)) 
         call MPI_ALLREDUCE(Qloc,Qtot,1,MPI_DOUBLE_PRECISION,MPI_SUM,&
                             MPI_COMM_WORLD,ierr)
-        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         
-        do j =1, Nm
-          do i = 1, Nl
-            !<<<<<<<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<<<
-            !philm(i,j) = 0.0d0
-            !do ip = 1, innp
-            !  philm(i,j) = philm(i,j) + tmpm(j,ip)*tmpl(i,ip)!*rays(8,ip)/Qtot*Npt
-            !enddo
-            philm(i,j) = sum(tmpm(j,1:innp)*tmpl(i,1:innp)*rays(8,1:innp))/Qtot*Npt
-            !print*, i,j,'sum(....noWeight)=',sum(tmpm(j,1:innp)*tmpl(i,1:innp))
-            !print*, i,j,'sum(... weighted)=',sum(tmpm(j,1:innp)*tmpl(i,1:innp)*rays(8,1:innp))/Qtot*Npt
-            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        if (Qtot==0) then
+          do j =1, Nm
+            do i = 1, Nl
+              philm(i,j) = 0.0d0
+              do ip = 1, innp
+                philm(i,j) = philm(i,j) + tmpm(j,ip)*tmpl(i,ip)*rays(8,ip)
+              enddo
+              !print*, i,j,'sum(....noWeight)=',sum(tmpm(j,1:innp)*tmpl(i,1:innp))
+              !print*, i,j,'sum(... weighted)=',sum(tmpm(j,1:innp)*tmpl(i,1:innp)*rays(8,1:innp))/Qtot*Npt
+            enddo
           enddo
-        enddo
+        else
+          do j =1, Nm
+            do i = 1, Nl
+              philm(i,j) = 0.0d0
+              do ip = 1, innp
+                philm(i,j) = philm(i,j) + tmpm(j,ip)*tmpl(i,ip)*rays(8,ip)/Qtot*Npt
+              enddo
+            enddo
+          enddo
+        endif
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
         xden = 0.0d0
         call MPI_ALLREDUCE(philm,xden,Nl*Nm,MPI_DOUBLE_PRECISION,MPI_SUM,&

@@ -15,6 +15,7 @@
     integer, parameter:: nmode = lmax*mmax  !number of modes (lmax*mmax) (nom 225)
 !  Storage of the array of mode coefficients:
     double precision:: SCpotential(nmode)
+    logical :: None = .True.
 
     contains
 
@@ -32,6 +33,7 @@
        read(10,*) l,m,SCpotential(j)
     enddo
     close(10)
+    None = .False.
     end subroutine initializeSpaceChargeSF
 
 
@@ -53,6 +55,7 @@
     double precision, intent(in) :: ksc,cnll
     double precision, dimension(4), intent(inout) :: coord
     double precision :: x,y,kick,dudx,dudy
+    if(None) return
     x = coord(1)/cnll                       !Dimensionless horizontal coord
     y = coord(3)/cnll                       !Dimensionless vertical coord
     kick = ksc/cnll                         !Dimensionless kick strength

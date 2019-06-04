@@ -578,7 +578,7 @@
             pts(5,i) = coord(5)/Scxl
             pts(6,i) = coord(6)*gambet0
 !   Compute diagnostic quantities (temporarily added the "if" statement for speed)
-          smid = l0/2.0d0
+            smid = l0/2.0d0
 !        if(abs(snf-smid)<1.0d-4) then
             xn = coord(1)/cnll
             yn = coord(3)/cnll
