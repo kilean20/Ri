@@ -71,7 +71,7 @@
             do i = 1, Nl
               philm(i,j) = 0.0d0
               do ip = 1, innp
-                philm(i,j) = philm(i,j) + tmpm(j,ip)*tmpl(i,ip)*rays(8,ip)
+                philm(i,j) = philm(i,j) + tmpm(j,ip)*tmpl(i,ip)
               enddo
               !print*, i,j,'sum(....noWeight)=',sum(tmpm(j,1:innp)*tmpl(i,1:innp))
               !print*, i,j,'sum(... weighted)=',sum(tmpm(j,1:innp)*tmpl(i,1:innp)*rays(8,1:innp))/Qtot*Npt
