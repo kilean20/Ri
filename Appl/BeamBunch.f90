@@ -234,17 +234,18 @@
             tmppy = this%Pts1(4,i)
             tmppt = this%Pts1(6,i)
             tmph = sqrt((tmppt-gam0)**2-1-tmppx**2-tmppy**2)
+!<<<<<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<<<<<
 !  Use this for exact drifts!
-!            this%Pts1(1,i) = this%Pts1(1,i)+tmppx*tau/tmph/Scxl 
-!            this%Pts1(3,i) = this%Pts1(3,i)+tmppy*tau/tmph/Scxl 
-!            this%Pts1(5,i) = this%Pts1(5,i)-(1./beta0+(tmppt-gam0)/tmph)*&
-!                             tau/Scxl
+            this%Pts1(1,i) = this%Pts1(1,i)+tmppx*tau/tmph/Scxl 
+            this%Pts1(3,i) = this%Pts1(3,i)+tmppy*tau/tmph/Scxl 
+            this%Pts1(5,i) = this%Pts1(5,i)-(1./beta0+(tmppt-gam0)/tmph)*&
+                             tau/Scxl
 !  Try purely linear drifts instead!
-            this%Pts1(1,i) = this%Pts1(1,i)+tmppx*tau/gambet0/Scxl
-            this%Pts1(3,i) = this%Pts1(3,i)+tmppy*tau/gambet0/Scxl
+!            this%Pts1(1,i) = this%Pts1(1,i)+tmppx*tau/gambet0/Scxl
+!            this%Pts1(3,i) = this%Pts1(3,i)+tmppy*tau/gambet0/Scxl
 !  COMMENT THE FOLLOWING LINE FOR BENCHMARKING PURPOSES, TO AVOID THE UPDATE
 !  TO LONGITUDINAL COORDINATE
-            this%Pts1(5,i) = this%Pts1(5,i)+tmppt*tau/gambet0**3/Scxl
+ !           this%Pts1(5,i) = this%Pts1(5,i)+tmppt*tau/gambet0**3/Scxl
           enddo
           this%refptcl(5) = this%refptcl(5) + tau/(Scxl*beta0)
 
