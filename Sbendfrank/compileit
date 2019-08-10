@@ -2,6 +2,8 @@
 machine=`uname -n | cut -c1-3`
 if [[ "$machine" == 'cbp' ]]; then
 	CC='mpifort'
+elif [[ "$machine" == 'kil' ]]; then
+	CC='mpifort'
 else
 	CC='ftn'
 fi
