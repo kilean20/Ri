@@ -33,7 +33,7 @@ OBJS = \
 	DataStruct/Data.o \
 	Func/Timer.o Func/Transpose.o Func/Fldmger.o Func/Ptclmger.o  \
 	Func/FFT.o Func/Bessel.o Func/Filter.o Func/Utility.o \
-	Appl/BPM.o Appl/CCL.o Appl/CCDTL.o Appl/DTL.o Appl/SC.o \
+	Appl/BPM.o Appl/CCL.o Appl/CCDTL.o Appl/DTL.o Appl/SC.o Appl/PipeInfo.o \
 	Appl/DriftTube.o Appl/Quadrupole.o Appl/ConstFoc.o Appl/SolRF.o \
 	Appl/Sol.o Appl/Dipole.o Appl/Multipole.o Appl/EMfld.o Appl/TWS.o \
   Appl/SpaceChargeSF_Tracking.o \
@@ -50,7 +50,7 @@ OBJS1 = \
 OBJS2 = \
 	NumConst.o PhysConst.o Pgrid.o Data.o \
 	Timer.o Transpose.o Fldmger.o Ptclmger.o FFT.o Bessel.o Filter.o Utility.o \
-	BPM.o CCL.o CCDTL.o DTL.o SC.o DriftTube.o Quadrupole.o ConstFoc.o \
+	BPM.o CCL.o CCDTL.o DTL.o SC.o PipeInfo.o DriftTube.o Quadrupole.o ConstFoc.o \
 	SolRF.o Sol.o Dipole.o Multipole.o EMfld.o TWS.o \
   SpaceChargeSF_Tracking.o \
 	NonlinearLens.o BeamLineElem.o CompDom.o \

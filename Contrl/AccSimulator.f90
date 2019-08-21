@@ -30,6 +30,7 @@
         use Besselclass
         use Filterclass
         use SpaceChargeSF
+        use PipeInfoClass
 
 !        implicit none
         !# of phase dim., num. total and local particles, int. dist. 
@@ -554,7 +555,7 @@
         double precision, allocatable, dimension(:,:) :: lctabrgx, lctabrgy
         double precision, dimension(6) :: lcrange, range, ptrange,ptref
         double precision, dimension(3) :: msize
-        double precision :: hy,hz,ymin,zmin,piperad,zedge
+        double precision :: hy,hz,ymin,zmin,piperad,zedge,circumference
         double precision :: tmp1,tmp2,tmp3,tmp4,rfile
         double precision, allocatable, dimension(:,:,:) :: chgdens
         double precision, allocatable, dimension(:,:,:) :: besscoef
@@ -600,7 +601,7 @@
         real*8, dimension(6) :: tmp6
         integer :: ntrace,ntaysym,norder
         !<<<<<<<<<<<<<<<<<<<<<<<<< kilean <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        logical :: pipe_override
+        logical :: pipe_override, flagExternalPipe
         integer :: ihalf, jslice, nslices, jadd, jend1, kend1, pipeID, nlost
         double precision, allocatable :: lost_pdata(:,:)
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -880,6 +881,10 @@
             call getparam_BeamLineElem(Blnelem(i),drange)
             Nturn = drange(3)+0.1
           endif
+          if(bitype.eq.-17) then !ring simulation
+            call readPipeInfo()
+            flagExternalPipe = .True.
+          endif
 
         enddo
       
@@ -891,6 +896,9 @@
       !-----------------------------------------------------------------
       !start looping through 'Nturn'
       do iturn = 1, Nturn  
+        if(iturn == 2) then
+          circumference = z
+        endif
         tmpfile = 0
         bitypeold = 0
         blengthold = 0.0d0
@@ -1487,6 +1495,10 @@
             
 !-------------------------------------------------------------------
 ! escape the space charge calculation for 0 current case
+            if(flagExternalPipe) then
+              call getPipeInfo(modulo(z,circumference),piperad,piperad2)
+              pipeID = 2
+            endif
             if(BcurrImp.lt.1.0e-30)  then !no space-charge
             !<<<<<<<<<<<<<< check particle loss (Kilean) <<<<<<<<<<<<<<<
               call lostcount_BeamBunch(Bpts,Nplocal,Np,&
@@ -2116,7 +2128,6 @@
                 Bpts%Pts1(2,ipt) = ptarry(2)*gambetz
                 Bpts%Pts1(4,ipt) = ptarry(4)*gambetz
               enddo
-              print*, "TEST2"
               if(Flagdiag.eq.1) then
               ! <<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<
               !  call diagnostic1_Output(z,Bpts,nchrg,nptlist0)
