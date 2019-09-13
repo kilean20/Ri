@@ -1,0 +1,4 @@
+1. cd Sbendfrank
+2. ./compileit
+3. cd ..
+4. make
