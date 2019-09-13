@@ -725,15 +725,17 @@
         x = coord(1)/cnll                          !Dimensionless horizontal coord
         y = coord(3)/cnll                          !Dimensionless vertical coord
         kick = knll/cnll                           !Dimensionless kick strength
+        ! <<<<<<<<<<<< allow branch-cut <<<<<<<
       !Avoid the branch cuts:
-        if((y==0.d0).and.(dabs(x).ge.1.d0)) then
-          write(*,*) "Error:  NonlinearLensPropagatorCmplx propagates across branch cuts!"
-          return
-        else
-          dF = Fderivative(x,y)
-          dPx = kick*real(dF)
-          dPy = -kick*aimag(dF)
-        endif
+        !if((y==0.d0).and.(dabs(x).ge.1.d0)) then
+        !  write(*,*) "Error:  NonlinearLensPropagatorCmplx propagates across branch cuts!"
+        !  return
+        !else
+        dF = Fderivative(x,y)
+        dPx = kick*real(dF)
+        dPy = -kick*aimag(dF)
+        !endif
+        ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       !Momentum update
         coord(2)=coord(2)-dPx
         coord(4)=coord(4)-dPy
@@ -781,6 +783,9 @@
      im1 = dcmplx(0.0d0,1.0d0)
      carcsin = im1*z+croot(z)
      carcsin = -im1*cdlog(carcsin)
+     if(aimag(z)==0d0) then
+       carcsin = real(carcsin)
+     endif
      !carcsin = asin(z)
      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
      end function

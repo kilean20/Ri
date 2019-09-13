@@ -658,6 +658,7 @@
 
         !zadjmax = 0.15 !30% increase of z domain
         zadjmax = 0.0d0 !0% increase of z domain
+        flagExternalPipe = .False.
 
 !-------------------------------------------
 ! initialization: MaryLie S-bend
@@ -1495,19 +1496,25 @@
             
 !-------------------------------------------------------------------
 ! escape the space charge calculation for 0 current case
-            if(flagExternalPipe) then
-              call getPipeInfo(modulo(z,circumference),piperad,piperad2)
-              pipeID = 2
-            endif
             if(BcurrImp.lt.1.0e-30)  then !no space-charge
             !<<<<<<<<<<<<<< check particle loss (Kilean) <<<<<<<<<<<<<<<
-              call lostcount_BeamBunch(Bpts,Nplocal,Np,&
-                                       pipeID,piperad,piperad2,&
-                                       lost_pdata,z,nlost)
+              if(flagExternalPipe) then
+                call lostcount_from_pipeinfo(Bpts,Nplocal,Np,&
+                                             lost_pdata,z,nlost)
+              else
+                call lostcount_BeamBunch(Bpts,Nplocal,Np,&
+                                         pipeID,piperad,piperad2,&
+                                         lost_pdata,z,nlost)
+              endif
             else if(Flagbc.eq.7 .or. Flagbc.eq.8 .or. Flagbc.eq.9) then
-              call lostcount_BeamBunch(Bpts,Nplocal,Np,&
-                                       pipeID,piperad,piperad2,&
-                                       lost_pdata,z,nlost)
+              if(flagExternalPipe) then
+                call lostcount_from_pipeinfo(Bpts,Nplocal,Np,&
+                                             lost_pdata,z,nlost)
+              else
+                call lostcount_BeamBunch(Bpts,Nplocal,Np,&
+                                         pipeID,piperad,piperad2,&
+                                         lost_pdata,z,nlost)
+              endif
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
               goto 200
             else if(flagcoll.eq.1) then !calculate space charge forces
