@@ -88,6 +88,7 @@
         type (TWS),target,dimension(Nscmax) :: beamln13
         type (NonlinearLens),target,dimension(Nnllmax) :: beamln14
         type (BeamLineElem),private,dimension(Nblemtmax)::Blnelem
+        type(PipeInfoType) :: PipeInfo
         !beam line element period.
         interface construct_AccSimulator
           module procedure init_AccSimulator
@@ -883,7 +884,7 @@
             Nturn = drange(3)+0.1
           endif
           if(bitype.eq.-17) then !ring simulation
-            call readPipeInfo()
+            call readPipeInfo(PipeInfo)
             flagExternalPipe = .True.
           endif
 
@@ -893,6 +894,7 @@
       nlost = 0
       pipe_override = .false.
       pipeID = 1
+      circumference = 0
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       !-----------------------------------------------------------------
       !start looping through 'Nturn'
@@ -1499,8 +1501,8 @@
             if(BcurrImp.lt.1.0e-30)  then !no space-charge
             !<<<<<<<<<<<<<< check particle loss (Kilean) <<<<<<<<<<<<<<<
               if(flagExternalPipe) then
-                call lostcount_from_pipeinfo(Bpts,Nplocal,Np,&
-                                             lost_pdata,z,nlost)
+                call lostcount_from_pipeinfo(Bpts,PipeInfo,Nplocal,Np,&
+                                             lost_pdata,z,circumference,nlost)
               else
                 call lostcount_BeamBunch(Bpts,Nplocal,Np,&
                                          pipeID,piperad,piperad2,&
@@ -1508,8 +1510,8 @@
               endif
             else if(Flagbc.eq.7 .or. Flagbc.eq.8 .or. Flagbc.eq.9) then
               if(flagExternalPipe) then
-                call lostcount_from_pipeinfo(Bpts,Nplocal,Np,&
-                                             lost_pdata,z,nlost)
+                call lostcount_from_pipeinfo(Bpts,PipeInfo,Nplocal,Np,&
+                                             lost_pdata,z,circumference,nlost)
               else
                 call lostcount_BeamBunch(Bpts,Nplocal,Np,&
                                          pipeID,piperad,piperad2,&

@@ -552,12 +552,13 @@
         
 
 
-        subroutine lostcount_from_pipeinfo(this,nplc,nptot,&
-                                           lost_pdata,z,nlost)
+        subroutine lostcount_from_pipeinfo(this,PipeInfo,nplc,nptot,&
+                                           lost_pdata,z,circumference,nlost)
         use PipeInfoClass
         implicit none
         include 'mpif.h'
         type (BeamBunch), intent(inout) :: this
+        type(PipeInfoType), intent(in) :: PipeInfo
         integer, intent(inout) :: nplc
         integer*8, intent(inout) :: nptot
         integer :: i
@@ -566,12 +567,12 @@
         real*8 :: fnplc,fnptot
         !<<<<<<<<<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<<<<<<
         integer, intent(inout) :: nlost
-        real*8,  intent(in) :: z
+        real*8,  intent(in) :: z,circumference
         real*8,  allocatable, intent(inout) :: lost_pdata(:,:)
         real*8 :: Qloc,Qtot,QlocNew,QtotNew
         integer,parameter :: rectangular_=1, elliptic_=2
-        integer :: pipe_shape0,pipe_shape1
-        double precision :: pipe_x0,pipe_y0,pipe_z0,pipe_x1,pipe_y1,pipe_z1
+        integer :: pipe_shape0,pipe_shape1,myrank
+        double precision :: pipe_x0,pipe_y0,pipe_z0,pipe_x1,pipe_y1,pipe_z1,ztmp
         logical :: flagLost
         
         ! allocate lost particle data container assuming local # of particle particle un-balance at most 20%
@@ -580,14 +581,34 @@
 
         ilost = 0
         
+        if(circumference==0) then
+          ztmp=z
+        else
+          ztmp = mod(z,circumference)
+        endif
+        
         !<<<<<<<<<<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<<<<<<<<
         Qloc = sum(this%Pts1(8,1:this%Nptlocal))
         call MPI_ALLREDUCE(Qloc,Qtot,1,MPI_DOUBLE_PRECISION,MPI_SUM,&
                            MPI_COMM_WORLD,ierr)
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        call getPipeInfo(z,&
+        !print*, "===pipeinfo%shape==="
+        !print*, shape(PipeInfo%shape)
+        !print*, PipeInfo%shape
+        !print*, "===================="
+        call getPipeInfo(PipeInfo,ztmp, &
                         pipe_shape0,pipe_x0,pipe_y0,pipe_z0, &
                         pipe_shape1,pipe_x1,pipe_y1,pipe_z1)
+        call MPI_Comm_rank(MPI_COMM_WORLD, myrank,ierr);
+        !if(myrank==0) then
+        !  print*, z
+        !  print*, pipe_z0,pipe_x0,pipe_y0,pipe_shape0
+        !  print*, pipe_z1,pipe_x1,pipe_y1,pipe_shape1
+        !endif
+        !if(pipe_shape0>2) then
+        !  print*, pipe_z0,pipe_z1,pipe_shape0,pipe_shape1
+        !endif
+        
         
         do i0 = 1, this%Nptlocal
           i = i0 - ilost
@@ -610,7 +631,7 @@
 !          else
 !          endif
           !<<<<<<<<<< elliptic and rectangular pipe (Kilean) <<<<<<<<<<<
-          call getLossInfo(tmpx,tmpy,z,&
+          call getLossInfo(PipeInfo,tmpx,tmpy,ztmp,&
                            pipe_shape0,pipe_x0,pipe_y0,pipe_z0, &
                            pipe_shape1,pipe_x1,pipe_y1,pipe_z1, &
                            flagLost)
