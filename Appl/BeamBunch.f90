@@ -601,9 +601,9 @@
                         pipe_shape1,pipe_x1,pipe_y1,pipe_z1)
         call MPI_Comm_rank(MPI_COMM_WORLD, myrank,ierr);
         !if(myrank==0) then
-        !  print*, z
-        !  print*, pipe_z0,pipe_x0,pipe_y0,pipe_shape0
-        !  print*, pipe_z1,pipe_x1,pipe_y1,pipe_shape1
+          !print*, 'z,ztmp,circumference=',z,ztmp,circumference
+          !print*, 'pipe_z0,pipe_x0,pipe_y0,pipe_shape0=',pipe_z0,pipe_x0,pipe_y0,pipe_shape0
+          !print*, 'pipe_z1,pipe_x1,pipe_y1,pipe_shape1=',pipe_z1,pipe_x1,pipe_y1,pipe_shape1
         !endif
         !if(pipe_shape0>2) then
         !  print*, pipe_z0,pipe_z1,pipe_shape0,pipe_shape1

@@ -4368,9 +4368,13 @@
         allocate(nptdisp(0:np-1))
         nptlist = 0
         nptdisp = 0
-        call MPI_GATHER(tpt,1,MPI_INTEGER,nptlist,1,&
-                           MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+        call MPI_ALLGATHER(tpt,1,MPI_INTEGER,nptlist,1,&
+                           MPI_INTEGER,MPI_COMM_WORLD,ierr)
         mtpt = sum(nptlist)
+        if(mtpt==0) then
+          return
+        endif
+        
         nptlist = nptlist*7
         do i=0,np-2
           nptdisp(i+1) = nptlist(i)+nptdisp(i)
@@ -4406,7 +4410,6 @@
           if(i==1000) then
             STOP 'Error : maximum number of TBT file reached'
           endif
-          
           write(iUnit) mtpt
           write(iUnit) int(recvbuf(7,:),8)
           write(iUnit) recvbuf(1:6,:)
@@ -4571,9 +4574,12 @@
         allocate(nptdisp(0:np-1))
         nptlist = 0
         nptdisp = 0
-        call MPI_GATHER(tpt,1,MPI_INTEGER,nptlist,1,&
-                           MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+        
+        call MPI_ALLGATHER(tpt,1,MPI_INTEGER,nptlist,1,&
+                           MPI_INTEGER,MPI_COMM_WORLD,ierr)
         mtpt = sum(nptlist)
+        if(mtpt==0) return
+
         nptlist = nptlist*3
         do i=0,np-2
           nptdisp(i+1) = nptlist(i)+nptdisp(i)
@@ -4656,9 +4662,12 @@
         allocate(nptdisp(0:np-1))
         nptlist = 0
         nptdisp = 0
-        call MPI_GATHER(tpt,1,MPI_INTEGER,nptlist,1,&
-                           MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+        
+        call MPI_ALLGATHER(tpt,1,MPI_INTEGER,nptlist,1,&
+                           MPI_INTEGER,MPI_COMM_WORLD,ierr)
         mtpt = sum(nptlist)
+        if(mtpt==0) return
+        
         nptlist = nptlist*3
         do i=0,np-2
           nptdisp(i+1) = nptlist(i)+nptdisp(i)

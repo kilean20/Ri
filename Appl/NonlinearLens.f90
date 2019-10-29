@@ -468,7 +468,7 @@
             Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2)
             
 
-            if(Iinv<0) Iinv=0d0
+            !if(Iinv<0) Iinv=0d0
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             
             invariants(1,i) = Hinv
@@ -479,13 +479,14 @@
             invariants(5,i) = yn
             invariants(6,i) = pyn
 !   Test for occurrence of NaN:
-            test = Hinv*dsqrt(Iinv)*xn*pxn*yn*pyn
-            if(test.ne.test) then
-              write(*,*) 'NaN encountered (particle,s):'
-              write(*,*) i,snf
-              write(*,*) 'xn,pxn,yn,pyn',xn,pxn,yn,pyn
-              stop
-            endif
+            
+            !test = Hinv*dsqrt(Iinv)*xn*pxn*yn*pyn
+            !if(test.ne.test) then
+            !  write(*,*) 'NaN encountered (particle,s):'
+            !  write(*,*) i,snf
+            !  write(*,*) 'xn,pxn,yn,pyn',xn,pxn,yn,pyn
+            !  stop
+            !endif
          endif
 !   End computation of diagnostic quantities
 

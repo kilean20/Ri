@@ -155,6 +155,8 @@
           call distIOTA_waterbag(this,nparam,distparam)
         else if(flagdist.eq.82) then
           call distIOTA_gaussian(this,nparam,distparam)
+        else if(flagdist.eq.102) then
+          call Gauss3_Dist_trunc(this,nparam,distparam,grid,0)
         !>>>>>>>>>>>>>>>>>> Kilean >>>>>>>>>>>>>>>>>>>>>>>
         else
           print*,"Initial distribution not available!!"
@@ -1021,6 +1023,124 @@
         t_kvdist = t_kvdist + elapsedtime_Timer(t0)
 
         end subroutine Gauss3_Dist
+        
+        
+        !<<<<<<< Kilean, truncated Gaussian <<<<<<<
+        subroutine Gauss3_Dist_trunc(this,nparam,distparam,grid,flagalloc)
+        implicit none
+        include 'mpif.h'
+        type (BeamBunch), intent(inout) :: this
+        integer, intent(in) :: nparam,flagalloc
+        double precision, dimension(nparam) :: distparam
+        type (Pgrid2d), intent(in) :: grid
+        double precision  :: sigx,sigpx,muxpx,xscale,sigy,&
+        sigpy,muypy, yscale,sigz,sigpz,muzpz,zscale,pxscale,pyscale,pzscale
+        double precision :: CLx,CLy,Clz
+        double precision :: sq12,sq34,sq56
+        double precision, allocatable, dimension(:,:) :: x1,x2,x3 
+        integer :: totnp,npy,npx
+        integer :: avgpts,numpts
+        integer :: myid,myidx,myidy,i,j,k,intvsamp
+!        integer seedarray(1)
+        double precision :: t0,x11,pid
+
+        call starttime_Timer(t0)
+
+        sigx = distparam(1)
+        sigpx = distparam(2)
+        muxpx = distparam(3)
+        CLx = distparam(4)
+        sigy = distparam(8)
+        sigpy = distparam(9)
+        muypy = distparam(10)
+        CLy = distparam(11)
+        sigz = distparam(15)
+        sigpz = distparam(16)
+        muzpz = distparam(17)
+        CLz = distparam(18)
+
+        call getsize_Pgrid2d(grid,totnp,npy,npx)
+
+        call getpost_Pgrid2d(grid,myid,myidy,myidx)
+!        seedarray(1)=(1001+myid)*(myid+7)
+!        write(6,*)'seedarray=',seedarray
+!        call random_seed(PUT=seedarray(1:1))
+        call random_number(x11)
+
+        avgpts = this%Npt/(npx*npy)
+
+        if(mod(avgpts,10).ne.0) then
+          print*,"The number of particles has to be an integer multiple of 10Nprocs"
+          stop
+        endif
+        
+
+        sq12=sqrt(1.-muxpx*muxpx)
+        sq34=sqrt(1.-muypy*muypy)
+        sq56=sqrt(1.-muzpz*muzpz)
+
+        ! initial allocate 'avgpts' particles on each processor.
+        if(flagalloc.eq.1) then
+          this%Pts1 = 0.0
+        else
+          allocate(this%Pts1(9,avgpts))
+          this%Pts1 = 0.0
+        endif
+
+!        allocate(x1(2,avgpts))
+!        allocate(x2(2,avgpts))
+!        allocate(x3(2,avgpts))
+!        call normVec(x1,avgpts)
+!        call normVec(x2,avgpts)
+!        call normVec(x3,avgpts)
+        
+        intvsamp = 10
+        allocate(x1(2,intvsamp))
+        allocate(x2(2,intvsamp))
+        allocate(x3(2,intvsamp))
+
+        do j = 1, avgpts/intvsamp
+          call normVec(x1,intvsamp,CLx)
+          call normVec(x2,intvsamp,CLy)
+          call normVec(x3,intvsamp,CLz)
+          do k = 1, intvsamp
+            !x-px:
+!            call normdv(x1)
+!           Correct Gaussian distribution.
+            i = (j-1)*intvsamp + k
+            this%Pts1(1,i) = sigx*x1(1,k)/sq12
+            this%Pts1(2,i) = sigpx*(-muxpx*x1(1,k)/sq12+x1(2,k))
+            !y-py
+!            call normdv(x1)
+!           Correct Gaussian distribution.
+            this%Pts1(3,i) = sigy*x2(1,k)/sq34
+            this%Pts1(4,i) = sigpy*(-muypy*x2(1,k)/sq34+x2(2,k))
+            !z-pz
+!            call normdv(x1)
+!           Correct Gaussian distribution.
+            this%Pts1(5,i) = sigz*x3(1,k)/sq56
+            this%Pts1(6,i) = sigpz*(-muzpz*x3(1,k)/sq56+x3(2,k))
+          enddo
+        enddo
+          
+        deallocate(x1)
+        deallocate(x2)
+        deallocate(x3)
+
+        this%Nptlocal = avgpts
+
+        do j = 1, avgpts
+          pid = j + myid*avgpts
+          this%Pts1(7,j) = this%Charge/this%mass
+          this%Pts1(8,j) = this%Current/Scfreq/this%Npt*this%Charge/abs(this%Charge)
+          this%Pts1(9,j) = pid
+        enddo
+       
+        t_kvdist = t_kvdist + elapsedtime_Timer(t0)
+
+        end subroutine Gauss3_Dist_trunc
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        
 
         subroutine Gauss4_Dist(this,nparam,distparam,grid)
         implicit none
@@ -2218,25 +2338,44 @@
 
         end subroutine normdv
 
-        subroutine normVec(y,num)
+        subroutine normVec(y,num,CL)
         implicit none
         include 'mpif.h'
         integer, intent(in) :: num
         double precision, dimension(2,num), intent(out) :: y
-        double precision :: twopi,epsilon
+        double precision, optional, intent(in) :: CL
+        double precision :: twopi,r(2),tmp(2*num)
         double precision, dimension(num) :: x1,x2
-        integer :: i
-
-        epsilon = 1.0e-18
+        integer :: i,j
 
         twopi = 4.0*asin(1.0)
-        call random_number(x2)
-        call random_number(x1)
-        do i = 1, num
-          if(x1(i).eq.0.0) x1(i) = epsilon
-          y(1,i) = sqrt(-2.0*log(x1(i)))*cos(twopi*x2(i))
-          y(2,i) = sqrt(-2.0*log(x1(i)))*sin(twopi*x2(i))
-        enddo
+        
+        if(present(CL)) then
+          i = 1
+          do
+            if(i>2*num) exit
+            call random_number(r)
+            tmp(i) = sqrt(-2.0*log(r(1)))*cos(twopi*r(2))
+            if(abs(tmp(i)) <= CL) i=i+1
+            
+            if(i>2*num) exit
+            tmp(i) = sqrt(-2.0*log(r(1)))*sin(twopi*r(2))
+            if(abs(tmp(i)) <= CL) i=i+1
+          enddo
+          do i=1,num
+            y(1,i) = tmp(2*(i-1)+1)
+            y(2,i) = tmp(2* i     )
+          enddo
+        else
+          call random_number(x2)
+          call random_number(x1)
+
+          do i = 1, num
+            if(x1(i).eq.0.0) x1(i) = 1.0e-18
+            y(1,i) = sqrt(-2.0*log(x1(i)))*cos(twopi*x2(i))
+            y(2,i) = sqrt(-2.0*log(x1(i)))*sin(twopi*x2(i))
+          enddo
+        endif
 
         end subroutine normVec
 
@@ -13032,15 +13171,16 @@ end subroutine
     distIOTA_secant_method = p
   end function distIOTA_secant_method
   
-  subroutine distIOTA_genP_gaussian(self,BB,beta,betap,emittance,cutoff)
+  subroutine distIOTA_genP_gaussian(self,BB,beta,betap,emittance,cutoff,&
+                                    sigz,sigpz,muzpz,zscale,pzscale,xmu5,xmu6)
     !generate particle in synergia unit
     implicit none
     include 'mpif.h'
     class(distIOTA_class) :: self
     type(BeamBunch),intent(inout) :: BB
-    double precision, intent(in) :: beta,betap,emittance,cutoff
+    double precision, intent(in) :: beta,betap,emittance,cutoff,sigz,sigpz,muzpz,zscale,pzscale,xmu5,xmu6
     integer :: nproc,avgpts,nleft,myid,i
-    double precision  :: xHat(4),xMax,U(2),newH,bg,trialH,newHxy,p,p_theta
+    double precision  :: xHat(4),xMax,U(2),newH,bg,trialH,newHxy,p,p_theta,sig5,sig6,sq56,twopi
     integer, parameter :: x_=1,px_=2,y_=3,py_=4
     
     call MPI_COMM_RANK(MPI_COMM_WORLD,myid,i)
@@ -13085,6 +13225,24 @@ end subroutine
       BB%Pts1(py_,i) = (xHat(py_) + 0.5d0*betap*xHat(y_))/sqrt(beta)*bg
       BB%Pts1(9,i) = i
     enddo
+    
+
+    twopi = 4.0*asin(1.0)
+    sig5 = sigz*zscale
+    sig6 = sigpz*pzscale
+    sq56=sqrt(1.-muzpz*muzpz)
+
+    do i = i, avgpts
+      call random_number(U)
+      if(U(1).eq.0.0) U(1) = 1.0e-18
+      p       = sqrt(-2.0*log(U(1)))*cos(twopi*U(2))
+      p_theta = sqrt(-2.0*log(U(1)))*sin(twopi*U(2))
+
+      BB%Pts1(5,i) = xmu5 + sig5*p/sq56
+      BB%Pts1(6,i) = xmu6 + sig6*(-muzpz*p/sq56+p_theta)
+    enddo
+
+        
     BB%Pts1(7,:) = BB%Charge/BB%mass
     BB%Pts1(8,:) = BB%Current/Scfreq/BB%Npt*BB%Charge/abs(BB%Charge)
     if(myid.lt.nleft) then
@@ -13100,10 +13258,10 @@ end subroutine
     integer, intent(in) :: nparam
     double precision, dimension(nparam) :: distparam
     type (distIOTA_class) :: IOTA
-    integer,parameter :: beta_=3,betap_=4,emittance_=5,cutoff_=6
     
     call IOTA%init(distParam(1:2))
-    call IOTA%genP_gaussian(this,distparam(beta_),distparam(betap_),distparam(emittance_),distparam(cutoff_))
+    call IOTA%genP_gaussian(this,distparam(3),distparam(4),distparam(5),distparam(6), &
+                            distparam(15),distparam(16),distparam(17),distparam(18),distparam(19),distparam(20),distparam(21))
   end subroutine distIOTA_gaussian
   
   !>>>>>>>>>>>>>>> end : distIOTA member routines(Kilean) >>>>>>>>>>>>>>>

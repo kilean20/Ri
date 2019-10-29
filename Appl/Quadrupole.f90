@@ -484,11 +484,11 @@
 
         end subroutine transfmap_Quadrupole
 
-        subroutine transfmapK_Quadrupole(t,tau,this,refpt,Nplc,pts,qmass)
+        subroutine transfmapK_Quadrupole(tt,tau,this,refpt,Nplc,pts,qmass)
         implicit none
         include 'mpif.h'
         integer, intent(in) :: Nplc
-        double precision, intent(inout) :: t
+        double precision, intent(inout) :: tt
         double precision, intent(in) :: tau,qmass
         double precision, dimension(6), intent(inout) :: refpt
         double precision, dimension(6) :: tmp
@@ -497,40 +497,65 @@
         real*8 :: xm11,xm12,xm21,xm22,xm33,xm34,xm43,xm44,gam,gambetz,&
                   betaz,beta0,rtkstrzz,rtkstr,kstr,gambet0
         integer  :: i
+        real*8 :: t,cs,ss
 
         gambet0 = sqrt(refpt(6)**2-1.0d0)
+        beta0 = sqrt(1.0d0-1.0d0/(refpt(6)**2))
         do i = 1, Nplc
           gam = -refpt(6) - pts(6,i)
-!          gambetz = sqrt(gam**2-1.0-pts(2,i)**2-pts(4,i)**2)
-!          betaz = gambetz/gam
-          beta0 = sqrt(1.-1./(refpt(6)**2))
+          gambetz = sqrt(gam**2-1.0d0-pts(2,i)**2-pts(4,i)**2)
+          betaz = gambetz/gam
+          !each reference particle momentum
+          gambetz = sqrt(gam**2-1.0d0) 
 !          kstr = pts(7,i)*2.997928e8/gambetz*this%Param(2)
-!   MODIFIED TO BENCHMARK LINEAR QUAD
-          gambetz = gambet0
-          betaz = beta0
 !Param(2) is the K defined in MAD, i.e. G/Brho
-!          print*, 'gambetz, kstr = ',gambetz,kstr
           kstr = pts(7,i)/qmass*gambet0/gambetz*this%Param(2)
           rtkstr = sqrt(abs(kstr))
           rtkstrzz = rtkstr*tau
           if(kstr.gt.0.0) then
-            xm11 = cos(rtkstrzz)
-            xm12 = sin(rtkstrzz)/rtkstr
-            xm21 = -rtkstr*sin(rtkstrzz)
-            xm22 = cos(rtkstrzz)
-            xm33 = cosh(rtkstrzz)
-            xm34 = sinh(rtkstrzz)/rtkstr
-            xm43 = sinh(rtkstrzz)*rtkstr
-            xm44 = cosh(rtkstrzz)
+            cs = cos(rtkstrzz)
+            ss = sin(rtkstrzz)
+            xm11 = cs
+            xm12 = ss/rtkstr
+            xm21 = -rtkstr*ss
+            xm22 = cs
+            !xm11 = cos(rtkstrzz)
+            !xm12 = sin(rtkstrzz)/rtkstr
+            !xm21 = -rtkstr*sin(rtkstrzz)
+            !xm22 = cos(rtkstrzz)
+            t = exp(rtkstrzz)
+            cs= (t*t +1.0d0) / (t + t)
+            ss= (t*t -1.0d0) / (t + t) 
+            xm33 = cs
+            xm34 = ss/rtkstr
+            xm43 = ss*rtkstr
+            xm44 = cs
+            !xm33 = cosh(rtkstrzz)
+            !xm34 = sinh(rtkstrzz)/rtkstr
+            !xm43 = sinh(rtkstrzz)*rtkstr
+            !xm44 = cosh(rtkstrzz)
           else if(kstr.lt.0.0) then
-            xm11 = cosh(rtkstrzz)
-            xm12 = sinh(rtkstrzz)/rtkstr
-            xm21 = rtkstr*sinh(rtkstrzz)
-            xm22 = cosh(rtkstrzz)
-            xm33 = cos(rtkstrzz)
-            xm34 = sin(rtkstrzz)/rtkstr
-            xm43 = -sin(rtkstrzz)*rtkstr
-            xm44 = cos(rtkstrzz)
+            t = exp(rtkstrzz)
+            cs= (t*t +1.0d0) / (t + t)
+            ss= (t*t -1.0d0) / (t + t) 
+            xm11 = cs
+            xm12 = ss/rtkstr
+            xm21 = rtkstr*ss
+            xm22 = cs
+            !xm11 = cosh(rtkstrzz)
+            !xm12 = sinh(rtkstrzz)/rtkstr
+            !xm21 = rtkstr*sinh(rtkstrzz)
+            !xm22 = cosh(rtkstrzz)
+            cs = cos(rtkstrzz)
+            ss = sin(rtkstrzz)
+            xm33 = cs
+            xm34 = ss/rtkstr
+            xm43 = -ss*rtkstr
+            xm44 = cs
+            !xm33 = cos(rtkstrzz)
+            !xm34 = sin(rtkstrzz)/rtkstr
+            !xm43 = -sin(rtkstrzz)*rtkstr
+            !xm44 = cos(rtkstrzz)
           else
             xm11 = 1.0d0
             xm12 = tau
@@ -555,7 +580,156 @@
           pts(6,i) = tmp(6)
         enddo
         refpt(5) = refpt(5) + tau/beta0/Scxl
-!        t = t + tau
+!        tt = tt + tau
 
         end subroutine transfmapK_Quadrupole
+        
+!<<<<<<<<<<<<<<<<<<<<< Kilean, Quad fringe field map <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        subroutine monomial_maps2D(npt,pdata,C,nx,npx,ny,npy)
+          implicit none
+          integer, intent(in) :: npt,nx,npx,ny,npy
+          double precision, pointer, dimension(:,:) :: pdata
+          double precision, intent(in) :: C(npt)
+          double precision :: xdata(2,npt), monoFactor, Ceff
+          integer :: i
+          
+          
+          xdata = pdata(1:2,1:npt)
+          
+          ! === x,px kicks ====
+          if(nx/=0) then
+            if(nx==npx) then
+              if(nx==1) then     ! nx=1, npx=1
+                do i=1,npt
+                  Ceff = C(i)*pdata(3,i)**ny*pdata(4,i)**npy
+                  monoFactor = exp(Ceff)
+                  pdata(1,i) = pdata(1,i)/monoFactor
+                  pdata(2,i) = pdata(2,i)*monoFactor
+                end do
+              else               ! nx = npx,   nx,npx > 1
+                do i=1,npt
+                  Ceff = C(i)*pdata(3,i)**ny*pdata(4,i)**npy
+                  monoFactor = exp(Ceff*nx*(pdata(1,i)*pdata(2,i))**(nx-1))
+                  pdata(1,i) = pdata(1,i)/monoFactor
+                  pdata(2,i) = pdata(2,i)*monoFactor
+                end do
+              endif 
+            else if(npx==0) then ! nx>0 npx=0
+              do i=1,npt
+                Ceff = C(i)*pdata(3,i)**ny*pdata(4,i)**npy
+                pdata(2,i) = pdata(2,i) + Ceff*nx*pdata(1,i)**(nx-1)
+              end do
+            else                 ! nx != npx,  nx>=1 npx>=1
+              do i=1,npt
+                Ceff = C(i)*pdata(3,i)**ny*pdata(4,i)**npy
+                monoFactor = 1d0 +Ceff*(nx-npx)*pdata(1,i)**(nx-1)*pdata(2,i)**(npx-1)
+                pdata(1,i) = pdata(1,i)*(monoFactor**(npx*1d0/(npx-nx)))
+                pdata(2,i) = pdata(2,i)*(monoFactor**(nx *1d0/(nx-npx)))
+              end do
+            endif
+          else if(npx/=0) then  ! nx=0, npx>0
+            do i=1,npt
+              Ceff = C(i)*pdata(3,i)**ny*pdata(4,i)**npy
+              pdata(1,i) = pdata(1,i) - Ceff*npx*pdata(2,i)**(npx-1)
+            end do
+          endif
+          
+          ! === y,py kicks ====
+          if(ny/=0) then
+            if(ny==npy) then
+              if(ny==1) then     ! ny=1, npy=1
+                do i=1,npt
+                  Ceff = C(i)*xdata(1,i)**nx*xdata(2,i)**npx
+                  monoFactor = exp(Ceff)
+                  pdata(3,i) = pdata(3,i)/monoFactor
+                  pdata(4,i) = pdata(4,i)*monoFactor
+                end do
+              else               ! ny = npy,   ny,npx > 1
+                do i=1,npt
+                  Ceff = C(i)*xdata(1,i)**nx*xdata(2,i)**npx
+                  monoFactor = exp(Ceff*ny*(pdata(3,i)*pdata(4,i))**(ny-1))
+                  pdata(3,i) = pdata(3,i)/monoFactor
+                  pdata(4,i) = pdata(4,i)*monoFactor
+                end do
+              endif 
+            else if(npy==0) then ! ny>0 npy=0
+              do i=1,npt
+                Ceff = C(i)*pdata(1,i)**nx*pdata(2,i)**npx
+                pdata(4,i) = pdata(4,i) + Ceff*ny*pdata(3,i)**(ny-1)
+              end do
+            else                 ! ny != npy,  ny>1 npy>1
+              do i=1,npt
+                Ceff = C(i)*xdata(1,i)**nx*xdata(2,i)**npx
+                monoFactor = 1d0 +Ceff*(ny-npy)*pdata(3,i)**(ny-1)*pdata(4,i)**(npy-1)
+                pdata(3,i) = pdata(3,i)*monoFactor**(npy*1d0/(npy-ny))
+                pdata(4,i) = pdata(4,i)*monoFactor**(ny *1d0/(ny-npy))
+              end do
+            endif
+          else if(npy/=0) then  ! ny=0, npy>0
+            do i=1,npt
+              Ceff = C(i)*xdata(1,i)**nx*xdata(2,i)**npx
+              pdata(3,i) = pdata(3,i) - Ceff*npy*pdata(4,i)**(npy-1)
+            end do
+          endif
+          
+        end subroutine monomial_maps2D
+        
+        subroutine HardEdgeQuadFringeMap(flagEntrance,Kx,nSteps,refpt,npt,pts,qmass)
+        implicit none
+        integer, intent(in) :: npt,nSteps
+        double precision, intent(in) :: Kx,qmass
+        double precision, dimension(6), intent(in) :: refpt
+        logical, intent(in) :: flagEntrance
+        double precision, pointer, dimension(:,:) :: pts
+        integer :: i
+        double precision :: gam,gambet(npt),gambet0,kstr(npt)
+        
+        
+        gambet0 = sqrt(refpt(6)**2-1.0d0)
+        print*, 'flagEntrance=',flagEntrance
+        
+        do i = 1, npt
+          gam = -refpt(6) - pts(6,i)
+          gambet(i) = sqrt(gam**2-1.0d0) 
+          kstr(i) = pts(7,i)/qmass*gambet0/gambet(i)*Kx
+        end do
+        do i = 1, npt
+          pts(1,i) = pts(1,i)*Scxl
+          pts(3,i) = pts(3,i)*Scxl
+          pts(2,i) = pts(2,i)/gambet(i)
+          pts(4,i) = pts(4,i)/gambet(i)
+        end do
+   
+        if (flagEntrance) then
+          kstr=-kstr/(24d0*nSteps)
+        else
+          kstr = kstr/(24d0*nSteps)
+        endif
+        do i=1, nSteps
+          call  monomial_maps2D(npt,pts,     kstr,3,1,0,0)
+          call  monomial_maps2D(npt,pts,    -kstr,0,0,3,1)
+          call  monomial_maps2D(npt,pts, 3d0*kstr,1,1,2,0)
+          call  monomial_maps2D(npt,pts,-6d0*kstr,2,0,1,1)
+          call  monomial_maps2D(npt,pts, 3d0*kstr,1,1,2,0)
+          call  monomial_maps2D(npt,pts,    -kstr,0,0,3,1)
+          call  monomial_maps2D(npt,pts,     kstr,3,1,0,0)
+        end do
+        !kstr = kstr/(12d0*nSteps)
+        !do i=1, nSteps
+        !  call  monomial_maps2D(npt,pts, kstr,3,1,0,0)
+        !  call  monomial_maps2D(npt,pts,-kstr,0,0,3,1)
+        !  call  monomial_maps2D(npt,pts, 3*kstr,1,1,2,0)
+        !  call  monomial_maps2D(npt,pts,-3*kstr,2,0,1,1)
+        !end do
+        
+        
+        do i = 1, npt
+          pts(1,i) = pts(1,i)/Scxl
+          pts(3,i) = pts(3,i)/Scxl
+          pts(2,i) = pts(2,i)*gambet(i)
+          pts(4,i) = pts(4,i)*gambet(i)
+        end do
+        
+        end subroutine HardEdgeQuadFringeMap
+        
       end module Quadrupoleclass

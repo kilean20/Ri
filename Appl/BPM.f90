@@ -371,21 +371,22 @@
         !drange(5); phase advance across the arc (2pi)
         !gam; relativistic gamma factor for design particle
         !mass; mass in eV/c^2
-        subroutine kick_phaseadvance(Pts1,innp,L,muNLI,muArc,gam,mass)
+        subroutine kick_phaseadvance(Pts1,innp,L,muNLI,muArc_x,muArc_y,gam,mass)
         implicit none
         include 'mpif.h'
         integer, intent(in) :: innp
         double precision, pointer, dimension(:,:) :: Pts1
-        double precision:: L,muNLI,muArc
+        double precision, intent(in):: L,muNLI,muArc_x,muArc_y
 !        double precision, intent(in) :: L,muNLI,muArc
         double precision, intent(in) :: gam,mass
         integer :: i
-        double precision :: gambet0,m11,m12,m21,m22,psi,u
+        double precision :: gambet0,mx11,mx12,mx21,mx22,my11,my12,my21,my22,psi,ux,uy
         double precision:: x0,px0,y0,py0,p_p0
 
         gambet0 = sqrt(gam**2-1.0d0)
         psi = 2.0d0*pi*muNLI
-        u = 2.0d0*pi*muArc
+        ux = 2.0d0*pi*muArc_x
+        uy = 2.0d0*pi*muArc_y
 !  Test only
 !        gambet0 = 7.304823257567683d-2
 !        Scxl = 1.59044838641231d0
@@ -395,16 +396,27 @@
 !        psi = 1.9066303504082995d0
 !        pi = 4.0d0*datan(1.0d0)
 
-        if(u.eq.0.0d0) then
-          m11 = 1.0d0
-          m12 = 0.0d0
-          m21 = -4.0d0/L*(dsin(pi*muNLI))**2
-          m22 = 1.0d0
+        if(ux.eq.0.0d0) then
+          mx11 = 1.0d0
+          mx12 = 0.0d0
+          mx21 = -4.0d0/L*(dsin(pi*muNLI))**2
+          mx22 = 1.0d0
         else
-          m11 = dcos(u+psi/2.0d0)/dcos(psi/2.0d0)
-          m12 = L*dsin(u)/dsin(psi)
-          m21 = -2.0d0/L*dsin(u+psi)*dtan(psi/2.0d0)
-          m22 = dcos(u+psi/2.0d0)/dcos(psi/2.0d0)
+          mx11 = dcos(ux+psi/2.0d0)/dcos(psi/2.0d0)
+          mx12 = L*dsin(ux)/dsin(psi)
+          mx21 = -2.0d0/L*dsin(ux+psi)*dtan(psi/2.0d0)
+          mx22 = dcos(ux+psi/2.0d0)/dcos(psi/2.0d0)
+        endif
+        if(uy.eq.0.0d0) then
+          my11 = 1.0d0
+          my12 = 0.0d0
+          my21 = -4.0d0/L*(dsin(pi*muNLI))**2
+          my22 = 1.0d0
+        else
+          my11 = dcos(uy+psi/2.0d0)/dcos(psi/2.0d0)
+          my12 = L*dsin(uy)/dsin(psi)
+          my21 = -2.0d0/L*dsin(uy+psi)*dtan(psi/2.0d0)
+          my22 = dcos(uy+psi/2.0d0)/dcos(psi/2.0d0)
         endif
 
         !print*, 'gambet0,kx,ky:',gambet0,kxfoc,kyfoc
@@ -421,10 +433,10 @@
             py0 = Pts1(4,i)
             !<<<<<<<<<<<<<<< p_p0 factor (Kilean) <<<<<<<<<<<<<<<<
             p_p0 = sqrt((gam-Pts1(6,i))**2-1.0d0)/gambet0
-            Pts1(1,i) = m11*x0 + m12/p_p0*px0/(gambet0*Scxl)
-            Pts1(2,i) = m21*x0*p_p0*gambet0*Scxl + m22*px0
-            Pts1(3,i) = m11*y0 + m12/p_p0*py0/(gambet0*Scxl)
-            Pts1(4,i) = m21*y0*p_p0*gambet0*Scxl + m22*py0
+            Pts1(1,i) = mx11*x0 + mx12/p_p0*px0/(gambet0*Scxl)
+            Pts1(2,i) = mx21*x0*p_p0*gambet0*Scxl + mx22*px0
+            Pts1(3,i) = my11*y0 + my12/p_p0*py0/(gambet0*Scxl)
+            Pts1(4,i) = my21*y0*p_p0*gambet0*Scxl + my22*py0
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         enddo
 

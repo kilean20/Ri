@@ -138,7 +138,6 @@ subroutine getLossInfo(PipeInfo,x,y,z,&
       else
         pipe_r0 = (pipe_x1*(z-pipe_z0) + pipe_x0*(pipe_z1-z))/(pipe_z1-pipe_z0)
         pipe_r1 = (pipe_y1*(z-pipe_z0) + pipe_y0*(pipe_z1-z))/(pipe_z1-pipe_z0)
-        print*,'!!!Here!!',z,pipe_r0,pipe_r1
         if( ((x/pipe_r0)**2 + (y/pipe_r1)**2) >= 1.0) then
           flagLost = .True.
         endif

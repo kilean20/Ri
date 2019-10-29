@@ -888,7 +888,7 @@
             flagExternalPipe = .True.
           endif
 
-        enddo
+        end do
       
       !<<<<<<<<<<<<<<<<< prepare particle lost (Kilean) <<<<<<<<<<<<<<<<
       nlost = 0
@@ -902,6 +902,7 @@
         if(iturn == 2) then
           circumference = z
         endif
+        !if(myid==0) print*, 'circumference=',circumference
         tmpfile = 0
         bitypeold = 0
         blengthold = 0.0d0
@@ -1064,6 +1065,16 @@
                                       ,dparam(5),int(dparam(6),8),int(dparam(7),8))
           endif
 !>>>>>>>>>>>>>>>>>>>>>>> end of TBToutput >>>>>>>>>>>>>>>>>>>>>>>>>>>
+!<<<<<<<<<<<<<<<< Hard-Edge Quad FringeField(Kilean) <<<<<<<<<<<<<<<<
+          if(bitype.eq.-31) then
+            call getparam_BeamLineElem(Blnelem(i),dparam)
+            if(dparam(3)==0.0)then
+              call HardEdgeQuadFringeMap(.True.,dparam(2),bmpstp,Bpts%refptcl,Bpts%Nptlocal,Bpts%Pts1,Bpts%Charge/Bpts%Mass)
+            else
+              call HardEdgeQuadFringeMap(.False.,dparam(2),bmpstp,Bpts%refptcl,Bpts%Nptlocal,Bpts%Pts1,Bpts%Charge/Bpts%Mass)
+            endif
+          endif
+!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
           if(bitype.eq.-2) then
             !call phase_Output(bmpstp,Bpts)
             !call phaseleda_Output(bmpstp,Bpts)
@@ -1221,7 +1232,7 @@
             !drange(5); phase advance/2pi across arc
             call getparam_BeamLineElem(Blnelem(i),drange)
             call kick_phaseadvance(Bpts%Pts1,Nplocal,drange(3),drange(4),&
-                         drange(5),-Bpts%refptcl(6),Bpts%Mass)
+                         drange(5),drange(6),-Bpts%refptcl(6),Bpts%Mass)                      
           else if(bitype.eq.-47)then
             !Apply zero-length 4D phase advance rotation
             !here, drange(3:8) stores the amount of shift.
@@ -1261,7 +1272,7 @@
                 Bpts%Pts1(6,ii) = Bpts%Pts1(6,ii) - &
                                 ezamp*ezlaser*cos(rklaser*ss*csiglaser)
               endif
-            enddo
+            end do
           else if(bitype.eq.5)then
            qmass = Bpts%Charge/Bpts%Mass
            call kickmultthinK(Blnelem(i)%pmult,Bpts%refptcl,&
@@ -1345,7 +1356,7 @@
                 Bpts%Pts1(4,ipt) = ptarry(4)
                 Bpts%Pts1(5,ipt) = ptarry(5)
                 Bpts%Pts1(6,ipt) = ptarry(6)
-              enddo
+              end do
               call Fpol_Dipole(hd0,hF,tanphiF,tanphiFb,hd1,&
                                  psi1,Bpts%Pts1,angF,Nplocal)
               angz = 0.0
@@ -1409,7 +1420,7 @@
               pp(18)=0.d0
               pp(19)=0.d0 ! axial rotation angle ("TILT" in MAD) [this feature untested]
               pp(20)=1. ! linear order
-!              pp(20)=3.  ! 3rd order 
+              !pp(20)=3.  ! 3rd order 
               pp(21)=1. ! slices
 !
 ! jslice=present slice number; nslices=total number of slices,
@@ -1425,7 +1436,7 @@
 ! Track particles through the map:
               ntaysym=1 !ntaysym=1 for taylor, =2 for symplectic
               norder=1  !order of tracking (1=linear, ..., 5=5th order nonlinear)
-!              norder=3  !3rd order !<<kilean>>
+              !norder=5  !3rd order !<<kilean>>
               ntrace=1  !number of times to apply the map
             endif
 
@@ -1472,7 +1483,7 @@
                 gambetz = sqrt((gamn**2-1)/(1+ptarry(2)**2+ptarry(4)**2))
                 Bpts%Pts1(2,ipt) = ptarry(2)*gambetz
                 Bpts%Pts1(4,ipt) = ptarry(4)*gambetz
-              enddo
+              end do
               else if(dparam(4).gt.300) then
                 jslice = j
                 ihalf=1
@@ -1563,7 +1574,7 @@
                   if(ptrange(6).le.Bpts%Pts1(5,ipt)) then
                     ptrange(6) = Bpts%Pts1(5,ipt)
                   endif
-                enddo
+                end do
               endif
               !fix the global range for sub-cycle of space charge potential.
               if(Flagsubstep.eq.1) then
