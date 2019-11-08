@@ -13185,8 +13185,6 @@ end subroutine
     
     call MPI_COMM_RANK(MPI_COMM_WORLD,myid,i)
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,i)
-    
-    print*, 'myid,zscale,pzscale,xmu5,xmu6=',myid,zscale,pzscale,xmu5,xmu6
     avgpts = BB%Npt/nproc
     nleft = BB%Npt - avgpts*nproc
     if(myid.lt.nleft) then
@@ -13234,7 +13232,7 @@ end subroutine
     sig6 = sigpz*pzscale
     sq56=sqrt(1.-muzpz*muzpz)
 
-    do i = i, avgpts
+    do i = 1, avgpts
       call random_number(U)
       if(U(1).eq.0.0) U(1) = 1.0e-18
       p       = sqrt(-2.0*log(U(1)))*cos(twopi*U(2))
