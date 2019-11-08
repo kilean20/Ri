@@ -13185,6 +13185,8 @@ end subroutine
     
     call MPI_COMM_RANK(MPI_COMM_WORLD,myid,i)
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,i)
+    
+    print*, 'myid,zscale,pzscale,xmu5,xmu6=',myid,zscale,pzscale,xmu5,xmu6
     avgpts = BB%Npt/nproc
     nleft = BB%Npt - avgpts*nproc
     if(myid.lt.nleft) then
