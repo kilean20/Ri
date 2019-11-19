@@ -849,7 +849,7 @@
         double precision, dimension(6), intent(inout) :: coord
         double precision :: root,dX,dY,dT,delta
         integer:: exactflag
-        exactflag = 1    !Default to 0 for linearized drift step
+        exactflag = 3    !Default to 0 for linearized drift step
         if(exactflag==1) then
 !   Exact drift (6D) - H is exact
 !    (This case has NOT yet been carefully benchmarked)
