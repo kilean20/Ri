@@ -13172,14 +13172,14 @@ end subroutine
     integer, intent(in) :: nparam
     double precision, dimension(nparam) :: distparam
     integer :: nproc,avgpts,nleft,myid,i
-    double precision  :: beta,betap,emittanceCut
+    double precision  :: beta,alpha,emittanceCut
     double precision  :: xHat(4),xMax,U(2),newH,bg,trialH,newHxy,p,p_theta
     double precision  :: offset1,offset2,offset3,offset4,offset5,offset6
     double precision  :: sigz,sigpz,muzpz,rootz,scale5,scale6
     integer, parameter :: x_=1,px_=2,y_=3,py_=4
     
     beta = distparam(3)
-    betap = distparam(4)
+    alpha = distparam(4)
     emittanceCut = distparam(5)
     
     call MPI_COMM_RANK(MPI_COMM_WORLD,myid,i)
@@ -13217,8 +13217,8 @@ end subroutine
       xHat(py_) = p*sin(p_theta)
       BB%Pts1(x_,i) = xHat(x_)*sqrt(beta)/Scxl
       BB%Pts1(y_,i) = xHat(y_)*sqrt(beta)/Scxl
-      BB%Pts1(px_,i) = (xHat(px_) + 0.5d0*betap*xHat(x_))/sqrt(beta)*bg
-      BB%Pts1(py_,i) = (xHat(py_) + 0.5d0*betap*xHat(y_))/sqrt(beta)*bg
+      BB%Pts1(px_,i) = (xHat(px_) - alpha*xHat(x_))/sqrt(beta)*bg
+      BB%Pts1(py_,i) = (xHat(py_) - alpha*xHat(y_))/sqrt(beta)*bg
       BB%Pts1(9,i) = i
     enddo
     BB%Pts1(7,:) = BB%Charge/BB%mass
@@ -13317,14 +13317,14 @@ end subroutine
     distIOTA_secant_method = p
   end function distIOTA_secant_method
   
-  subroutine distIOTA_genP_gaussian(self,BB,beta,betap,emittance,cutoff,&
+  subroutine distIOTA_genP_gaussian(self,BB,beta,alpha,emittance,cutoff,&
                                     sigz,sigpz,muzpz,zscale,pzscale,xmu5,xmu6)
     !generate particle in synergia unit
     implicit none
     include 'mpif.h'
     class(distIOTA_class) :: self
     type(BeamBunch),intent(inout) :: BB
-    double precision, intent(in) :: beta,betap,emittance,cutoff,sigz,sigpz,muzpz,zscale,pzscale,xmu5,xmu6
+    double precision, intent(in) :: beta,alpha,emittance,cutoff,sigz,sigpz,muzpz,zscale,pzscale,xmu5,xmu6
     integer :: nproc,avgpts,nleft,myid,i
     double precision  :: xHat(4),xMax,U(2),newH,bg,trialH,newHxy,p,p_theta,sig5,sig6,sq56,twopi
     integer, parameter :: x_=1,px_=2,y_=3,py_=4
@@ -13367,8 +13367,8 @@ end subroutine
       xHat(py_) = p*sin(p_theta)
       BB%Pts1(x_,i) = xHat(x_)*sqrt(beta)/Scxl
       BB%Pts1(y_,i) = xHat(y_)*sqrt(beta)/Scxl
-      BB%Pts1(px_,i) = (xHat(px_) + 0.5d0*betap*xHat(x_))/sqrt(beta)*bg
-      BB%Pts1(py_,i) = (xHat(py_) + 0.5d0*betap*xHat(y_))/sqrt(beta)*bg
+      BB%Pts1(px_,i) = (xHat(px_) - alpha*xHat(x_))/sqrt(beta)*bg
+      BB%Pts1(py_,i) = (xHat(py_) - alpha*xHat(y_))/sqrt(beta)*bg
       BB%Pts1(9,i) = i
     enddo
     
