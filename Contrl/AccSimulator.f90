@@ -1419,8 +1419,8 @@
               pp(17)=0.d0
               pp(18)=0.d0
               pp(19)=0.d0 ! axial rotation angle ("TILT" in MAD) [this feature untested]
-              !pp(20)=1. ! linear order
-              pp(20)=3.  ! 3rd order 
+              pp(20)=1. ! linear order
+              !pp(20)=3.  ! 3rd order 
               pp(21)=1. ! slices
 !
 ! jslice=present slice number; nslices=total number of slices,
@@ -1435,8 +1435,8 @@
               slfrac=slfrac*0.5d0  !cut each slice in half, do sc kick in the middle
 ! Track particles through the map:
               ntaysym=1 !ntaysym=1 for taylor, =2 for symplectic
-              !norder=1  ! order of tracking (1=linear, ..., 5=5th order nonlinear)
-              norder=5  ! 3rd order !<<kilean>>
+              norder=1  ! order of tracking (1=linear, ..., 5=5th order nonlinear)
+              !norder=5  ! 3rd order !<<kilean>>
               ntrace=1  !number of times to apply the map
             endif
 

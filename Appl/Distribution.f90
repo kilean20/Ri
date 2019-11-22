@@ -157,6 +157,8 @@
           call distIOTA_gaussian(this,nparam,distparam)
         else if(flagdist.eq.102) then
           call Gauss3_Dist_trunc(this,nparam,distparam,grid,0)
+        else if(flagdist.eq.103) then
+          call Thermal2_Dist_trunc(this,nparam,distparam)
         !>>>>>>>>>>>>>>>>>> Kilean >>>>>>>>>>>>>>>>>>>>>>>
         else
           print*,"Initial distribution not available!!"
@@ -1025,7 +1027,7 @@
         end subroutine Gauss3_Dist
         
         
-        !<<<<<<< Kilean, truncated Gaussian <<<<<<<
+        !<<<<<<< Kilean, truncated normal dist <<<<<<<
         subroutine Gauss3_Dist_trunc(this,nparam,distparam,grid,flagalloc)
         implicit none
         include 'mpif.h'
@@ -1139,6 +1141,150 @@
         t_kvdist = t_kvdist + elapsedtime_Timer(t0)
 
         end subroutine Gauss3_Dist_trunc
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        
+        
+        !<<<<<<< Kilean, secant method <<<<<<<<<<
+        double precision function secant_method(x0,emittance)
+            !secant method to find a maximum x0 of given emittance
+            implicit none
+            double precision, intent(in) :: x0,emittance
+            double precision, parameter  :: tol=1.48d-8
+            integer,parameter :: maxiter = 50
+            integer :: i
+            double precision :: p0,p1,p,q0,q1
+
+            p0 = x0
+            if (x0>=0) then
+              p1 = x0*1.0001d0 + 1d-4
+            else
+              p1 = x0*1.0001d0 - 1d-4
+            endif
+            q0 = emittance - 0.5*p0*p0 !func eval
+            q1 = emittance - 0.5*p1*p1
+            do i=1,maxiter
+              if (q1==q0) then
+                if (p1/=p0) then
+                  print*, 'Msg from [Distributionclass::secant_method] -> toloerance reached'
+                  secant_method = 0.5d0*(p1+p0)
+                  return
+                endif
+              else
+                p = p1 - q1*(p1 - p0)/(q1 - q0)
+              endif
+              if(abs(p - p1) < tol) then
+                secant_method = p
+                return
+              endif
+              p0 = p1
+              q0 = q1
+              p1 = p
+              q1 = emittance - 0.5*p1*p1
+            enddo
+            print*, 'Msg from [Distributionclass::secant_method] -> Failed to converge after maxiterations'
+            secant_method = p
+          end function secant_method
+        
+        !<<<<<<< Kilean, truncated normal dist <<<<<<<
+        subroutine Thermal2_Dist_trunc(BB,nparam,distparam)
+        implicit none
+        include 'mpif.h'
+        type (BeamBunch), intent(inout) :: BB
+        integer, intent(in) :: nparam
+        double precision, dimension(nparam) :: distparam
+        double precision :: betx,bety,alfx,alfy,emittance,cutoff,sigz,sigpz,muzpz,zscale,pzscale,xmu5,xmu6
+        integer :: nproc,avgpts,nleft,myid,i
+        double precision  :: xHat(4),xMax,U(2),newH,bg,trialH,newHxy,p,p_theta,sig5,sig6,sq56,twopi
+        integer, parameter :: x_=1,px_=2,y_=3,py_=4
+        double precision :: t0,x11,pid
+
+        call starttime_Timer(t0)
+
+        betx = distparam(1)
+        bety = distparam(2)
+        alfx = distparam(3)
+        alfy = distparam(4)
+        emittance = distparam(5)
+        cutoff = distparam(6)
+        sigz = distparam(15)
+        sigpz = distparam(16)
+        muzpz = distparam(17)
+        zscale = distparam(18)
+        pzscale = distparam(19)
+        xmu5 = distparam(20)
+        xmu6 = distparam(21)
+
+        call MPI_COMM_RANK(MPI_COMM_WORLD,myid,i)
+        call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,i)
+        avgpts = BB%Npt/nproc
+        nleft = BB%Npt - avgpts*nproc
+        if(myid.lt.nleft) then
+          avgpts = avgpts+1
+        endif
+        !if(allocated(BB%Pts1)) deallocate(BB%Pts1)
+        allocate(BB%Pts1(1:9,avgpts))
+        BB%Pts1 = 0d0
+        BB%Nptlocal = avgpts
+        bg = sqrt(BB%refptcl(6)**2 - 1d0)
+        do i=1,avgpts
+          xHat = 0d0
+          do
+            do
+              call random_number(U)
+              if(U(1)*U(2)>0) exit
+            enddo
+            trialH = -log(U(1)*U(2))
+            if (trialH < cutoff) exit
+          enddo
+          newH = emittance*trialH
+          xMax = secant_method(sqrt(newH), newH) 
+          do
+            call random_number(U)
+            xHat(x_) = 2d0*(0.5d0-U(1))*xMax
+            xHat(y_) = 2d0*(0.5d0-U(2))*xMax
+            newHxy = 0.5d0*sum(xHat*xHat)
+            if(newHxy < newH) exit
+          enddo
+          p = sqrt(2d0*(newH-newHxy))
+          call random_number(p_theta)
+          p_theta = 2.0*pi*p_theta
+          xHat(px_) = p*cos(p_theta)
+          xHat(py_) = p*sin(p_theta)
+          BB%Pts1(x_,i) = xHat(x_)*sqrt(betx)/Scxl
+          BB%Pts1(y_,i) = xHat(y_)*sqrt(bety)/Scxl
+          BB%Pts1(px_,i) = (xHat(px_) -alfx*xHat(x_))/sqrt(betx)*bg
+          BB%Pts1(py_,i) = (xHat(py_) -alfy*xHat(y_))/sqrt(bety)*bg
+          BB%Pts1(9,i) = i
+        enddo
+
+
+        twopi = 4.0*asin(1.0)
+        sig5 = sigz*zscale
+        sig6 = sigpz*pzscale
+        sq56=sqrt(1.-muzpz*muzpz)
+
+        do i = 1, avgpts
+          call random_number(U)
+          if(U(1).eq.0.0) U(1) = 1.0e-18
+          p       = sqrt(-2.0*log(U(1)))*cos(twopi*U(2))
+          p_theta = sqrt(-2.0*log(U(1)))*sin(twopi*U(2))
+
+          BB%Pts1(5,i) = xmu5 + sig5*p/sq56
+          BB%Pts1(6,i) = xmu6 + sig6*(-muzpz*p/sq56+p_theta)
+        enddo
+
+
+        BB%Pts1(7,:) = BB%Charge/BB%mass
+        BB%Pts1(8,:) = BB%Current/Scfreq/BB%Npt*BB%Charge/abs(BB%Charge)
+        if(myid.lt.nleft) then
+          BB%Pts1(9,i) = BB%Pts1(9,i) + myid*avgpts
+        else
+          BB%Pts1(9,i) = BB%Pts1(9,i) + myid*avgpts + nleft
+        endif
+       
+        t_kvdist = t_kvdist + elapsedtime_Timer(t0)
+
+        end subroutine Thermal2_Dist_trunc
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         
 
