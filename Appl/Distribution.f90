@@ -1192,9 +1192,9 @@
         type (BeamBunch), intent(inout) :: BB
         integer, intent(in) :: nparam
         double precision, dimension(nparam) :: distparam
-        double precision :: betx,bety,alfx,alfy,emittance,cutoff,sigz,sigpz,muzpz,zscale,pzscale,xmu5,xmu6
+        double precision :: betx,bety,alfx,alfy,emitx,emity,cutx,cuty,sigz,sigpz,muzpz,zscale,pzscale,xmu5,xmu6
         integer :: nproc,avgpts,nleft,myid,i
-        double precision  :: U(4),dummy1,dummy2,p,p_theta,sig5,sig6,sq56,twopi
+        double precision  :: U(4),dummy1,dummy2,p,p_theta,sig5,sig6,sq56,twopi,bg
         integer, parameter :: x_=1,px_=2,y_=3,py_=4
         double precision :: t0,x11,pid
 
