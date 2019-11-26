@@ -158,7 +158,7 @@
         else if(flagdist.eq.102) then
           call Gauss3_Dist_trunc(this,nparam,distparam,grid,0)
         else if(flagdist.eq.103) then
-          call Thermal2_Dist_trunc(this,nparam,distparam)
+          call Exponential2_Dist_trunc(this,nparam,distparam)
         !>>>>>>>>>>>>>>>>>> Kilean >>>>>>>>>>>>>>>>>>>>>>>
         else
           print*,"Initial distribution not available!!"
@@ -1186,7 +1186,7 @@
           end function secant_method
         
         !<<<<<<< Kilean, truncated normal dist <<<<<<<
-        subroutine Thermal2_Dist_trunc(BB,nparam,distparam)
+        subroutine Exponential2_Dist_trunc(BB,nparam,distparam)
         implicit none
         include 'mpif.h'
         type (BeamBunch), intent(inout) :: BB
@@ -1194,18 +1194,22 @@
         double precision, dimension(nparam) :: distparam
         double precision :: betx,bety,alfx,alfy,emittance,cutoff,sigz,sigpz,muzpz,zscale,pzscale,xmu5,xmu6
         integer :: nproc,avgpts,nleft,myid,i
-        double precision  :: xHat(4),xMax,U(2),newH,bg,trialH,newHxy,p,p_theta,sig5,sig6,sq56,twopi
+        double precision  :: U(4),dummy1,dummy2,p,p_theta,sig5,sig6,sq56,twopi
         integer, parameter :: x_=1,px_=2,y_=3,py_=4
         double precision :: t0,x11,pid
 
         call starttime_Timer(t0)
 
         betx = distparam(1)
-        bety = distparam(2)
-        alfx = distparam(3)
-        alfy = distparam(4)
-        emittance = distparam(5)
-        cutoff = distparam(6)
+        alfx = distparam(2)
+        emitx= distparam(3)
+        cutx = distparam(4)
+        
+        bety = distparam(8)
+        alfy = distparam(9)
+        emity= distparam(10)
+        cuty = distparam(11)
+        
         sigz = distparam(15)
         sigpz = distparam(16)
         muzpz = distparam(17)
@@ -1226,51 +1230,35 @@
         BB%Pts1 = 0d0
         BB%Nptlocal = avgpts
         bg = sqrt(BB%refptcl(6)**2 - 1d0)
+        dummy1 = 1d0-exp(-cutx)
+        dummy2 = 1d0-exp(-cuty)
+        twopi = 4d0*asin(1d0)
         do i=1,avgpts
-          xHat = 0d0
-          do
-            do
-              call random_number(U)
-              if(U(1)*U(2)>0) exit
-            enddo
-            trialH = -log(U(1)*U(2))
-            if (trialH < cutoff) exit
-          enddo
-          newH = emittance*trialH
-          xMax = secant_method(sqrt(newH), newH) 
-          do
-            call random_number(U)
-            xHat(x_) = 2d0*(0.5d0-U(1))*xMax
-            xHat(y_) = 2d0*(0.5d0-U(2))*xMax
-            newHxy = 0.5d0*sum(xHat*xHat)
-            if(newHxy < newH) exit
-          enddo
-          p = sqrt(2d0*(newH-newHxy))
-          call random_number(p_theta)
-          p_theta = 2.0*pi*p_theta
-          xHat(px_) = p*cos(p_theta)
-          xHat(py_) = p*sin(p_theta)
-          BB%Pts1(x_,i) = xHat(x_)*sqrt(betx)/Scxl
-          BB%Pts1(y_,i) = xHat(y_)*sqrt(bety)/Scxl
-          BB%Pts1(px_,i) = (xHat(px_) -alfx*xHat(x_))/sqrt(betx)*bg
-          BB%Pts1(py_,i) = (xHat(py_) -alfy*xHat(y_))/sqrt(bety)*bg
+          call random_number(U)
+          U(1) = -log(1d0-dummy1*U(1))*emitx*2d0
+          U(2) = -log(1d0-dummy2*U(2))*emity*2d0
+          U(3) = twopi*U(3)
+          U(4) = twopi*U(4)
+          BB%Pts1(x_,i) = sqrt(U(1)*betx)*cos(U(3))/Scxl
+          BB%Pts1(y_,i) = sqrt(U(2)*bety)*cos(U(4))/Scxl
+          BB%Pts1(px_,i) = -sqrt(U(1)/betx)*(sin(U(3))+alfx*cos(U(3)))*bg
+          BB%Pts1(py_,i) = -sqrt(U(2)/bety)*(sin(U(4))+alfy*cos(U(4)))*bg
           BB%Pts1(9,i) = i
         enddo
 
 
-        twopi = 4.0*asin(1.0)
         sig5 = sigz*zscale
         sig6 = sigpz*pzscale
         sq56=sqrt(1.-muzpz*muzpz)
 
         do i = 1, avgpts
-          call random_number(U)
+          call random_number(U(1:2))
           if(U(1).eq.0.0) U(1) = 1.0e-18
-          p       = sqrt(-2.0*log(U(1)))*cos(twopi*U(2))
-          p_theta = sqrt(-2.0*log(U(1)))*sin(twopi*U(2))
+          dummy1 = sqrt(-2.0*log(U(1)))*cos(twopi*U(2))
+          dummy2 = sqrt(-2.0*log(U(1)))*sin(twopi*U(2))
 
-          BB%Pts1(5,i) = xmu5 + sig5*p/sq56
-          BB%Pts1(6,i) = xmu6 + sig6*(-muzpz*p/sq56+p_theta)
+          BB%Pts1(5,i) = xmu5 + sig5*dummy1/sq56
+          BB%Pts1(6,i) = xmu6 + sig6*(-muzpz*dummy1/sq56+dummy2)
         enddo
 
 
@@ -1284,7 +1272,7 @@
        
         t_kvdist = t_kvdist + elapsedtime_Timer(t0)
 
-        end subroutine Thermal2_Dist_trunc
+        end subroutine Exponential2_Dist_trunc
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         
 
