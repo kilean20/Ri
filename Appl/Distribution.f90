@@ -1219,12 +1219,23 @@
         xmu6 = distparam(21)
 
         call MPI_COMM_RANK(MPI_COMM_WORLD,myid,i)
+        
+        if(myid==1) then 
+            print*, 'distparam(1:4)',distparam(1:4)
+            print*, 'distparam(8:11)',distparam(8:11)
+            print*, 'distparam(15:21)',distparam(15:21)
+            print*, 'exp(-cutx),exp(-cuty)',exp(-cutx),exp(-cuty)
+        endif
+        
         call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,i)
         avgpts = BB%Npt/nproc
+        
         nleft = BB%Npt - avgpts*nproc
         if(myid.lt.nleft) then
           avgpts = avgpts+1
         endif
+        
+        print*, 'myid,BB%Npt,nproc,avgpts',myid,BB%Npt,nproc,avgpts
         !if(allocated(BB%Pts1)) deallocate(BB%Pts1)
         allocate(BB%Pts1(1:9,avgpts))
         BB%Pts1 = 0d0
