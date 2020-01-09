@@ -1434,7 +1434,7 @@
               slfrac=1.d0/nslices
               slfrac=slfrac*0.5d0  !cut each slice in half, do sc kick in the middle
 ! Track particles through the map:
-              ntaysym=1 !ntaysym=1 for taylor, =2 for symplectic
+              ntaysym=2 !ntaysym=1 for taylor, =2 for symplectic
               !norder=1  ! order of tracking (1=linear, ..., 5=5th order nonlinear)
               norder=5  ! 3rd order !<<kilean>>
               ntrace=1  !number of times to apply the map
