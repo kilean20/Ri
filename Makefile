@@ -8,9 +8,12 @@ NODE := $(shell uname -n | cut -c1-4)
 ifeq ($(NODE),cori)
 	CC = ftn
 	LINK = ftn
-	cOUT = Contrl/hdf5io_class.o Contrl/hdf5interface_class.o Contrl/Output.h5.o
-	OUT  = hdf5io_class.o hdf5interface_class.o Output.h5.o
-  FFLAGS = -fopenmp -O3 -free -r8
+	cOUT = Contrl/Output.o
+	OUT  = Output.o
+	#cOUT = Contrl/hdf5io_class.o Contrl/hdf5interface_class.o Contrl/Output.h5.o
+	#OUT  = hdf5io_class.o hdf5interface_class.o Output.h5.o
+  #FFLAGS = -fopenmp -O3 -free -r8
+  FFLAGS = -O3
 else
 	CC = mpifort 
 	LINK = mpifort
