@@ -686,7 +686,6 @@
         
         
         gambet0 = sqrt(refpt(6)**2-1.0d0)
-        print*, 'flagEntrance=',flagEntrance
         
         do i = 1, npt
           gam = -refpt(6) - pts(6,i)
