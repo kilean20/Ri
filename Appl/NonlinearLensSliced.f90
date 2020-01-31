@@ -1,6 +1,6 @@
 !----------------------------------------------------------------
 ! (c) Copyright, 2001 by the Regents of the University of California.
-! NonlinearLensclass: Nonlinear lens beam line element class
+! NonlinearLensSlicedclass: Nonlinear lens beam line element class
 !             in Lattice module of APPLICATION layer.
 ! Version: 1.0
 ! Author: Ji Qiang, Robert Ryne, LANL, 7/13/01
@@ -8,16 +8,16 @@
 !              for the nonlinear lens beam line elment.
 ! Comments:
 !----------------------------------------------------------------
-      module NonlinearLensclass
+      module NonlinearLensSlicedclass
         use PhysConstclass
         use Dataclass
         use Utilityclass
-!        use Multipoleclass, only: NonlinearLensPropagatorCmplx, &
-!             NonlinearLensPropagator
+!        use Multipoleclass, only: NonlinearLensSlicedSlicedPropagatorCmplx, &
+!             NonlinearLensSlicedSlicedPropagator
         use Multipoleclass
-        integer, private, parameter :: Nparam = 10
-        type NonlinearLens
-          !Itype = 6
+        integer, private, parameter :: Nparam = 12
+        type NonlinearLensSliced
+          !Itype = 7
           integer :: Nseg,Mapstp,Itype
           double precision :: Length
           double precision, dimension(Nparam) :: Param
@@ -25,26 +25,28 @@
           !      (2) : tn dimensionless strength of NL lens 
           !      (3) : cn dimensional parameter of NL lens
           !      (4) : phase advance across NL lens
-          !      (5) : radius
-          !      (6) : x misalignment error
-          !      (7) : y misalignment error
-          !      (8) : rotation error x
-          !      (9) : rotation error y
-          !      (10) : rotation error z
-        end type NonlinearLens
-        interface getparam_NonlinearLens
-          module procedure getparam1_NonlinearLens,  &
-                          getparam2_NonlinearLens,   &
-                          getparam3_NonlinearLens
+          !      (5) : total length across NL lens
+          !      (6) : starting point relative to the entrance
+          !      (7) : radius
+          !      (8) : x misalignment error
+          !      (9) : y misalignment error
+          !      (10) : rotation error x
+          !      (11) : rotation error y
+          !      (12) : rotation error z
+        end type NonlinearLensSliced
+        interface getparam_NonlinearLensSliced
+          module procedure getparam1_NonlinearLensSliced,  &
+                          getparam2_NonlinearLensSliced,   &
+                          getparam3_NonlinearLensSliced
         end interface
-        interface setparam_NonlinearLens
-          module procedure setparam1_NonlinearLens,  &
-                          setparam2_NonlinearLens, setparam3_NonlinearLens
+        interface setparam_NonlinearLensSliced
+          module procedure setparam1_NonlinearLensSliced,  &
+                          setparam2_NonlinearLensSliced, setparam3_NonlinearLensSliced
         end interface
       contains
-        subroutine construct_NonlinearLens(this,numseg,nmpstp,type,blength)
+        subroutine construct_NonlinearLensSliced(this,numseg,nmpstp,type,blength)
         implicit none
-        type (NonlinearLens), intent(out) :: this
+        type (NonlinearLensSliced), intent(out) :: this
         integer, intent(in) :: numseg,nmpstp,type
         double precision, intent(in) :: blength
         
@@ -52,33 +54,32 @@
         this%Mapstp = nmpstp
         this%Itype = type
         this%Length = blength
-
         this%Param = 0.0
 
-        end subroutine construct_NonlinearLens
+        end subroutine construct_NonlinearLensSliced
    
-        subroutine setparam1_NonlinearLens(this,i,value)
+        subroutine setparam1_NonlinearLensSliced(this,i,value)
         implicit none
-        type (NonlinearLens), intent(inout) :: this
+        type (NonlinearLensSliced), intent(inout) :: this
         integer, intent(in) :: i
         double precision, intent(in) :: value
 
         this%Param(i) = value
 
-        end subroutine setparam1_NonlinearLens
+        end subroutine setparam1_NonlinearLensSliced
 
-        subroutine setparam2_NonlinearLens(this,values)
+        subroutine setparam2_NonlinearLensSliced(this,values)
         implicit none
-        type (NonlinearLens), intent(inout) :: this
+        type (NonlinearLensSliced), intent(inout) :: this
         double precision, dimension(:), intent(in) :: values
 
         this%Param = values
 
-        end subroutine setparam2_NonlinearLens
+        end subroutine setparam2_NonlinearLensSliced
 
-        subroutine setparam3_NonlinearLens(this,numseg,nmpstp,type,blength)
+        subroutine setparam3_NonlinearLensSliced(this,numseg,nmpstp,type,blength)
         implicit none
-        type (NonlinearLens), intent(inout) :: this
+        type (NonlinearLensSliced), intent(inout) :: this
         integer, intent(in) :: numseg,nmpstp,type
         double precision, intent(in) :: blength
         
@@ -87,31 +88,31 @@
         this%Itype = type
         this%Length = blength
 
-        end subroutine setparam3_NonlinearLens
+        end subroutine setparam3_NonlinearLensSliced
    
-        subroutine getparam1_NonlinearLens(this,i,blparam) 
+        subroutine getparam1_NonlinearLensSliced(this,i,blparam) 
         implicit none 
-        type (NonlinearLens), intent(in) :: this
+        type (NonlinearLensSliced), intent(in) :: this
         integer, intent(in) :: i
         double precision, intent(out) :: blparam
 
         blparam = this%Param(i)
 
-        end subroutine getparam1_NonlinearLens
+        end subroutine getparam1_NonlinearLensSliced
   
-        subroutine getparam2_NonlinearLens(this,blparams)
+        subroutine getparam2_NonlinearLensSliced(this,blparams)
         implicit none
-        type (NonlinearLens), intent(in) :: this
+        type (NonlinearLensSliced), intent(in) :: this
         double precision, dimension(:), intent(out) :: blparams
 
         blparams = this%Param
 
-        end subroutine getparam2_NonlinearLens
+        end subroutine getparam2_NonlinearLensSliced
 
-        subroutine getparam3_NonlinearLens(this,blength,bnseg,bmapstp,&
+        subroutine getparam3_NonlinearLensSliced(this,blength,bnseg,bmapstp,&
                                        btype)
         implicit none
-        type (NonlinearLens), intent(in) :: this
+        type (NonlinearLensSliced), intent(in) :: this
         double precision, intent(out) :: blength
         integer, intent(out) :: bnseg,bmapstp,btype
 
@@ -120,15 +121,17 @@
         bmapstp = this%Mapstp
         btype = this%Itype
 
-        end subroutine getparam3_NonlinearLens
+        end subroutine getparam3_NonlinearLensSliced
        
-        subroutine maplinear_NonlinearLens(t,tau,xm,this,refpt,Bchg,Bmass)
+       
+       
+        subroutine maplinear_NonlinearLensSliced(t,tau,xm,this,refpt,Bchg,Bmass)
         implicit none
         include 'mpif.h'
         double precision, intent(in) :: t,tau,Bchg,Bmass
         double precision, dimension(6,6), intent(out) :: xm
         double precision, dimension(6), intent(inout) :: refpt
-        type (NonlinearLens), intent(in) :: this
+        type (NonlinearLensSliced), intent(in) :: this
         double precision, dimension(18) :: y
         double precision :: h,t0,gi,betai,ui,squi,sqi3
         double precision :: dlti,thli,gf,betaf,uf,squf,sqf3
@@ -169,7 +172,7 @@
         dlti=0.0
         thli=0.0
 
-        call rk6i_NonlinearLens(h,mpstp,t0,y,18,this,Bchg,Bmass)
+        call rk6i_NonlinearLensSliced(h,mpstp,t0,y,18,this,Bchg,Bmass)
 
         refpt(5)=y(5)
         refpt(6)=y(6)
@@ -200,67 +203,67 @@
         xm(5,6)= y(17)/(sqi3*sqf3)
         xm(6,6)=(y(18)-y(17)*thlf)*sqf3/sqi3
 
-        end subroutine maplinear_NonlinearLens
+        end subroutine maplinear_NonlinearLensSliced
 
-        subroutine rk6i_NonlinearLens(h,ns,t,y,nvar,this,Bchg,Bmass)
+        subroutine rk6i_NonlinearLensSliced(h,ns,t,y,nvar,this,Bchg,Bmass)
         implicit none
         include 'mpif.h'
         integer, intent(in) :: ns,nvar
         double precision, intent(inout) :: t
         double precision, intent(in) :: h,Bchg,Bmass
         double precision, dimension(nvar), intent(inout) :: y
-        type (NonlinearLens), intent(in) :: this
+        type (NonlinearLensSliced), intent(in) :: this
         double precision, dimension(nvar) :: yt,a,b,c,d,e,f,g,o,p 
         double precision:: tint,tt
         integer :: i
         tint=t
         do i=1,ns
-          call intfunc1_NonlinearLens(t,y,f,this,Bchg,Bmass)
+          call intfunc1_NonlinearLensSliced(t,y,f,this,Bchg,Bmass)
           a=h*f
           yt=y+a/9.d0
           tt=t+h/9.d0
-          call intfunc1_NonlinearLens(tt,yt,f,this,Bchg,Bmass)
+          call intfunc1_NonlinearLensSliced(tt,yt,f,this,Bchg,Bmass)
           b=h*f
           yt=y + (a + 3.d0*b)/24.d0
           tt=t+h/6.d0
-          call intfunc1_NonlinearLens(tt,yt,f,this,Bchg,Bmass)
+          call intfunc1_NonlinearLensSliced(tt,yt,f,this,Bchg,Bmass)
           c=h*f
           yt=y+(a-3.d0*b+4.d0*c)/6.d0
           tt=t+h/3.d0
-          call intfunc1_NonlinearLens(tt,yt,f,this,Bchg,Bmass)
+          call intfunc1_NonlinearLensSliced(tt,yt,f,this,Bchg,Bmass)
           d=h*f
           yt=y + (278.d0*a - 945.d0*b + 840.d0*c + 99.d0*d)/544.d0
           tt=t+.5d0*h
-          call intfunc1_NonlinearLens(tt,yt,f,this,Bchg,Bmass)
+          call intfunc1_NonlinearLensSliced(tt,yt,f,this,Bchg,Bmass)
           e=h*f
           yt=y + (-106.d0*a+273.d0*b-104.d0*c-107.d0*d+48.d0*e)/6.d0
           tt = t+2.d0*h/3.d0
-          call intfunc1_NonlinearLens(tt,yt,f,this,Bchg,Bmass)
+          call intfunc1_NonlinearLensSliced(tt,yt,f,this,Bchg,Bmass)
           g=h*f
           yt = y+(110974.d0*a-236799.d0*b+68376.d0*c+ &
                   103803.d0*d-10240.d0*e + 1926.d0*g)/45648.d0
           tt = t + 5.d0*h/6.d0
-          call intfunc1_NonlinearLens(tt,yt,f,this,Bchg,Bmass)
+          call intfunc1_NonlinearLensSliced(tt,yt,f,this,Bchg,Bmass)
           o=h*f
           yt = y+(-101195.d0*a+222534.d0*b-71988.d0*c-  &
                   26109.d0*d-2.d4*e-72.d0*g+22824.d0*o)/25994.d0
           tt = t + h
-          call intfunc1_NonlinearLens(tt,yt,f,this,Bchg,Bmass)
+          call intfunc1_NonlinearLensSliced(tt,yt,f,this,Bchg,Bmass)
           p=h*f
           y = y+(41.d0*a+216.d0*c+27.d0*d+ &
                  272.d0*e+27.d0*g+216.d0*o+41.d0*p)/840.d0
           t=tint+i*h
         enddo
 
-        end subroutine rk6i_NonlinearLens
+        end subroutine rk6i_NonlinearLensSliced
 
-        subroutine intfunc1_NonlinearLens(t,y,f,this,Bchg,Bmass)
+        subroutine intfunc1_NonlinearLensSliced(t,y,f,this,Bchg,Bmass)
         implicit none
         include 'mpif.h'
         double precision, intent(in) :: t,Bchg,Bmass
         double precision, dimension(:), intent(in) :: y
         double precision, dimension(:), intent(out) :: f
-        type (NonlinearLens), intent(in) :: this
+        type (NonlinearLensSliced), intent(in) :: this
         double precision :: gamma0,beta0,gbet
         double precision :: zedge,s11,s33,s55
 
@@ -297,13 +300,15 @@
         f(17)=y(18)/Scxl
         f(18)=-s55*y(17)
 
-        end subroutine intfunc1_NonlinearLens
+        end subroutine intfunc1_NonlinearLensSliced
+       
+       
 
-        subroutine  getfld_NonlinearLens(pos,extfld,this)
+        subroutine  getfld_NonlinearLensSliced(pos,extfld,this)
         implicit none
         include 'mpif.h'
         double precision, dimension(4), intent(in) :: pos
-        type (NonlinearLens), intent(in) :: this
+        type (NonlinearLensSliced), intent(in) :: this
         double precision, dimension(6), intent(out) :: extfld
         double precision:: zz,bgrad,zedge
 
@@ -314,15 +319,16 @@
         extfld(5) = 0.0
         extfld(6) = 0.0
 
-        end subroutine getfld_NonlinearLens
+        end subroutine getfld_NonlinearLensSliced
+
 
         !get external field with displacement and rotation errors.
-        subroutine  getflderr_NonlinearLens(pos,extfld,this,dx,dy,anglex,&
+        subroutine  getflderr_NonlinearLensSliced(pos,extfld,this,dx,dy,anglex,&
                                          angley,anglez)
         implicit none  
         include 'mpif.h'
         double precision, dimension(4), intent(in) :: pos
-        type (NonlinearLens), intent(in) :: this
+        type (NonlinearLensSliced), intent(in) :: this
         double precision, intent(in) :: dx,dy,anglex,angley,anglez
         double precision, dimension(6), intent(out) :: extfld
         double precision:: zz,bgrad,zedge
@@ -372,9 +378,10 @@
         extfld(5) = temp(1)*sin(anglez) + temp(2)*cos(anglez)
         extfld(6) = temp(3)
 
-        end subroutine getflderr_NonlinearLens
+        end subroutine getflderr_NonlinearLensSliced
 
-        subroutine propagator_NonlinearLens(t,tau,this,refpt,Nplc,pts,qmass)
+
+        subroutine propagator_NonlinearLensSliced(t,tau,this,refpt,Nplc,pts,qmass)
         implicit none
         include 'mpif.h'
         integer, intent(in) :: Nplc
@@ -383,7 +390,7 @@
         double precision, dimension(6), intent(inout) :: refpt
         double precision, dimension(6) :: coord
         double precision, dimension(6,Nplc) :: invariants
-        type (NonlinearLens), intent(in) :: this
+        type (NonlinearLensSliced), intent(in) :: this
         double precision, pointer, dimension(:,:) :: pts
         real*8 :: gambet0,zedge,tn,cn,bn,dn,mu0,f0,l0,sn, &
                   knll,cnll,b,d,beta0,ds,sedge,ds2,smid, &
@@ -392,11 +399,12 @@
         real*8 :: snf,bnf,anf,cnllf,knllf
         integer  :: i,j,nsg,mpstp,nn
                
-        zedge = this%Param(1)    !Location of NLL element entry
+        
+        zedge = this%Param(1)-this%Param(6)    !Location of NLL element entry
         tn = this%Param(2)       !Dimensionless strength of NLL
         cn = this%Param(3)       !Dimensional parameter of NLL
         mu0 = this%Param(4)      !Phase advance across NLL
-        l0 = this%Length         !Length of NLL element
+        l0 = this%Param(5)       !Length of NLL element
         nsg = this%Nseg          !Number of SC kicks
         mpstp = this%Mapstp      !Number of map steps/slice
         nn = (nsg+1)*mpstp       !Total number of NLL segments
@@ -455,43 +463,43 @@
             knllf=ds*tn*cn**2/bnf
             cnllf=cn*sqrt(bnf)
 !   Compute diagnostic quantities (temporarily added the "if" statement for speed)
-        if(abs(snf-smid)<1.0d-4) then
-            xn = coord(1)/cnllf
-            yn = coord(3)/cnllf
-            !<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<
-            !pxn = coord(2)*sqrt(bnf)/cn + anf*xn
-            !pyn = coord(4)*sqrt(bnf)/cn + anf*xn
-            pxn = coord(2)*sqrt(bnf)/cn/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2) + anf*xn
-            pyn = coord(4)*sqrt(bnf)/cn/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2) + anf*xn
+            if(abs(snf-smid)<1.0d-4) then
+              xn = coord(1)/cnllf
+              yn = coord(3)/cnllf
+              !<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<
+              !pxn = coord(2)*sqrt(bnf)/cn + anf*xn
+              !pyn = coord(4)*sqrt(bnf)/cn + anf*xn
+              pxn = coord(2)*sqrt(bnf)/cn/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2) + anf*xn
+              pyn = coord(4)*sqrt(bnf)/cn/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2) + anf*xn
+              
+              call InvariantPotentials(xn,yn,Hinv,Iinv)
+              !Hinv = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv
+              !Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv
             
-            call InvariantPotentials(xn,yn,Hinv,Iinv)
-            !Hinv = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv
-            !Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv
-            
-            Hinv = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2)
-            Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2)
+              Hinv = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2)
+              Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2)
             
 
-            !if(Iinv<0) Iinv=0d0
-            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-            
-            invariants(1,i) = Hinv
-!            invariants(2,i) = Iinv
-            invariants(2,i) = dsqrt(Iinv)  !Use this for benchmark with CH.
-            invariants(3,i) = xn
-            invariants(4,i) = pxn
-            invariants(5,i) = yn
-            invariants(6,i) = pyn
+              !if(Iinv<0) Iinv=0d0
+              !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+              
+              invariants(1,i) = Hinv
+!              invariants(2,i) = Iinv
+              invariants(2,i) = dsqrt(Iinv)  !Use this for benchmark with CH.
+              invariants(3,i) = xn
+              invariants(4,i) = pxn
+              invariants(5,i) = yn
+              invariants(6,i) = pyn
 !   Test for occurrence of NaN:
             
-            !test = Hinv*Iinv*xn*pxn*yn*pyn
-            !if(test.ne.test) then
-            !  write(*,*) 'NaN encountered (particle,s):'
-            !  write(*,*) i,snf
-            !  write(*,*) 'xn,pxn,yn,pyn',xn,pxn,yn,pyn
-            !  stop
-            !endif
-         endif
+              !test = Hinv*Iinv*xn*pxn*yn*pyn
+              !if(test.ne.test) then
+              !  write(*,*) 'NaN encountered (particle,s):'
+              !  write(*,*) i,snf
+              !  write(*,*) 'xn,pxn,yn,pyn',xn,pxn,yn,pyn
+              !  stop
+              !endif
+            endif
 !   End computation of diagnostic quantities
 
           enddo
@@ -503,139 +511,16 @@
 !  only near the midpoint of the insert.
         !smid = l0/2.0d0
          if(abs(sedge-smid+tau)<1.0d-4) then
-          call diagnostics_NonlinearLens(t+tau,invariants,Nplc)
-!          call mismatch_NonlinearLens(t+tau,invariants,Nplc)  !Commented for speed
+          call diagnostics_NonlinearLensSliced(t+tau,invariants,Nplc)
+!          call mismatch_NonlinearLensSliced(t+tau,invariants,Nplc)  !Commented for speed
          endif
 
         refpt(5) = refpt(5) + tau/beta0/Scxl
 
-        end subroutine propagator_NonlinearLens
+        end subroutine propagator_NonlinearLensSliced
 
 
-        subroutine propagator_SmoothFocusingNLL(t,tau,this,refpt,Nplc,pts,qmass)
-        use SpaceChargeSF
-        implicit none
-        include 'mpif.h'
-        integer, intent(in) :: Nplc
-        double precision, intent(inout) :: t
-        double precision, intent(in) :: tau,qmass
-        double precision, dimension(6), intent(inout) :: refpt
-        double precision, dimension(6) :: coord
-        double precision, dimension(6,Nplc) :: invariants
-        type (NonlinearLens), intent(in) :: this
-        double precision, pointer, dimension(:,:) :: pts
-        real*8 :: gambet0,zedge,tn,cn,bn,dn,mu0,f0,l0,sn, &
-                  knll,cnll,b,d,beta0,ds,sedge,ds2,smid, &
-                  kf,xn,yn,pxn,pyn,u,v,Hinv,Iinv,f,g,mismatch,test
-
-        real*8 :: snf,bnf,anf,cnllf,knllf,ksc
-        integer  :: i,j,nsg,mpstp,nn
-               
-        zedge = this%Param(1)    !Location of smooth focusing NLL element entry
-        tn = this%Param(2)       !Dimensionless strength of NLL
-        cn = this%Param(3)       !Dimensional parameter of NLL
-        bn = this%Param(4)       !Beta function (=1/focusing strength)
-        l0 = this%Length         !Length of NLL element
-        nsg = this%Nseg          !Number of SC kicks
-        mpstp = this%Mapstp      !Number of map steps/slice
-        nn = (nsg+1)*mpstp       !Total number of NLL segments
-        kf = 1.0d0/bn            !External smooth focusing strength
-
-        l0 = dabs(l0) !To allow reversible tracking
-
-        gambet0 = sqrt(refpt(6)**2-1.0d0)     !Relativistic beta*gamma
-        beta0 = sqrt(1.0d0-1.0d0/(refpt(6)**2)) !Relativistic beta
-
-        sedge = t-zedge          !Location of SC slice entry
-        if(tau<0.0d0) sedge = l0+sedge  !Begin at end of slice (reverse tracking)
-        ds = tau/dble(mpstp)     !Size of each map step
-        ds2 = ds/2.0d0
-
-        knll=ds*tn*cn**2/bn      !Parameters for NLL kick
-        cnll=cn*sqrt(bn)
-        ksc=ds*cn**2/bn          !Parameter for analytical SC kick
-
-        do j = 1, mpstp
-          sn = sedge + ds*(j-0.5d0)  !Location of jth map kick
-
-          do i = 1, Nplc
-            coord(1) = pts(1,i)*Scxl          !Convert to normalized units for update
-            coord(2) = pts(2,i)/gambet0
-            coord(3) = pts(3,i)*Scxl
-            coord(4) = pts(4,i)/gambet0
-            coord(5) = pts(5,i)*Scxl
-            coord(6) = pts(6,i)/gambet0
-!   Initial drift half step
-            call  DriftPropagator(ds2,beta0,gambet0,coord)    !Half step for drift
-!   Full step in complex potential of the nonlinear insert
-            call NonlinearLensPropagatorCmplx(knll,cnll,coord(1:4))  !Complex version of full step in (px,py)
-!   Space charge step in analytical smooth-focusing space charge potential (commutes with above)
-            call SpaceChargeSmoothFocusingPropagator(ksc,cnll,coord(1:4))  !Full step in (px,py)
-!   External focusing step
-            coord(2) = coord(2) -kf**2*coord(1)*ds    !Step in (px,py) due to external focusing
-            coord(4) = coord(4) -kf**2*coord(3)*ds
-!   Final drift half step
-            call DriftPropagator(ds2,beta0,gambet0,coord)    !Half step for drift
-            pts(1,i) = coord(1)/Scxl                   !Convert back to internal units
-            pts(2,i) = coord(2)*gambet0
-            pts(3,i) = coord(3)/Scxl 
-            pts(4,i) = coord(4)*gambet0
-            pts(5,i) = coord(5)/Scxl
-            pts(6,i) = coord(6)*gambet0
-!   Compute diagnostic quantities (temporarily added the "if" statement for speed)
-            smid = l0/2.0d0
-        if(abs(snf-smid)<1.0d-4) then
-            xn = coord(1)/cnll
-            yn = coord(3)/cnll
-            !<<<<<<<<<<<<<<<<<< Kilean <<<<<<<<<<<<<<<<<<<<<
-            !pxn = coord(2)*sqrt(bn)/cn
-            !pyn = coord(4)*sqrt(bn)/cn
-            pxn = coord(2)*sqrt(bn)/cn/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2)
-            pyn = coord(4)*sqrt(bn)/cn/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2)
-            
-            call InvariantPotentials(xn,yn,Hinv,Iinv)
-            !Hinv = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv
-            !Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv
-            Hinv = (xn**2+yn**2+pxn**2+pyn**2)/2.d0+tn*Hinv/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2)
-            Iinv = (xn*pyn-yn*pxn)**2+pxn**2+xn**2+tn*Iinv/sqrt((-coord(6)-refpt(6)/gambet0)**2-1d0/gambet0**2)
-            !if(Iinv<0) Iinv=0d0
-            !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-            
-            invariants(1,i) = Hinv
-!            invariants(2,i) = Iinv
-            invariants(2,i) = dsqrt(Iinv)  !Use this for benchmark with CH.
-            invariants(3,i) = xn
-            invariants(4,i) = pxn
-            invariants(5,i) = yn
-            invariants(6,i) = pyn
-!   Test for occurrence of NaN:
-!            test = Hinv*Iinv*xn*pxn*yn*pyn
-!            if(test.ne.test) then
-!              write(*,*) 'NaN encountered (particle,s):'
-!              write(*,*) i,snf
-!              stop
-!            endif
-         endif
-!   End computation of diagnostic quantities
-
-          enddo
-
-20      format(7(1x,g20.12))
-        enddo
-
-!  Use the following "if" statement if we want to write out diagnostics
-!  only near the midpoint of the insert.
-        smid = l0/2.0d0
-        if(abs(sedge-smid+tau)<1.0d-4) then
-          call diagnostics_NonlinearLens(t+tau,invariants,Nplc)
-!          call mismatch_NonlinearLens(t+tau,invariants,Nplc)  !Commented for speed
-        endif
-
-        refpt(5) = refpt(5) + tau/beta0/Scxl
-
-        end subroutine propagator_SmoothFocusingNLL
-
-        subroutine diagnostics_NonlinearLens(t,invariants,Nplc)
+        subroutine diagnostics_NonlinearLensSliced(t,invariants,Nplc)
         implicit none
         include 'mpif.h'
         integer, intent(in) :: Nplc
@@ -741,125 +626,7 @@
 
 20      format(11(1x,g20.12))
 
-        end subroutine diagnostics_NonlinearLens
+        end subroutine diagnostics_NonlinearLensSliced
 
-        subroutine mismatch_NonlinearLens(t,invariants,Nplc)
-        implicit none
-        include 'mpif.h'
-        integer, intent(in) :: Nplc
-        double precision, intent(in) :: t
-        double precision, intent(in), dimension(6,Nplc) :: invariants
-        double precision, dimension(4,4) :: sigma_d,sigma_p,sigma
-        double precision, dimension(4,4) :: sigmalc,sigmagl
-        double precision, dimension(2) :: det
-        double precision:: determinant,tr,mismatch
-        integer  :: j,k,l,lda,n,info,job,my_rank,ierr,Nptot
-
-        call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
-
-        job = 11
-        sigmalc = 0.0d0
-        sigmagl = 0.0d0
-        sigma_d = 0.0d0
-        sigma = 0.0d0
-        do j = 1,Nplc
-          do l = 1,4
-            do k = 1,l
-              sigmalc(k,l)=sigmalc(k,l)+invariants(2+l,j)*invariants(2+k,j)
-            enddo
-          enddo
-        enddo
-        call MPI_REDUCE(sigmalc,sigmagl,16,MPI_DOUBLE_PRECISION,&
-                        MPI_SUM,0,MPI_COMM_WORLD,ierr)
-        call MPI_REDUCE(Nplc,Nptot,1,MPI_INTEGER,&
-                        MPI_SUM,0,MPI_COMM_WORLD,ierr)
-        sigma = sigmagl/dble(Nptot)
-
-!  Test matrix
-!        sigma = 0.0d0
-!        sigma_d = 0.0d0
-!        sigma(1,1) = 0.5d0
-!        sigma(1,2) = 0.2d0
-!        sigma(2,2) = 4.0d0
-!        sigma(3,3) = 0.5d0
-!        sigma(3,4) = 0.2d0
-!        sigma(4,4) = 4.0d0
-!        sigma(2,1) = sigma(1,2)
-!        sigma(4,3) = sigma(3,4)
-!        sigma_d = sigma
-!  Nominal 4D Twiss matrix for nonlinear KV
-      if(my_rank.eq.0) then
-!        sigma_d(1,1) = 0.607210558112741
-!        sigma_d(1,2) = -7.189922950934375E-004
-!        sigma_d(2,2) = 0.854230738529633
-!        sigma_d(1,3) = -2.580942629625784E-003
-!        sigma_d(2,3) = -3.487490180048264E-003
-!        sigma_d(3,3) = 2.25445980775678
-!        sigma_d(1,4) = -2.490184832359349E-004
-!        sigma_d(2,4) = 1.205146145443822E-003
-!        sigma_d(3,4) = -1.702149308806317E-003
-!        sigma_d(4,4) = 0.855164869938001
-!  Nominal 4D Twiss matrix for KV
-!        sigma_d(1,1) = 1.0d0
-!        sigma_d(2,2) = 1.0d0
-!        sigma_d(3,3) = 1.0d0
-!        sigma_d(4,4) = 1.0d0
-!  Nominal 4D Twiss matrix for nonlinear KV test
-!        sigma_d(1,1) = 0.478522840872335
-!        sigma_d(1,2) = 2.037961684476454E-003
-!        sigma_d(2,2) = 0.810448309500901
-!        sigma_d(1,3) = -4.336749860086196E-004
-!        sigma_d(2,3) = -6.879253530927047E-003
-!        sigma_d(3,3) = 3.21482559940535
-!        sigma_d(1,4) = -4.332846363060930E-004
-!        sigma_d(2,4) = -1.251432543531919E-004
-!        sigma_d(3,4) = -8.333613637319727E-003
-!        sigma_d(4,4) = 0.802119548766217
-!  New nominal 4D Twiss matrix for nonlinear KV w SC
-        sigma_d(1,1) = 0.504540711130766
-        sigma_d(1,2) = 8.136364265543093E-003
-        sigma_d(2,2) = 0.831334243885491
-        sigma_d(1,3) = -1.132190353023146E-002
-        sigma_d(2,3) = 2.577385793436604E-003
-        sigma_d(3,3) = 2.80040438958216
-        sigma_d(1,4) = -2.512397796421949E-003
-        sigma_d(2,4) = 3.941467993038517E-003
-        sigma_d(3,4) = 8.713593277802075E-003
-        sigma_d(4,4) = 0.851621184371757
-!  
-        call dpofa(sigma,4,4,info)
-        call dpodi(sigma,4,4,det,job)
-        do l=1,4
-         do k=l,4
-           sigma(k,l) = sigma(l,k)
-           sigma_d(k,l) = sigma_d(l,k)
-         enddo
-        enddo
-!        write(*,*) 'det = ',det       
-!        write(*,*) 'sigma, sigma_d = '
-!        do l=1,4
-!          do k=1,4
-!           write(*,*) k,l,sigma(k,l),sigma_d(k,l)
-!          enddo
-!        enddo
-        sigma_p = matmul(dble(sigma),dble(sigma_d))
-!        write(*,*) 'product = '
-!        do l=1,4
-!          do k=1,l
-!           write(*,*) k,l,sigma_p(k,l)
-!          enddo
-!        enddo
-        determinant = det(1)*10.0**(det(2))
-        tr = 0.0d0
-        do k=1,4
-           tr = tr + sigma_p(k,k)
-        enddo
-        mismatch = determinant**(1.0d0/4.0d0)*tr/4.0d0
-        write(83,*) t,mismatch
-      endif
         
-        call flush(83)
-
-        end subroutine mismatch_NonlinearLens
-        
-      end module NonlinearLensclass
+      end module NonlinearLensSlicedclass

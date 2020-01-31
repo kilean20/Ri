@@ -257,6 +257,11 @@
           qmass = this%Charge/this%Mass
           call propagator_NonlinearLens(z,tau,beamln%pnll, &
                this%refptcl,this%Nptlocal,this%Pts1,qmass)
+        else if(bitype.eq.7) then
+        !special treatment of nonlinear element insert
+          qmass = this%Charge/this%Mass
+          call propagator_NonlinearLensSliced(z,tau,beamln%pnlls, &
+               this%refptcl,this%Nptlocal,this%Pts1,qmass)
         else if(bitype.eq.9) then
         !special treatment of smooth focusing nonlinear element insert
           qmass = this%Charge/this%Mass

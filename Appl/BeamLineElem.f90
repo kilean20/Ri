@@ -23,7 +23,8 @@
         use Dipoleclass
         use EMfldclass
         use TWSclass
-	use NonlinearLensclass
+        use NonlinearLensclass
+        use NonlinearLensSlicedclass
         type BeamLineElem
 !          private
           type (BPM), pointer :: pbpm
@@ -40,12 +41,13 @@
           type (Dipole), pointer :: pdipole
           type (EMfld), pointer :: pemfld
           type (TWS), pointer :: ptws
-	  type (NonlinearLens), pointer :: pnll
+          type (NonlinearLens), pointer :: pnll
+          type (NonlinearLensSliced), pointer :: pnlls
         end type BeamLineElem
         interface assign_BeamLineElem
           module procedure assign_ccl,assign_ccdtl,assign_dtl,assign_quad,&
           assign_drift,assign_sc,assign_bpm,assign_cf,assign_slrf,assign_sl,&
-          assign_dipole,assign_emfld,assign_mult,assign_tws,assign_nll
+          assign_dipole,assign_emfld,assign_mult,assign_tws,assign_nll,assign_nlls
         end interface
         interface getparam_BeamLineElem
           module procedure getparam1_BeamLineElem, &
@@ -77,6 +79,7 @@
         nullify(ppquad%pmult)
         nullify(ppquad%ptws)
         nullify(ppquad%pnll)
+        nullify(ppquad%pnlls)
 
         end function assign_quad
 
@@ -99,6 +102,7 @@
         nullify(ppdrift%pmult)
         nullify(ppdrift%ptws)
         nullify(ppdrift%pnll)
+        nullify(ppdrift%pnlls)
 
         end function assign_drift
          
@@ -121,6 +125,7 @@
         nullify(ppccl%pmult)
         nullify(ppccl%ptws)
         nullify(ppccl%pnll) 
+        nullify(ppccl%pnlls) 
 
         end function assign_ccl
          
@@ -143,6 +148,7 @@
         nullify(ppccdtl%pmult)
         nullify(ppccdtl%ptws)
         nullify(ppccdtl%pnll)
+        nullify(ppccdtl%pnlls)
 
         end function assign_ccdtl
 
@@ -165,6 +171,7 @@
         nullify(ppdtl%pmult)
         nullify(ppdtl%ptws)
         nullify(ppdtl%pnll)
+        nullify(ppdtl%pnlls)
 
         end function assign_dtl
 
@@ -187,6 +194,7 @@
         nullify(ppsc%pmult)
         nullify(ppsc%ptws)
         nullify(ppsc%pnll)
+        nullify(ppsc%pnlls)
 
         end function assign_sc
 
@@ -209,6 +217,7 @@
         nullify(ppbpm%pmult)
         nullify(ppbpm%ptws)
         nullify(ppbpm%pnll)
+        nullify(ppbpm%pnlls)
 
         end function assign_bpm
 
@@ -231,6 +240,7 @@
         nullify(ppcf%pmult)
         nullify(ppcf%ptws)
         nullify(ppcf%pnll) 
+        nullify(ppcf%pnlls) 
 
         end function assign_cf
 
@@ -253,6 +263,7 @@
         nullify(ppslrf%pmult)
         nullify(ppslrf%ptws)
         nullify(ppslrf%pnll)
+        nullify(ppslrf%pnlls)        
 
         end function assign_slrf
 
@@ -275,6 +286,7 @@
         nullify(ppsl%pmult)
         nullify(ppsl%ptws)
         nullify(ppsl%pnll)   
+        nullify(ppsl%pnlls) 
 
         end function assign_sl
 
@@ -297,6 +309,7 @@
         nullify(ppdipole%pmult)
         nullify(ppdipole%ptws)
         nullify(ppdipole%pnll)
+        nullify(ppdipole%pnlls)
 
         end function assign_dipole
 
@@ -319,6 +332,7 @@
         nullify(ppemfld%pmult)
         nullify(ppemfld%ptws)
         nullify(ppemfld%pnll)
+        nullify(ppemfld%pnlls)
 
         end function assign_emfld
 
@@ -341,6 +355,7 @@
         nullify(ppmult%pemfld)
         nullify(ppmult%ptws)
         nullify(ppmult%pnll)
+        nullify(ppmult%pnlls)
 
         end function assign_mult
 
@@ -363,6 +378,7 @@
         nullify(pptws%pemfld)
         nullify(pptws%pmult)
         nullify(pptws%pnll)
+        nullify(pptws%pnlls)
  
         end function assign_tws
 
@@ -385,8 +401,34 @@
         nullify(ppnll%pemfld)
         nullify(ppnll%pmult)
         nullify(ppnll%ptws)
+        nullify(ppnll%pnlls)
 
         end function assign_nll
+        
+        
+        function assign_nlls(tnlls) result(ppnlls)
+        type (BeamLineElem) :: ppnlls
+        type (NonlinearLensSliced), target, intent(in) :: tnlls
+
+        ppnlls%pnlls => tnlls
+        nullify(ppnlls%psl)
+        nullify(ppnlls%pbpm)   
+        nullify(ppnlls%pquad)
+        nullify(ppnlls%pdrift)
+        nullify(ppnlls%pccl)
+        nullify(ppnlls%pccdtl)
+        nullify(ppnlls%pdtl)
+        nullify(ppnlls%psc)
+        nullify(ppnlls%pcf)
+        nullify(ppnlls%pslrf)
+        nullify(ppnlls%pdipole)
+        nullify(ppnlls%pemfld)
+        nullify(ppnlls%pmult)
+        nullify(ppnlls%ptws)
+        nullify(ppnlls%pnll)
+
+        end function assign_nlls
+        
 
         subroutine getparam1_BeamLineElem(this,i,blparam)
         implicit none 
@@ -424,6 +466,8 @@
           call getparam_TWS(this%ptws,i,blparam)
         elseif(associated(this%pnll)) then
           call getparam_NonlinearLens(this%pnll,i,blparam)
+        elseif(associated(this%pnlls)) then
+          call getparam_NonlinearLensSliced(this%pnlls,i,blparam)
         endif
 
         end subroutine getparam1_BeamLineElem
@@ -463,6 +507,8 @@
           call getparam_TWS(this%ptws,blparams)
         elseif(associated(this%pnll)) then
           call getparam_NonlinearLens(this%pnll,blparams)
+        elseif(associated(this%pnlls)) then
+          call getparam_NonlinearLensSliced(this%pnlls,blparams)
         endif
 
         end subroutine getparam2_BeamLineElem
@@ -506,6 +552,8 @@
           call getparam_TWS(this%ptws,blength,bnseg,bmapstp,btype)
         elseif(associated(this%pnll)) then
           call getparam_NonlinearLens(this%pnll,blength,bnseg,bmapstp,btype)
+        elseif(associated(this%pnlls)) then
+          call getparam_NonlinearLensSliced(this%pnlls,blength,bnseg,bmapstp,btype)
         endif
 
         end subroutine getparam3_BeamLineElem
@@ -559,6 +607,9 @@
           piperadius2 = piperadius
         elseif(associated(this%pnll)) then
           call getparam_NonlinearLens(this%pnll,5,piperadius)
+          piperadius2 = piperadius
+        elseif(associated(this%pnlls)) then
+          call getparam_NonlinearLensSliced(this%pnlls,7,piperadius)
           piperadius2 = piperadius
         endif
 
@@ -660,6 +711,12 @@
           anglerrx = 0.0
           anglerry = 0.0
           anglerrz = 0.0
+        elseif(associated(this%pnlls)) then
+          xerr = 0.0
+          yerr = 0.0
+          anglerrx = 0.0
+          anglerry = 0.0
+          anglerrz = 0.0
         endif
 
         end subroutine geterr_BeamLineElem
@@ -700,6 +757,8 @@
           call setparam_TWS(this%ptws,i,blparam)
         elseif(associated(this%pnll)) then
           call setparam_NonlinearLens(this%pnll,i,blparam)
+        elseif(associated(this%pnlls)) then
+          call setparam_NonlinearLensSliced(this%pnlls,i,blparam)
         endif
 
         end subroutine setparam1_BeamLineElem
@@ -739,6 +798,8 @@
           call setparam_TWS(this%ptws,blparams)
         elseif(associated(this%pnll)) then
           call setparam_NonlinearLens(this%pnll,blparams)
+        elseif(associated(this%pnlls)) then
+          call setparam_NonlinearLensSliced(this%pnlls,blparams)
         endif
 
         end subroutine setparam2_BeamLineElem
@@ -782,6 +843,8 @@
           call setparam_TWS(this%ptws,bnseg,bmapstp,btype,blength)
         elseif(associated(this%pnll)) then
           call setparam_NonlinearLens(this%pnll,bnseg,bmapstp,btype,blength)
+        elseif(associated(this%pnlls)) then
+          call setparam_NonlinearLensSliced(this%pnlls,bnseg,bmapstp,btype,blength)
         endif
 
         end subroutine setparam3_BeamLineElem
@@ -833,6 +896,8 @@
           call maplinear_TWS(t,tau,xm,this%ptws,refpt,chg,mss)
         elseif(associated(this%pnll)) then  
           call maplinear_NonlinearLens(t,tau,xm,this%pnll,refpt,chg,mss)
+        elseif(associated(this%pnlls)) then  
+          call maplinear_NonlinearLensSliced(t,tau,xm,this%pnlls,refpt,chg,mss)
         endif
 
         end subroutine maplinear_BeamLineElem
@@ -875,6 +940,8 @@
           call getfld_TWS(pos,extfld,this%ptws)
         elseif(associated(this%pnll)) then
           call getfld_NonlinearLens(pos,extfld,this%pnll)
+        elseif(associated(this%pnlls)) then
+          call getfld_NonlinearLensSliced(pos,extfld,this%pnlls)
         endif
 
         end subroutine getfld_BeamLineElem
@@ -932,6 +999,9 @@
         elseif(associated(this%pnll)) then
           call getflderr_NonlinearLens(pos,extfld,this%pnll,dx,dy,anglex,&
                                     angley,anglez)
+        elseif(associated(this%pnlls)) then
+          call getflderr_NonlinearLensSliced(pos,extfld,this%pnlls,dx,dy,anglex,&
+                                    angley,anglez)
         endif
 
         end subroutine getflderr_BeamLineElem
@@ -986,7 +1056,7 @@
           ezpp1 = 0.0
         elseif(associated(this%ptws)) then
           call getaxfldE_TWS(z,this%ptws,ez1,ezp1,ezpp1,ez12,ezp12,ezpp12)
-        elseif(associated(this%pnll)) then
+        elseif(associated(this%pnll) .or. associated(this%pnlls)) then
           ez1 = 0.0
           ezp1 = 0.0
           ezpp1 = 0.0

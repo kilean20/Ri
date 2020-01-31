@@ -87,6 +87,7 @@
         type (Multipole),target,dimension(Nquadmax) :: beamln12
         type (TWS),target,dimension(Nscmax) :: beamln13
         type (NonlinearLens),target,dimension(Nnllmax) :: beamln14
+        type (NonlinearLensSliced),target,dimension(2*Nnllmax) :: beamln15
         type (BeamLineElem),private,dimension(Nblemtmax)::Blnelem
         type(PipeInfoType) :: PipeInfo
         !beam line element period.
@@ -123,12 +124,13 @@
         double precision, dimension(9) :: tmpquad
         double precision, dimension(10) :: tmpdipole 
         double precision, dimension(10) :: tmpnll
+        double precision, dimension(12) :: tmpnlls
         double precision, dimension(11) :: tmprf
         double precision, dimension(15) :: tmpslrf
         double precision, dimension(14) :: tmp13
         double precision, dimension(25) :: tmpdtl
         integer :: iqr,idr,ibpm,iccl,iccdtl,idtl,isc,icf,islrf,isl,idipole,&
-                   iemfld,myrank,imultpole,itws,inll
+                   iemfld,myrank,imultpole,itws,inll,inlls
 
         !start up MPI.
         call init_Input(time)
@@ -261,6 +263,7 @@
         imultpole = 0
         itws = 0
         inll = 0
+        inlls = 0
         do i = 1, Nblem
           if(bitype(i).lt.0) then
             ibpm = ibpm + 1
@@ -374,6 +377,29 @@
             call setparam_NonlinearLens(beamln14(inll),tmpnll)
 !   This line added to treat the analytical smooth focusing SC potential case
             Blnelem(i) = assign_BeamLineElem(beamln14(inll))
+          else if(bitype(i).eq.7) then
+            inlls = inlls + 1
+            print*, 'construct_NonlinearLensSliced'
+            print*, 'bnseg(i),bmpstp(i),bitype(i),blength(i)',bnseg(i),bmpstp(i),bitype(i),blength(i)
+            call construct_NonlinearLensSliced(beamln15(inlls),bnseg(i),bmpstp(i),&
+            bitype(i),blength(i))
+            tmpnlls(1) = 0.0
+            tmpnlls(2) = val1(i)
+            tmpnlls(3) = val2(i)
+            tmpnlls(4) = val3(i)
+            tmpnlls(5) = val4(i)
+            tmpnlls(6) = val5(i)
+            tmpnlls(7) = val6(i)
+            tmpnlls(8) = val7(i)
+            tmpnlls(9) = val8(i)
+            tmpnlls(10) = val9(i)
+            tmpnlls(11) = val10(i)
+            tmpnlls(12) = val11(i)
+            print*, 'setparam_NonlinearLensSliced'
+            call setparam_NonlinearLensSliced(beamln15(inlls),tmpnlls)
+!   This line added to treat the analytical smooth focusing SC potential case
+            print*, 'assign_BeamLineElem'
+            Blnelem(i) = assign_BeamLineElem(beamln15(inlls))
           else if(bitype(i).eq.101) then
             idtl = idtl + 1
             call construct_DTL(beamln3(idtl),bnseg(i),bmpstp(i),&

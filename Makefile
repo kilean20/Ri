@@ -40,7 +40,7 @@ OBJS = \
 	Appl/DriftTube.o Appl/Quadrupole.o Appl/ConstFoc.o Appl/SolRF.o \
 	Appl/Sol.o Appl/Dipole.o Appl/Multipole.o Appl/EMfld.o Appl/TWS.o \
   Appl/SpaceChargeSF_Tracking.o \
-	Appl/NonlinearLens.o Appl/BeamLineElem.o \
+	Appl/NonlinearLens.o Appl/NonlinearLensSliced.o Appl/BeamLineElem.o \
 	Appl/CompDom.o Appl/BeamBunch.o Appl/sym2dsolver.o \
 	Appl/Field_2D.o Appl/Distribution.o \
 	$(cOUT) Contrl/Input.o Contrl/AccSimulator.o Contrl/main.o
@@ -56,7 +56,7 @@ OBJS2 = \
 	BPM.o CCL.o CCDTL.o DTL.o SC.o PipeInfo.o DriftTube.o Quadrupole.o ConstFoc.o \
 	SolRF.o Sol.o Dipole.o Multipole.o EMfld.o TWS.o \
   SpaceChargeSF_Tracking.o \
-	NonlinearLens.o BeamLineElem.o CompDom.o \
+	NonlinearLens.o NonlinearLensSliced.o BeamLineElem.o CompDom.o \
 	BeamBunch.o sym2dsolver.o Field_2D.o Distribution.o \
 	Input.o $(OUT) AccSimulator.o main.o	
 #**************************************************************************
@@ -94,7 +94,7 @@ $(EXENAME): $(OBJS)
 	    ConstFoc.o BeamLineElem.o BeamBunch.o \
             Field_2D.o CompDom.o \
 	    Multipole.o sym2dsolver.o Distribution.o SolRF.o Sol.o Dipole.o TWS.o \
-	    NonlinearLens.o EMfld.o Appl
+	    NonlinearLens.o NonlinearLensSliced.o EMfld.o Appl
 	cp  Timer.o Transpose.o Fldmger.o Ptclmger.o FFT.o Bessel.o Func
 	cp  NumConst.o PhysConst.o Data.o Pgrid.o DataStruct
 #***********************************************************************
