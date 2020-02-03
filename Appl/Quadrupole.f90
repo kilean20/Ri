@@ -507,6 +507,9 @@
           betaz = gambetz/gam
           !each reference particle momentum
           gambetz = sqrt(gam**2-1.0d0) 
+          !<<<<<<<<<< update t half step <<<<<<<<<<<
+          tmp(5) = pts(5,i) + (1.0/betaz-1.0/beta0)*0.5*tau/Scxl 
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 !          kstr = pts(7,i)*2.997928e8/gambetz*this%Param(2)
 !Param(2) is the K defined in MAD, i.e. G/Brho
           kstr = pts(7,i)/qmass*gambet0/gambetz*this%Param(2)
@@ -570,14 +573,17 @@
           tmp(2) = gambetz*Scxl*xm21*pts(1,i)+xm22*pts(2,i)
           tmp(3) = xm33*pts(3,i)+xm34*pts(4,i)/gambetz/Scxl
           tmp(4) = gambetz*Scxl*xm43*pts(3,i)+xm44*pts(4,i)
-          tmp(5) = pts(5,i) + (1.0/betaz-1.0/beta0)*tau/Scxl 
-          tmp(6) = pts(6,i)
           pts(1,i) = tmp(1)
           pts(2,i) = tmp(2)
           pts(3,i) = tmp(3)
           pts(4,i) = tmp(4)
+          !<<<<<<<<<< update t half step <<<<<<<<<<<
+          gam = -refpt(6) - pts(6,i)
+          gambetz = sqrt(gam**2-1.0d0-pts(2,i)**2-pts(4,i)**2)
+          betaz = gambetz/gam
+          tmp(5) = tmp(5) + (1.0/betaz-1.0/beta0)*0.5*tau/Scxl 
           pts(5,i) = tmp(5)
-          pts(6,i) = tmp(6)
+          !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         enddo
         refpt(5) = refpt(5) + tau/beta0/Scxl
 !        tt = tt + tau
