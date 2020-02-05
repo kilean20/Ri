@@ -1276,9 +1276,9 @@
         BB%Pts1(7,:) = BB%Charge/BB%mass
         BB%Pts1(8,:) = BB%Current/Scfreq/BB%Npt*BB%Charge/abs(BB%Charge)
         if(myid.lt.nleft) then
-          BB%Pts1(9,i) = BB%Pts1(9,i) + myid*avgpts
+          BB%Pts1(9,:) = BB%Pts1(9,:) + myid*avgpts
         else
-          BB%Pts1(9,i) = BB%Pts1(9,i) + myid*avgpts + nleft
+          BB%Pts1(9,:) = BB%Pts1(9,:) + myid*avgpts + nleft
         endif
        
         t_kvdist = t_kvdist + elapsedtime_Timer(t0)
@@ -13223,9 +13223,9 @@ end subroutine
     BB%Pts1(7,:) = BB%Charge/BB%mass
     BB%Pts1(8,:) = BB%Current/Scfreq/BB%Npt*BB%Charge/abs(BB%Charge)
     if(myid.lt.nleft) then
-      BB%Pts1(9,i) = BB%Pts1(9,i) + myid*avgpts
+      BB%Pts1(9,:) = BB%Pts1(9,:) + myid*avgpts
     else
-      BB%Pts1(9,i) = BB%Pts1(9,i) + myid*avgpts + nleft
+      BB%Pts1(9,:) = BB%Pts1(9,:) + myid*avgpts + nleft
     endif
     
     ! longitudinal
@@ -13391,9 +13391,9 @@ end subroutine
     BB%Pts1(7,:) = BB%Charge/BB%mass
     BB%Pts1(8,:) = BB%Current/Scfreq/BB%Npt*BB%Charge/abs(BB%Charge)
     if(myid.lt.nleft) then
-      BB%Pts1(9,i) = BB%Pts1(9,i) + myid*avgpts
+      BB%Pts1(9,:) = BB%Pts1(9,:) + myid*avgpts
     else
-      BB%Pts1(9,i) = BB%Pts1(9,i) + myid*avgpts + nleft
+      BB%Pts1(9,:) = BB%Pts1(9,:) + myid*avgpts + nleft
     endif
   end subroutine distIOTA_genP_gaussian
 
