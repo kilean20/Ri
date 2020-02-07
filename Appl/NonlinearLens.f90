@@ -476,8 +476,8 @@
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             
             invariants(1,i) = Hinv
-!            invariants(2,i) = Iinv
-            invariants(2,i) = dsqrt(Iinv)  !Use this for benchmark with CH.
+            invariants(2,i) = Iinv
+!            invariants(2,i) = dsqrt(Iinv)  !Use this for benchmark with CH.
             invariants(3,i) = xn
             invariants(4,i) = pxn
             invariants(5,i) = yn
@@ -602,8 +602,8 @@
             !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             
             invariants(1,i) = Hinv
-!            invariants(2,i) = Iinv
-            invariants(2,i) = dsqrt(Iinv)  !Use this for benchmark with CH.
+            invariants(2,i) = Iinv
+!            invariants(2,i) = dsqrt(Iinv)  !Use this for benchmark with CH.
             invariants(3,i) = xn
             invariants(4,i) = pxn
             invariants(5,i) = yn
