@@ -379,8 +379,6 @@
             Blnelem(i) = assign_BeamLineElem(beamln14(inll))
           else if(bitype(i).eq.7) then
             inlls = inlls + 1
-            print*, 'construct_NonlinearLensSliced'
-            print*, 'bnseg(i),bmpstp(i),bitype(i),blength(i)',bnseg(i),bmpstp(i),bitype(i),blength(i)
             call construct_NonlinearLensSliced(beamln15(inlls),bnseg(i),bmpstp(i),&
             bitype(i),blength(i))
             tmpnlls(1) = 0.0
@@ -395,10 +393,8 @@
             tmpnlls(10) = val9(i)
             tmpnlls(11) = val10(i)
             tmpnlls(12) = val11(i)
-            print*, 'setparam_NonlinearLensSliced'
             call setparam_NonlinearLensSliced(beamln15(inlls),tmpnlls)
 !   This line added to treat the analytical smooth focusing SC potential case
-            print*, 'assign_BeamLineElem'
             Blnelem(i) = assign_BeamLineElem(beamln15(inlls))
           else if(bitype(i).eq.101) then
             idtl = idtl + 1
