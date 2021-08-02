@@ -2632,9 +2632,9 @@
         subroutine phase_Output(this,formatID,nfile,iter,samplePeriod)
         !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         !   Modified to output various format (Kilean)
-        !   formatID = 0 ASCII
-        !   formatID = 1 binary
-        !   formatID = 2 openPMD (hdf)
+        !   formatID = 1 ASCII
+        !   formatID = 2 binary
+        !   formatID = 4 openPMD (hdf)
         !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         implicit none
         include 'mpif.h'
@@ -2707,7 +2707,7 @@
                 write(nfile) this%Pts1(1:9,i)
               enddo
               do i = 1, np-1
-                call MPI_RECV(recvbuf(1,1),9*nptlist(i),MPI_DOUBLE_PRECISION,&
+                call MPI_RECV(recvbuf(1,1),9*(nptlist(i)/samplePeriod),MPI_DOUBLE_PRECISION,&
                               i,1,MPI_COMM_WORLD,status,ierr) 
 
                 do j = 1, nptlist(i),samplePeriod
